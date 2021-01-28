@@ -74,11 +74,20 @@ class Unit:
     def get_name(self):
         return self.name
 
-Main = "Amber"
-Unit2 = "Kaeya"
-Unit3 = "Lisa"
-Unit4 = "Noelle"
+    def __str__(self):
+        s = ''
+        for k, v in self.__dict__.items():
+            s += f'{k}: {v}\n'
+        return s
 
-MainDPS = Unit(Main)
+def main():
+    Main = "Amber"
+    Unit2 = "Kaeya"
+    Unit3 = "Lisa"
+    Unit4 = "Noelle"
 
-print(Unit.get_name(MainDPS))
+    MainDPS = Unit(Main)
+    print(Unit.get_name(MainDPS))
+
+if __name__ == '__main__':
+    main()
