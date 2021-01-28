@@ -27,20 +27,21 @@ def read_character_data():
             character_dict[name] = new_unit
 
             # TODO may want to consider doing something like: https://stackoverflow.com/a/1305663
-            new_unit.Element = row['Element']
-            new_unit.Weapon = row['Weapon Type']
-            new_unit.Constellation = 0
-            new_unit.WeaponRank = 0
-            new_unit.BaseATK = str_to_int(row['Base ATK'])
-            new_unit.ATK = pctstr_to_float(row['ATK%'])
-            new_unit.FlatATK = str_to_int(row['Flat ATK'])
-            new_unit.CritRate = pctstr_to_float(row['Crit Rate%'])
+            new_unit.element = row['Element']
+            new_unit.weapon = row['Weapon Type']
+            new_unit.constellation = 0
+            new_unit.weapon_rank = 0
+            new_unit.base_atk = str_to_int(row['Base ATK'])
+            new_unit.atk_pct = pctstr_to_float(row['ATK%'])
+            new_unit.flat_atk = str_to_int(row['Flat ATK'])
+            new_unit.crit_rate = pctstr_to_float(row['Crit Rate%'])
             # TODO add the other fields
 
     return character_dict
 
 def main():
     character_dict = read_character_data()
+    #print(character_dict)
     print(character_dict['Amber'])
 
 
