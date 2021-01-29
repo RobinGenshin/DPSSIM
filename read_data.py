@@ -1,5 +1,4 @@
 import csv
-import OOP
 
 CHARACTER_FILENAME = 'data/Characters.csv'
 WEAPON_FILENAME = 'data/Weapons.csv'
@@ -32,16 +31,92 @@ def str_to_float(s):
     return float(s)
 
 # Reads character data
+
+class Character():
+    def __init__ (self,name):
+        self.name = ""
+        self.element = ""
+        self.weapon = ""
+        self.artifact = ""
+        self.constellation = 0
+        self.weapon_rank = 0
+        self.auto_level = 0
+        self.skill_level = 0
+        self.burst_level = 0
+        self.base_atk = 0
+        self.atk_pct = 0
+        self.flat_atk = 0
+        self.crit_rate = 0
+        self.crit_dmg = 0
+        self.physical = 0
+        self.anemo = 0
+        self.cryo = 0
+        self.electro = 0
+        self.geo = 0
+        self.hydro = 0
+        self.pyro = 0
+        self.elemental_dmg = 0
+        self.elemental_mastery = 0
+        self.energy_recharge = 0
+        self.base_hp = 0
+        self.hp_pct = 0
+        self.flat_hp = 0
+        self.base_def = 0
+        self.def_pct = 0
+        self.flat_def = 0
+        self.all_dmg = 0
+        self.def_red = 0
+        self.normal_dmg = 0
+        self.normal_speed = 0
+        self.charged_dmg = 0
+        self.skill_dmg = 0
+        self.burst_dmg = 0
+        self.healing_bonus = 0
+        self.ele_res_red = 0
+        self.swirl_res_red = 0
+        self.phys_res_red = 0
+        self.normal_attack_type = ""
+        self.normal_attack_ratio = 0
+        self.normal_AT = ""
+        self.normal_AC = 0
+        self.normal_hits = 0
+        self.normal_RP = 0
+        self.passive_hits = 0
+        self.charged_attack_type = 0
+        self.charged_attack_ratio = 0
+        self.charged_AT = 0
+        self.charged_AC = ""
+        self.charged_hits = 0
+        self.charged_RP = 0
+        self.charged_stam = 0
+        self.skill_ratio = 0
+        self.skill_flat_ratio = 0
+        self.skill_AT = 0
+        self.skill_CD = 0
+        self.skill_hits = 0
+        self.skill_dur = 0
+        self.skill_charges = 0
+        self.skill_RP = 0
+        self.skill_particles = 0
+        self.burst_ratio = 0
+        self.burst_flat_ratio = 0
+        self.burst_AT = 0
+        self.burst_CD = 0
+        self.burst_energy = 0
+        self.burst_hits = 0
+        self.burst_dur = 0
+        self.burst_charges = 0
+        self.burst_RP = 0
+
 def read_character_data():
     with open(CHARACTER_FILENAME) as charfile:
         character_dict = {}
         reader = csv.DictReader(charfile, delimiter=',')
         for row in reader:
             name = row['Character']
-            newname = OOP.GeneralObject() 
+            newname = Character(name) 
             character_dict[name] = newname
 
-            # TODO may want to consider doing something like: https://stackoverflow.com/a/1305663
             newname.name = row['Character']
             newname.element = row['Element']
             newname.weapon = row['Weapon Type']
@@ -109,8 +184,53 @@ def read_character_data():
             newname.burst_dur = str_to_float(row['Q duration'])
             newname.burst_charges = ""
             newname.burst_RP =  str_to_float(row['Q RP'])
+
     return character_dict
 
+
+class Weapon():
+    def __init__ (self,weapon):
+        self.name = ""
+        self.element = ""
+        self.weapon = ""
+        self.artifact = ""
+        self.constellation = 0
+        self.weapon_rank = 0
+        self.auto_level = 0
+        self.skill_level = 0
+        self.burst_level = 0
+        self.base_atk = 0
+        self.atk_pct = 0
+        self.flat_atk = 0
+        self.crit_rate = 0
+        self.crit_dmg = 0
+        self.physical = 0
+        self.anemo = 0
+        self.cryo = 0
+        self.electro = 0
+        self.geo = 0
+        self.hydro = 0
+        self.pyro = 0
+        self.elemental_dmg = 0
+        self.elemental_mastery = 0
+        self.energy_recharge = 0
+        self.base_hp = 0
+        self.hp_pct = 0
+        self.flat_hp = 0
+        self.base_def = 0
+        self.def_pct = 0
+        self.flat_def = 0
+        self.all_dmg = 0
+        self.def_red = 0
+        self.normal_dmg = 0
+        self.normal_speed = 0
+        self.charged_dmg = 0
+        self.skill_dmg = 0
+        self.burst_dmg = 0
+        self.healing_bonus = 0
+        self.ele_res_red = 0
+        self.swirl_res_red = 0
+        self.phys_res_red = 0
 
 # Reads weapon data
 def read_weapon_data():
@@ -119,7 +239,7 @@ def read_weapon_data():
         reader = csv.DictReader(weaponfile, delimiter=',')
         for row in reader:
             weapon = row['Weapon']
-            newweapon = OOP.GeneralObject()
+            newweapon = Weapon(weapon)
             weapon_dict[weapon] = newweapon
             
             newweapon.rarity = row['Rarity']
@@ -159,6 +279,19 @@ def read_weapon_data():
             newweapon.phys_res_red = pctstr_to_float(row['Phys Res Reduce'])
     return weapon_dict
 
+class Enemy:
+    def __init__ (self, enemy):
+        self.name = ""
+        self.level = 0
+        self.physical_res = 0
+        self.anemo_res = 0
+        self.cryo_res = 0
+        self.electro_res = 0
+        self.geo_res = 0
+        self.hydro_res = 0
+        self.pyro_res = 0
+        self.hitlag = 0
+
 # Reads Enemies data
 def read_enemy_data():
     with open(ENEMY_FILENAME) as enemyfile:
@@ -166,7 +299,7 @@ def read_enemy_data():
         reader = csv.DictReader(enemyfile, delimiter=',')
         for row in reader:
             enemy = row['Monsters']
-            newenemy = OOP.GeneralObject()
+            newenemy = Enemy(enemy)
             enemy_dict[enemy] = newenemy
 
             newenemy.anemo_res = pctstr_to_float(row['Anemo RES'])
@@ -179,6 +312,50 @@ def read_enemy_data():
             newenemy.hitlag = str_to_float(row['Hitlag'])
     return enemy_dict
 
+class Artifact():
+    def __init__ (self,weapon):
+        self.name = ""
+        self.element = ""
+        self.weapon = ""
+        self.artifact = ""
+        self.constellation = 0
+        self.weapon_rank = 0
+        self.auto_level = 0
+        self.skill_level = 0
+        self.burst_level = 0
+        self.base_atk = 0
+        self.atk_pct = 0
+        self.flat_atk = 0
+        self.crit_rate = 0
+        self.crit_dmg = 0
+        self.physical = 0
+        self.anemo = 0
+        self.cryo = 0
+        self.electro = 0
+        self.geo = 0
+        self.hydro = 0
+        self.pyro = 0
+        self.elemental_dmg = 0
+        self.elemental_mastery = 0
+        self.energy_recharge = 0
+        self.base_hp = 0
+        self.hp_pct = 0
+        self.flat_hp = 0
+        self.base_def = 0
+        self.def_pct = 0
+        self.flat_def = 0
+        self.all_dmg = 0
+        self.def_red = 0
+        self.normal_dmg = 0
+        self.normal_speed = 0
+        self.charged_dmg = 0
+        self.skill_dmg = 0
+        self.burst_dmg = 0
+        self.healing_bonus = 0
+        self.ele_res_red = 0
+        self.swirl_res_red = 0
+        self.phys_res_red = 0
+
 # Reads artifact set data
 def read_artifact_set_data():
     with open(ARTIFACT_FILENAME) as artifact_set_file:
@@ -186,7 +363,7 @@ def read_artifact_set_data():
         reader = csv.DictReader(artifact_set_file, delimiter=',')
         for row in reader:
             artifact = row['Artifact']
-            newarti = OOP.GeneralObject() 
+            newarti = Artifact(artifact) 
             artifact_dict[artifact] = newarti
 
             # TODO may want to consider doing something like: https://stackoverflow.com/a/1305663

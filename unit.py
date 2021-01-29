@@ -1,7 +1,5 @@
 import csv
-import OOP
 import read_data as rd
-import constellations as c
 
 characterdict = rd.character_dict
 weapondict = rd.weapon_dict
@@ -12,12 +10,14 @@ razorautoratiodict = rd.razor_auto_ratio_dict
 razorqasratiodict = rd.razor_qas_ratio_dict
 zhongliqratiodict = rd.zhongli_q_ratio_dict
 
-#Static Stats for units in team
-class UnitStats(c.Const):
-    def __init__(self,name,weapon,artifact,constellation,weaponrank,autolevel,skilllevel,burstlevel):
-        super(UnitStats,self).__init__()
+#Unit/Character
+class Unit():
+    def __init__(self,name,level,weapon,artifact,constellation,weaponrank,autolevel,skilllevel,burstlevel):
+        super(Unit,self).__init__()
         self.name = name
         self.element = characterdict[name].element
+        self.level = level
+        self.weapon_type = characterdict[name].weapon
         self.weapon = weapon
         self.constellation = constellation
         self.weaponrank = weaponrank
@@ -73,6 +73,7 @@ class UnitStats(c.Const):
         self.skill_flat_ratio = 0
         self.skill_AT = characterdict[name].skill_AT
         self.skill_CD = characterdict[name].skill_CD
+        self.current_skill_CD = 0
         self.skill_hits = characterdict[name].skill_hits
         self.skill_dur = characterdict[name].skill_dur
         self.skill_charges = characterdict[name].skill_charges
@@ -82,63 +83,122 @@ class UnitStats(c.Const):
         self.burst_flat_ratio = 0
         self.burst_AT = characterdict[name].burst_AT
         self.burst_CD = characterdict[name].burst_CD
+        self.current_burst_CD = 0
         self.burst_energy = characterdict[name].burst_energy
+        self.current_burst_energy = 0
         self.burst_hits = characterdict[name].burst_hits
         self.burst_dur = characterdict[name].burst_dur
         self.burst_charges = characterdict[name].burst_charges
         self.burst_RP = characterdict[name].burst_RP
-        d = self.asdict()
-        d[self.name]()
+    
+    def normal_attack_damage(self,enemy):
+        tot_atk = (self.base_atk * (1 + self.atk_pct) + self.flat_atk)
+        crit_mult = ( 1 + (self.crit_rate * self.crit_dmg))
+        dmg_bon = (1 + self.all_dmg + self.normal_dmg + getattr(self,str(self.normal_attack_type.lower())))
 
-# Calculate stats into useable values
-class UsefulUnitStats:
-    def __init__ (self, unit):
-        self.total_atk = unit.base_atk * (1 + unit.atk_pct) + unit.flat_atk
-        self.crit_mult = 1 + ( unit.crit_rate * unit.crit_dmg )
-        self.total_normal_pct = 1 + unit.all_dmg + unit.normal_dmg + getattr(unit,str(unit.normal_attack_type.lower()))
-        self.total_charged_pct = 1 + unit.all_dmg + unit.charged_dmg + getattr(unit,str(unit.charged_attack_type.lower()))
-        self.total_skill_pct = 1 + unit.all_dmg + unit.skill_dmg + getattr(unit,str(unit.element.lower()))
-        self.total_burst_pct = 1 + unit.all_dmg + unit.burst_dmg + getattr(unit,str(unit.element.lower()))
-        self.total_normal_spd = 1 + unit.normal_speed
-        self.skill_CD = unit.skill_CD
-        self.burst_CD = unit.burst_CD
-        self.burst_energy = unit.burst_energy
-        ## Normal Attack Ratio
-        if unit.normal_attack_type == "Physical":
-            if unit.name == "Razor":
-                self.total_normal_ratio = unit.normal_attack_ratio * razorautoratiodict[unit.auto_level]
+        if self.normal_attack_type == "Physical":
+            if self.name == "Razor":
+                normal_scaling = razorautoratiodict[self.auto_level]
             else:
-                self.total_normal_ratio = unit.normal_attack_ratio * physratiodict[unit.auto_level]
+                normal_scaling = physratiodict[self.auto_level]
         else:
-            self.total_normal_ratio = unit.normal_attack_ratio * eleratiodict[unit.auto_level]
+            normal_scaling = eleratiodict[self.auto_level]
+        
+        defence  = ( 100 + self.level ) / (( 100 + self.level ) + (100 + enemy.level)) #enemy def will get updated in sim
+        restype = str(self.normal_attack_type).lower()+"_res"
+        enemy_res = 1 - getattr(enemy, restype) #enemy res will get updated in sim
+        
+        return tot_atk * crit_mult * dmg_bon * self.normal_attack_ratio * normal_scaling * enemy_res * defence
 
-        ## Charged Attack Ratio
-        if unit.charged_attack_type == "Physical":
-            self.total_charged_ratio = unit.charged_attack_ratio * physratiodict[unit.auto_level]
+    def charged_attack_damage(self,enemy):
+        tot_atk = (self.base_atk * (1 + self.atk_pct) + self.flat_atk)
+        crit_mult = ( 1 + (self.crit_rate * self.crit_dmg))
+        dmg_bon = (1 + self.all_dmg + self.normal_dmg + getattr(self,str(self.charged_attack_type.lower())))
+
+        if self.charged_attack_type == "Physical":
+            charged_scaling = physratiodict[self.auto_level]
         else:
-            self.total_charged_ratio = unit.charged_attack_ratio * eleratiodict[unit.auto_level]
+            charged_scaling = eleratiodict[self.auto_level]
 
-        ## Skill Ratio
-        self.total_skill_ratio = unit.skill_ratio * eleratiodict[unit.skill_level]
+        defence  = ( 100 + self.level ) / (( 100 + self.level ) + (100 + enemy.level ))
+        restype = str(self.charged_attack_type).lower()+"_res"
+        enemy_res = 1 - getattr(enemy, restype)
+        
+        return tot_atk * crit_mult * dmg_bon * self.charged_attack_ratio * charged_scaling * enemy_res * defence
 
-        ## Burst Ratio
-        self.total_burst_ratio = unit.burst_ratio * eleratiodict[unit.burst_level]
+    def skill_damage(self,enemy):
+        tot_atk = (self.base_atk * (1 + self.atk_pct) + self.flat_atk)
+        crit_mult = ( 1 + (self.crit_rate * self.crit_dmg))
+        dmg_bon = (1 + self.all_dmg + self.normal_dmg + getattr(self,str(self.charged_attack_type.lower())))
+        skill_scaling = eleratiodict[self.skill_level]
+        defence  = ( 100 + self.level ) / (( 100 + self.level ) + (100 + enemy.level ))
+        restype = str(self.element).lower()+"_res"
+        enemy_res = 1 - getattr(enemy, restype)
 
+        return tot_atk * crit_mult * dmg_bon * self.skill_ratio * skill_scaling * enemy_res * defence
 
-# Calculate initial damage per action
-class UnitDamage():
-    def __init__ (self, unit):
-        UnitStatsUpd = UsefulUnitStats(unit)
-        self.ini_auto_dmg = UnitStatsUpd.total_normal_ratio * UnitStatsUpd.total_atk * UnitStatsUpd.total_normal_pct
-        self.ini_charged_dmg = UnitStatsUpd.total_charged_ratio * UnitStatsUpd.total_atk * UnitStatsUpd.total_charged_pct
-        self.ini_skill_dmg = UnitStatsUpd.total_skill_ratio * UnitStatsUpd.total_atk * UnitStatsUpd.total_skill_pct
-        self.ini_burst_dmg = UnitStatsUpd.total_burst_ratio * UnitStatsUpd.total_atk * UnitStatsUpd.total_burst_pct
+    def burst_damage(self,enemy):
+        tot_atk = (self.base_atk * (1 + self.atk_pct) + self.flat_atk)
+        crit_mult = ( 1 + (self.crit_rate * self.crit_dmg))
+        dmg_bon = (1 + self.all_dmg + self.normal_dmg + getattr(self,str(self.charged_attack_type.lower())))
+        burst_scaling = eleratiodict[self.burst_level]
+        defence  = ( 100 + self.level ) / (( 100 + self.level ) + (100 + enemy.level ))
+        restype = str(self.element).lower()+"_res"
+        enemy_res = 1 - getattr(enemy, restype)        
+
+        return tot_atk * crit_mult * dmg_bon * self.burst_ratio * burst_scaling * enemy_res * defence
+
+    def normal_attack_duration(self,enemy):
+        non_hitlag_dur = (self.normal_AT / (1 + self.normal_speed))
+        if self.weapon_type in ["Sword","Polearm","Claymore"]:
+            hitlag = self.normal_hits * (enemy.hitlag / 60)
+        else:
+            hitlag = 0
+        if self.normal_AC == "Yes":
+            dash_frames = 0.33
+        else:
+            dash_frames = 0
+        
+        return non_hitlag_dur + hitlag + dash_frames
+
+    def charged_attack_duration(self,enemy):
+        non_hitlag_dur = self.charged_AT
+        if self.weapon_type in ["Sword","Polearm","Claymore"]:
+            hitlag = self.charged_hits * (enemy.hitlag / 60)
+        else:
+            hitlag = 0
+        if self.normal_AC == "Yes":
+            dash_frames = 0.33
+        else:
+            dash_frames = 0
+        
+        return non_hitlag_dur + hitlag + dash_frames
+
+    def skill_duration(self):
+        return self.skill_AT
+
+    def burst_duration(self):
+        return self.burst_AT       
+
+    def normal_attack_dps(self,enemy):
+        return self.normal_attack_damage(enemy) / self.normal_attack_duration(enemy)
+
+    def charged_attack_dps(self,enemy):
+        return self.charged_attack_damage(enemy) / self.charged_attack_duration(enemy)
+
+    def skill_dps(self,enemy):
+        return self.skill_damage(enemy) / self.skill_duration()
+
+    def burst_dps(self,enemy):
+        return self.burst_damage(enemy) / self.burst_duration()
 
 #Enemy with stats
 class Enemy:
-    def __init__ (self, enemy):
+    def __init__ (self, enemy, level):
         enemydict = rd.read_enemy_data()
         self.name = enemydict[enemy].name
+        self.level = level
+        self.physical_res = enemydict[enemy].physical_res
         self.anemo_res = enemydict[enemy].anemo_res
         self.cryo_res = enemydict[enemy].cryo_res
         self.electro_res = enemydict[enemy].electro_res
@@ -147,39 +207,10 @@ class Enemy:
         self.pyro_res = enemydict[enemy].pyro_res
         self.hitlag = enemydict[enemy].hitlag
 
-class UnitActionDuration():
-    def __init__(self, unit, enemy):
-        self.normal_dur = (unit.normal_AT / ( 1 + unit.normal_speed ))
-        if unit.weapon in ["Sword","Polearm","Claymore"]:
-            self.normal_dur += (unit.normal_hits * (enemy.hitlag / 60))
-        if unit.normal_AC == "Yes":
-            self.normal_dur += 0.33
-        self.charged_dur = unit.charged_AT
-        if unit.weapon in ["Sword","Polearm","Claymore"]:
-            self.charged_dur += (unit.normal_hits * (enemy.hitlag / 60))
-        if unit.charged_AC == "Yes":
-            self.charged_dur += 0.33
-        self.skill_dur = unit.skill_AT
-        self.burst_dur = unit.burst_AT
+def main():
+    Test = Unit("Amber", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 1, 1, 1)
+    Monster = Enemy("Hilichurls", 90)
+    print(Test.normal_attack_dps(Monster), Test.charged_attack_dps(Monster), Test.skill_dps(Monster), Test.burst_dps(Monster))
 
-class UnitActionDPS(UnitActionDuration):
-    def __init__(self,unit,enemy):
-        super(UnitActionDPS, self).__init__(unit,enemy)
-        UnitDamageUpd = UnitDamage(unit)
-        if self.normal_dur != 0:
-            self.normal_dps = UnitDamageUpd.ini_auto_dmg / self.normal_dur
-        if self.charged_dur != 0:
-            self.charged_dps = UnitDamageUpd.ini_charged_dmg / self.charged_dur
-        if self.skill_dur != 0:
-            self.skill_dps = UnitDamageUpd.ini_skill_dmg / self.skill_dur
-        if self.burst_dur != 0:
-            self.burst_dps = UnitDamageUpd.ini_burst_dmg / self.burst_dur
-
-
-# def main():
-#     TestMain = u.UnitStats("Amber","Prototype Crescent", "Wanderer's Troupe", 0, 1, 1, 1, 1)
-#     Support1 = u.UnitStats("Diona","Prototype Crescent", "Wanderer's Troupe", 0, 1, 1, 1, 1)
-#     Support2 = u.UnitStats("Fischl","Prototype Crescent", "Wanderer's Troupe", 0, 1, 1, 1, 1)
-#     Support3 = u.UnitStats("Ganyu","Prototype Crescent", "Wanderer's Troupe", 0, 1, 1, 1, 1)
-#     Monster = u.Enemy("Hilichurls")
-
+if __name__ == '__main__':
+    main()

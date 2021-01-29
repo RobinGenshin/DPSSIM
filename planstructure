@@ -1,0 +1,30 @@
+
+
+#read_data
+read csv data > convert into dictionary
+
+#UnitStats object
+create unitstats objects for a unit based on parameters, i.e. weapon, artifact set, constellations, etc
+assign attributes based on parameters and how they're mapped by the dictionaries
+
+#unitspecific functions
+create functions which update attributes based on parameters, i.e. variables that depend on constellations, talent levels, etc
+
+#weaponspecific functions
+create functions which update attributes based on parameters, i.e. variables that depend on weapon rank, specific weapons, etc
+
+#artifactspecific functions
+create functions which update attributes based on artifact sets, i.e. variables that depend on ?
+
+#UnitStatsUpd
+run specific functions based on unit attributes (from parameters of unit() object) to update stats
+
+#UsefulStats
+#Maybe skip this part since could complicate things unnecessarily
+compile UnitStats attriutes into useful attributes i.e. total_atk, crit_multiplier, etc
+
+#UnitDamage
+compile UsefulStats into damage for each action
+
+#ActionList
+compile UnitDamage for team's rea
