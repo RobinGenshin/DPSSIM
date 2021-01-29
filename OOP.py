@@ -2,13 +2,18 @@ import csv
 
 # AC: 
 #General class for team members
-class Unit:
-    def __init__(self, name):
-        self.name = name
+
+class GeneralObject:
+    def __init__(self):
+        self.name = ""
         self.element = ""
         self.weapon = ""
+        self.artifact = ""
         self.constellation = 0
         self.weapon_rank = 0
+        self.auto_level = 0
+        self.skill_level = 0
+        self.burst_level = 0
         self.base_atk = 0
         self.atk_pct = 0
         self.flat_atk = 0
@@ -55,6 +60,7 @@ class Unit:
         self.charged_RP = 0
         self.charged_stam = 0
         self.skill_ratio = 0
+        self.skill_flat_ratio = 0
         self.skill_AT = 0
         self.skill_CD = 0
         self.skill_hits = 0
@@ -63,6 +69,7 @@ class Unit:
         self.skill_RP = 0
         self.skill_particles = 0
         self.burst_ratio = 0
+        self.burst_flat_ratio = 0
         self.burst_AT = 0
         self.burst_CD = 0
         self.burst_energy = 0
@@ -81,13 +88,8 @@ class Unit:
         return s
 
 def main():
-    Main = "Amber"
-    Unit2 = "Kaeya"
-    Unit3 = "Lisa"
-    Unit4 = "Noelle"
-
-    MainDPS = Unit(Main)
-    print(Unit.get_name(MainDPS))
+    Test = GeneralObject()
+    print(GeneralObject.__str__(Test))
 
 if __name__ == '__main__':
     main()

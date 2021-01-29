@@ -1,8 +1,16 @@
 import csv
 import OOP
+
 CHARACTER_FILENAME = 'data/Characters.csv'
 WEAPON_FILENAME = 'data/Weapons.csv'
 ENEMY_FILENAME = 'data/Enemies.csv'
+ARTIFACT_FILENAME = 'data/ArtifactSets.csv'
+ELERATIO_FILENAME = 'data/ElementalRatio.csv'
+PHYSRATIO_FILENAME = 'data/PhysicalRatio.csv'
+RAZORAUTO_FILENAME = 'data/RazorAutoRatio.csv'
+RAZORQAS_FILENAME = 'data/RazorQASRatio.csv'
+ZHONGLIQ_FILENAME = 'data/ZhongliQRatio.csv'
+
 
 # Converts percentage strings to decimals [0, 1]
 def pctstr_to_float(pctstr):
@@ -171,15 +179,122 @@ def read_enemy_data():
             newenemy.hitlag = str_to_float(row['Hitlag'])
     return enemy_dict
 
-characterdict = read_character_data()
-weapondict = read_weapon_data()
-enemydict = read_enemy_data()
+# Reads artifact set data
+def read_artifact_set_data():
+    with open(ARTIFACT_FILENAME) as artifact_set_file:
+        artifact_dict = {}
+        reader = csv.DictReader(artifact_set_file, delimiter=',')
+        for row in reader:
+            artifact = row['Artifact']
+            newarti = OOP.GeneralObject() 
+            artifact_dict[artifact] = newarti
+
+            # TODO may want to consider doing something like: https://stackoverflow.com/a/1305663
+            newarti.artifact_rarity = row['Rarity']
+            newarti.base_atk = str_to_int(row['Base ATK'])
+            newarti.atk_pct = pctstr_to_float(row['ATK%'])
+            newarti.flat_atk = str_to_int(row['Flat ATK'])
+            newarti.crit_rate = pctstr_to_float(row['Crit Rate%'])
+            newarti.crit_dmg = pctstr_to_float(row['Crit Damage%'])
+            newarti.physical = pctstr_to_float(row['Physical%'])
+            newarti.anemo = pctstr_to_float(row['Anemo%'])
+            newarti.cryo = pctstr_to_float(row['Cryo%'])
+            newarti.electro = pctstr_to_float(row['Electro%'])
+            newarti.geo = pctstr_to_float(row['Geo%'])
+            newarti.hydro = pctstr_to_float(row['Hydro%'])
+            newarti.pyro = pctstr_to_float(row['Pyro%'])
+            newarti.elemental_dmg = pctstr_to_float(row['Elemental DMG%'])
+            newarti.elemental_mastery = str_to_int(row['Elemental Mastery'])
+            newarti.energy_recharge =  pctstr_to_float(row['Energy Recharge%'])
+            newarti.base_hp = str_to_int(row['Base HP'])
+            newarti.hp_pct =  pctstr_to_float(row['HP%'])
+            newarti.flat_hp = str_to_int(row['Flat HP'])
+            newarti.base_def = str_to_int(row['DEF'])
+            newarti.def_pct =  pctstr_to_float(row['DEF%'])
+            newarti.flat_def =  str_to_int(row['Flat DEF'])
+            newarti.all_dmg =  pctstr_to_float(row['DMG %'])
+            newarti.def_red =  pctstr_to_float(row['Defence reduce'])
+            newarti.normal_dmg = pctstr_to_float(row['Normal DMG%'])
+            newarti.normal_speed = pctstr_to_float(row['Normal Speed'])
+            newarti.charged_dmg = pctstr_to_float(row['Charged DMG%'])
+            newarti.skill_dmg = pctstr_to_float(row['Skill DMG%'])
+            newarti.burst_dmg = pctstr_to_float(row['Burst DMG%'])
+            newarti.healing_bonus = pctstr_to_float(row['Healing Bonus%'])
+            newarti.ele_res_red = pctstr_to_float(row['Ele Res Reduce'])
+            newarti.swirl_res_red = pctstr_to_float(row['Swirl Res Reduce'])
+            newarti.phys_res_red = pctstr_to_float(row['Phys Res Reduce'])
+    return artifact_dict
+
+# Reads elemental ratio data
+def read_ele_ratio_data():
+    with open(ELERATIO_FILENAME) as ele_ratio_file:
+        ele_ratio_dict = {}
+        reader = csv.DictReader(ele_ratio_file, delimiter=',')
+        for row in reader:
+            level = str_to_float(row['Level'])
+            ele_ratio_dict[level] = pctstr_to_float(row['Ratio'])
+    return ele_ratio_dict
+
+# Reads elemental ratio data
+def read_phys_ratio_data():
+    with open(PHYSRATIO_FILENAME) as phys_ratio_file:
+        phys_ratio_dict = {}
+        reader = csv.DictReader(phys_ratio_file, delimiter=',')
+        for row in reader:
+            level = str_to_float(row['Level'])
+            phys_ratio_dict[level] = pctstr_to_float(row['Ratio'])
+    return phys_ratio_dict
+
+# Reads razor auto ratio data
+def read_razor_auto_ratio_data():
+    with open(RAZORAUTO_FILENAME) as razor_auto_ratio_file:
+        razor_auto_ratio_dict = {}
+        reader = csv.DictReader(razor_auto_ratio_file, delimiter=',')
+        for row in reader:
+            level = str_to_float(row['Level'])
+            razor_auto_ratio_dict[level] = pctstr_to_float(row['Ratio'])
+    return razor_auto_ratio_dict
+
+# Reads razor q attack speed ratio data
+def read_razor_qas_ratio_data():
+    with open(RAZORQAS_FILENAME) as razor_qas_ratio_file:
+        razor_qas_ratio_dict = {}
+        reader = csv.DictReader(razor_qas_ratio_file, delimiter=',')
+        for row in reader:
+            level = str_to_float(row['Level'])
+            razor_qas_ratio_dict[level] = pctstr_to_float(row['Ratio'])
+    return razor_qas_ratio_dict
+
+# Reads zhongli q ratio data
+def read_zhongli_q_ratio_data():
+    with open(ZHONGLIQ_FILENAME) as zhongli_q_ratio_file:
+        zhongli_q_ratio_dict = {}
+        reader = csv.DictReader(zhongli_q_ratio_file, delimiter=',')
+        for row in reader:
+            level = str_to_float(row['Level'])
+            zhongli_q_ratio_dict[level] = pctstr_to_float(row['Ratio'])
+    return zhongli_q_ratio_dict
+
+character_dict = read_character_data()
+weapon_dict = read_weapon_data()
+enemy_dict = read_enemy_data()
+artifact_dict = read_artifact_set_data()
+ele_ratio_dict = read_ele_ratio_data()
+phys_ratio_dict = read_phys_ratio_data()
+razor_auto_ratio_dict = read_razor_auto_ratio_data()
+razor_qas_ratio_dict = read_razor_qas_ratio_data()
+zhongli_q_ratio_dict = read_zhongli_q_ratio_data()
 
 def main():
-    character_dict = read_character_data()
-    #print(character_dict)
-    print(character_dict['Amber'])
-
-
+    # print(character_dict)
+    # print(character_dict['Amber'])
+    # print(artifact_dict)
+    # print(artifact_dict["Gladiator's Finale"])
+    # print(ele_ratio_dict)
+    print(phys_ratio_dict)
+    # print(razor_auto_ratio_dict)
+    # print(razor_qas_ratio_dict)
+    # print(zhongli_q_ratio_dict)
+    
 if __name__ == '__main__':
     main()

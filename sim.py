@@ -27,14 +27,18 @@ class Sim:
         self.sup3skillcd = un.UnitStats(sup3).skill_CD
         self.sup3burstcd = un.UnitStats(sup3).burst_CD
         self.sup3energy = un.UnitStats(sup3).burst_energy
-        ActionListSim = a.ActionList(Main,sup1,sup2,sup3,enemy).asdict()
+        # ActionListSim = a.ActionList(Main,sup1,sup2,sup3,enemy).asdict()
 
-        while time < limit:
-            best_action = max(ActionListSim, key=ActionListSim.get)
-            time += 10
-            if time > limit:
-                print('Done')
-                break
+        # while time < limit:
+        #     best_action = max(ActionListSim, key=ActionListSim.get)
+        #     time += 10
+        #     if time > limit:
+        #         print('Done')
+        #         break
+        #     pass
 
-TestSim = Sim(Main,sup1,sup2,sup3,enemy,time)
+        # for i = 10:
+            
+
+# TestSim = Sim(Main,sup1,sup2,sup3,enemy,time)
 # print(TestSim.best_action)
