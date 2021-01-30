@@ -28,3 +28,58 @@ compile UsefulStats into damage for each action
 
 #ActionList
 compile UnitDamage for team's rea
+
+#WeirdConstellations
+c6 fischl
+
+#Sim
+check team for highest dps action
+get which method / unit created it
+
+
+#Adding time
+Let's say Action 1 takes 0.7s
+If Action 2 (Next action) is created by another chosen_unit, add artificial time to that action
+    if the last action took <1s
+
+To do list:
+[ ] Artifact Substats
+[x] Constellations 
+[ ] Weapon Ranks
+[ ] Buffs
+[ ] Reactions
+
+#Buffs
+Bennett Q - atk
+Mona Q - dmg
+Mona C4 - crit
+Traveler (Geo) C1 - crit
+Xinyan A4 - phys
+Bennett C6 - pyro
+Archaic Petra - geo
+Noblesse - atk
+Sucrose C6 - dmg
+Sucrose A2 - em
+Sucrose A4 - em
+Diona C6 - em
+Albedo - em
+Albedo - dmg
+Chongyun E - atk speed
+Thrilling tales = atk
+Klee C6 - Pyro
+Wgs - atk
+Amber C6 - atk
+Ganyu Q/A4 - cryo
+Ganyu c4 - dmg
+Jean c2 - atk speed
+Venti c4 - anemo
+Diluc A4 - pyro
+Xiangling c6 - pyro
+Beidou a4 - atk speed, normal/charged dmg
+Ganyu a2 - crit
+keqing a4 - crit / er
+chong c2 - cdr
+noelle q - def>atk
+
+rancour - atk/def
+whiteblind - atk/def

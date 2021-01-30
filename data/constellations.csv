@@ -1,0 +1,30 @@
+Character,C1,C2,C3,C4,C5,C6
+Amber,charged_ratio_20pct,skill_flat_200pct,burst_level_plus_3,"skill_charge_plus_1, skill_cd_minus_20pct",skill_level_plus_3,q_on_use_atk_pct_10pct
+Albedo,,,,,,
+Barbara,,,,,,
+Beidou,,,,,,
+Bennett,,,,,,
+Chongyun,,,,,,
+Diona,burst_refund_15,skill_dmg_15pct,burst_level_plus_3,aimed_shot_dur_minus_60pct,skill_level_plus_3,q_on_use_200em
+Diluc,,,,,,
+Fischl,electro_on_hit_self_22pct,skill_flat_200pct,skill_level_plus_3,burst_flat_222pct,burst_level_plus_3,electro_on_hit_30pct
+Ganyu,charged_cryo_res_15pct,skill_charge_plus_1,burst_level_plus_3,q_on_hit_15_pct,skill_level_plus_3,skill_skip_charge
+Jean,,,,,,
+Kaeya,,,,,,
+Keqing,,,,,,
+Klee,,,,,,
+Lisa,,,,,,
+Mona,,,,,,
+Ningguang,,,,,,
+Noelle,,,,,,
+Qiqi,,,,,,
+Razor,,,,,,
+Sucrose,,,,,,
+Tartaglia,,,,,,
+Traveler (Anemo),,,,,,
+Traveler (Geo),,,,,,
+Venti,,,,,,
+Xiangling,,,,,,
+Xingqiu,,,,,,
+Xinyan,,,,,,
+Zhongli,,,,,,

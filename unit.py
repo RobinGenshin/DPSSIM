@@ -1,5 +1,6 @@
 import csv
 import read_data as rd
+import staticbuffs as c
 
 characterdict = rd.character_dict
 weapondict = rd.weapon_dict
@@ -9,6 +10,8 @@ physratiodict = rd.phys_ratio_dict
 razorautoratiodict = rd.razor_auto_ratio_dict
 razorqasratiodict = rd.razor_qas_ratio_dict
 zhongliqratiodict = rd.zhongli_q_ratio_dict
+constdict = rd.const_dict
+charbuffdict = rd.charbuff_dict
 
 #Unit/Character
 class Unit():
@@ -73,6 +76,7 @@ class Unit():
         self.skill_flat_ratio = 0
         self.skill_AT = characterdict[name].skill_AT
         self.skill_CD = characterdict[name].skill_CD
+        self.skill_CDR = 1
         self.current_skill_CD = 0
         self.skill_hits = characterdict[name].skill_hits
         self.skill_dur = characterdict[name].skill_dur
@@ -83,13 +87,25 @@ class Unit():
         self.burst_flat_ratio = 0
         self.burst_AT = characterdict[name].burst_AT
         self.burst_CD = characterdict[name].burst_CD
+        self.burst_CDR = 1
         self.current_burst_CD = 0
         self.burst_energy = characterdict[name].burst_energy
-        self.current_burst_energy = 0
+        self.current_burst_energy = self.burst_energy
         self.burst_hits = characterdict[name].burst_hits
         self.burst_dur = characterdict[name].burst_dur
         self.burst_charges = characterdict[name].burst_charges
         self.burst_RP = characterdict[name].burst_RP
+        self.const_config = constdict[name]
+        for constellation in self.const_config:
+            key = constellation.translate({ord('C'):None})
+            if self.constellation >= int(key):
+                for x in range(0,len(self.const_config[constellation])):
+                    getattr(c.StaticBuff(),self.const_config[constellation][x])(self)
+        self.active_buff_config = {}
+        for buff in charbuffdict:
+            if charbuffdict[buff].character == self.name:
+                if charbuffdict[buff].constellation <= self.constellation:
+                    self.active_buff_config[buff] = charbuffdict[buff]
     
     def normal_attack_damage(self,enemy):
         tot_atk = (self.base_atk * (1 + self.atk_pct) + self.flat_atk)
@@ -144,8 +160,8 @@ class Unit():
         burst_scaling = eleratiodict[self.burst_level]
         defence  = ( 100 + self.level ) / (( 100 + self.level ) + (100 + enemy.level ))
         restype = str(self.element).lower()+"_res"
-        enemy_res = 1 - getattr(enemy, restype)        
-
+        enemy_res = 1 - getattr(enemy, restype) 
+       
         return tot_atk * crit_mult * dmg_bon * self.burst_ratio * burst_scaling * enemy_res * defence
 
     def normal_attack_duration(self,enemy):
@@ -181,16 +197,78 @@ class Unit():
         return self.burst_AT       
 
     def normal_attack_dps(self,enemy):
-        return self.normal_attack_damage(enemy) / self.normal_attack_duration(enemy)
+        if self.normal_attack_duration(enemy) == 0:
+            return 0
+        else:
+            return self.normal_attack_damage(enemy)/self.normal_attack_duration(enemy)
 
     def charged_attack_dps(self,enemy):
-        return self.charged_attack_damage(enemy) / self.charged_attack_duration(enemy)
+        if self.charged_attack_duration(enemy) == 0:
+            return 0
+        else:
+            return self.charged_attack_damage(enemy)/self.charged_attack_duration(enemy)
 
     def skill_dps(self,enemy):
-        return self.skill_damage(enemy) / self.skill_duration()
+        if self.current_skill_CD == 0:
+            return self.skill_damage(enemy)/self.skill_duration()
+        else:
+            return 0
+        return self.skill_damage(enemy)/self.skill_duration()
 
     def burst_dps(self,enemy):
-        return self.burst_damage(enemy) / self.burst_duration()
+        if self.current_burst_CD == 0 and self.current_burst_energy == self.burst_energy:
+            return self.burst_damage(enemy)/self.burst_duration()
+        else:
+            return 0
+
+    def highest_dps(self,enemy):
+        return max(self.normal_attack_dps(enemy),self.charged_attack_dps(enemy),self.skill_dps(enemy),self.burst_dps(enemy))
+
+    # Returns highest_dps_action
+    def highest_dps_action(self,enemy):
+        action = self.highest_dps(enemy)
+        if action == self.normal_attack_dps(enemy):
+            return "normal"
+        if action == self.charged_attack_dps(enemy):
+            return "charged"
+        if action == self.skill_dps(enemy):
+            return "skill"
+        if action == self.burst_dps(enemy):
+            return "burst"
+
+#Action Class
+class ChosenAction:
+    def __init__ (self,unit,enemy):
+        self.unit = unit
+        self.type = unit.highest_dps_action(enemy)
+        self.dps = unit.highest_dps(enemy)
+
+        if self.type == 'normal':
+            self.cd = 0
+            self.damage = unit.normal_attack_damage(enemy)
+            self.duration = unit.normal_attack_duration(enemy)
+            self.particles = 0
+
+        if self.type == 'charged':
+            self.cd = 0
+            self.damage = unit.charged_attack_damage(enemy)
+            self.duration = unit.charged_attack_duration(enemy)
+            self.particles = 0
+
+        if self.type == 'skill':
+            self.cd = unit.skill_CD
+            self.damage = unit.skill_damage(enemy)
+            self.particles = unit.skill_particles
+            self.duration = unit.skill_duration()
+
+        if self.type == 'burst':
+            self.cd = unit.skill_CD
+            self.damage = unit.burst_damage(enemy)
+            self.duration = unit.burst_duration()
+            self.particles = 0
+            self.energy = unit.burst_energy
+
+
 
 #Enemy with stats
 class Enemy:
@@ -208,9 +286,16 @@ class Enemy:
         self.hitlag = enemydict[enemy].hitlag
 
 def main():
-    Test = Unit("Amber", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 1, 1, 1)
-    Monster = Enemy("Hilichurls", 90)
-    print(Test.normal_attack_dps(Monster), Test.charged_attack_dps(Monster), Test.skill_dps(Monster), Test.burst_dps(Monster))
+    # Unit = Unit(Character, level, weapon, artifact set, constellation, weapon rank, auto level, skill level, burst level)
+    Main = Unit("Amber", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 1, 1, 1)
+    # Monster = Enemy("Hilichurls", 90)
+    print(Main.const_config)
+    print(constdict["Diona"])
+    print(Main.charged_attack_ratio)
+    print(Main.skill_flat_ratio)
+    print(Main.burst_level)
+    print(Main.skill_charges)
+    print(Main.active_buff_config)
 
 if __name__ == '__main__':
     main()
