@@ -1,5 +1,5 @@
 import csv
-import activebuffs as ab
+import buffs as b
 
 CHARACTER_FILENAME = 'data/Characters.csv'
 WEAPON_FILENAME = 'data/Weapons.csv'
@@ -12,7 +12,9 @@ RAZORQAS_FILENAME = 'data/RazorQASRatio.csv'
 ZHONGLIQ_FILENAME = 'data/ZhongliQRatio.csv'
 CONST_FILENAME = 'data/Constellations.csv'
 CHARBUFF_FILENAME = 'data/ActiveCharBuffs.csv'
-
+CHARDEBUFF_FILENAME = 'data/ActiveDebuffs.csv'
+BUFF_FILENAME = 'data/Buffs.csv'
+DEBUFF_FILENAME = 'data/Debuffs.csv'
 
 # Converts percentage strings to decimals [0, 1]
 def pctstr_to_float(pctstr):
@@ -455,24 +457,30 @@ def read_zhongli_q_ratio_data():
             zhongli_q_ratio_dict[level] = pctstr_to_float(row['Ratio'])
     return zhongli_q_ratio_dict
 
-# Reads constellation info
-def read_constellation_data():
-    with open(CONST_FILENAME) as constellation_file:
-        constellation__dict = {}
-        reader = csv.DictReader(constellation_file, delimiter=',')
-        for row in reader:
-            character = (row['Character'])
-            constellation__dict[character] = {"C1":(row['C1']).split(", "),"C2":(row['C2']).split(", "),"C3":(row['C3']).split(", "),"C4":(row['C4']).split(", "),"C5":(row['C5']).split(", "),"C6":(row['C6']).split(", ")}
-    return constellation__dict
-
-def read_char_buff_data():
-    with open(CHARBUFF_FILENAME) as charbuff_file:
-        charbuff_dict = {}
-        reader = csv.DictReader(charbuff_file, delimiter=',')
+def read_buff_data():
+    with open(BUFF_FILENAME) as buff_file:
+        buff_dict = {}
+        reader = csv.DictReader(buff_file,delimiter=',')
         for row in reader:
             buff = (row['Buff'])
-            charbuff_dict[buff] = ab.ActiveCharBuff((row['Character']),str_to_int(row['Constellation']),(row['Stat']),str_to_float(row['Value']),str_to_float(row['Duration']),(row['Trigger']),(row['Share']))
-    return charbuff_dict
+            buff_dict[buff] = b.Buff(row['Buff'],(row['Share']),
+                                (row['Type']),(row['Character']),
+                                str_to_int(row['Constellation']),
+                                                (row['Weapon']),
+                                        str_to_int(row['Rank']),
+                                                (row['method']),
+                                    str_to_float(row['Duration']),
+                                                (row['Trigger']))
+        return buff_dict
+
+def read_debuff_data():
+    with open(DEBUFF_FILENAME) as debuff_file:
+        debuff_dict = {}
+        reader = csv.DictReader(debuff_file,delimiter=',')
+        for row in reader:
+            debuff = (row['Debuff'])
+            debuff_dict[debuff] = b.Debuff((row['Debuff']),(row['Character']),str_to_int(row['Constellation']),(row['Weapon']),str_to_int(row['Rank']),(row['Artifact']),(row['method']),str_to_float(row['Duration']),(row['Trigger']))
+        return debuff_dict
 
 character_dict = read_character_data()
 weapon_dict = read_weapon_data()
@@ -483,8 +491,8 @@ phys_ratio_dict = read_phys_ratio_data()
 razor_auto_ratio_dict = read_razor_auto_ratio_data()
 razor_qas_ratio_dict = read_razor_qas_ratio_data()
 zhongli_q_ratio_dict = read_zhongli_q_ratio_data()
-const_dict = read_constellation_data()
-charbuff_dict = read_char_buff_data()
+buff_dict = read_buff_data()
+debuff_dict = read_debuff_data()
 
 def main():
     # print(character_dict)
@@ -495,9 +503,9 @@ def main():
     # print(phys_ratio_dict)
     # print(razor_auto_ratio_dict)
     # print(razor_qas_ratio_dict)
-    # print(zhongli_q_ratio_dict)
-    print(const_dict["Amber"])
-    print(charbuff_dict)
+    print(zhongli_q_ratio_dict)
+    print(buff_dict)
+    print(debuff_dict)
     
 if __name__ == '__main__':
     main()

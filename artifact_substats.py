@@ -26,12 +26,10 @@ class ArtifactStats:
         self.base_def = 0
         self.def_pct = 0
         self.flat_def = 0
-        a_dict = {'atk_pct':0.466,'def_pct':0.583,'hp_pct':0.466,'crit_rate':0.311,'crit_Dmg':0.622,'anemo':0.466,'cryo':0.466,'electro':0.466,'geo':0.466,'hydro':0.466,'pyro':0.466,'elemental_mastery':187,'energy_recharge':0.583}
+        a_dict = {'atk_pct':0.466,'def_pct':0.583,'hp_pct':0.466,'crit_rate':0.311,'crit_dmg':0.622,'anemo':0.466,'cryo':0.466,'electro':0.466,'geo':0.466,'hydro':0.466,'pyro':0.466,'elemental_mastery':187,'energy_recharge':0.583}
         setattr(self,sands,getattr(self,sands)+ a_dict[sands])
         setattr(self,goblet,getattr(self,goblet)+ a_dict[goblet])
         setattr(self,circlet,getattr(self,circlet)+ a_dict[circlet])
-        self.crit_rate += 0.033*10
-        self.crit_dmg += 0.066*10
-        self.atk_pct += 0.0495*10
-
-Test = ArtifactStats("atk_pct","cryo","crit_rate","Perfect")
+        self.crit_rate += 0.033*10*self.mult
+        self.crit_dmg += 0.066*10*self.mult
+        self.atk_pct += 0.0495*10*self.mult

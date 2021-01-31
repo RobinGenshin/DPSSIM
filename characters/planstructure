@@ -43,10 +43,11 @@ If Action 2 (Next action) is created by another chosen_unit, add artificial time
     if the last action took <1s
 
 To do list:
-[ ] Artifact Substats
+[x] Artifact Substats
 [x] Constellations 
 [ ] Weapon Ranks
 [x] Buffs
+[x] Debuffs
 [ ] Reactions
 
 #Buffs
@@ -83,3 +84,21 @@ noelle q - def>atk
 
 rancour - atk/def
 whiteblind - atk/def
+
+
+# Triggerable / Active Buff Implementation
+Triggerable Buffs are an object attached to a character, i.e. unit.triggerable_buffs = {buffobject1, buffobject2}
+if they are triggered, they are moved active buffs i.e. unit.active_buffs = {buffobject1, buffobject2}
+while in unit.active_buffs they can call a method from 'ActiveBuffs' class which affected live_stat
+this way you can have buffs that don't necessarily add or remove stats, i.e. ones that change a unit's attack type (infusion)
+
+Each triggerable_buffs needs information:
+1 - name
+2 - method to call
+3 - duration
+4 - if its shared or not
+
+Each active buffs needs parameters:
+1 - name
+2 - method_name to call
+3 - duration

@@ -1,6 +1,31 @@
 import csv
-import read_data as rd
-import unit as u
+
+class Buff:
+    def __init__(self,Buff,Share,Type,Character,Weapon,Rank,Constellation,method,Duration,Trigger):
+        self.name = Buff
+        self.share = Share
+        self.type = Type
+        self.character = Character
+        self.constellation = Constellation
+        self.weapon = Weapon
+        self.weapon_rank = Rank
+        self.method = method
+        self.duration = Duration
+        self.trigger = Trigger
+        self.time_remaining = self.duration
+
+class Debuff:
+    def __init__(self,Debuff,Character,Constellation,Weapon,Rank,Artifact,method,Duration,Trigger):
+        self.name = Debuff
+        self.character = Character
+        self.constellation = Constellation
+        self.weapon = Weapon
+        self.weapon_rank = Rank
+        self.artifact = Artifact
+        self.method = method
+        self.duration = Duration
+        self.trigger = Trigger
+        self.time_remaining = self.duration
 
 class StaticBuff:
     def charged_ratio_20pct(self,unit_obj):
@@ -37,4 +62,12 @@ class StaticBuff:
         pass
     def skill_skip_charge(self,unit_obj):
         pass
-    
+
+class ActiveBuff:
+    def atk_15pct(self,unit_obj):
+        unit_obj.live_atk_pct += 0.15
+
+class ActiveDebuff:
+    def def_15pct(self,unit_obj):
+        unit_obj.defence_debuff += 0.15
+
