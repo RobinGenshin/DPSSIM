@@ -29,19 +29,32 @@ class Unit():
         self.burst_level = burstlevel
         self.base_atk = characterdict[name].base_atk + weapondict[weapon].base_atk + artifactdict[artifact].base_atk
         self.atk_pct = characterdict[name].atk_pct + weapondict[weapon].atk_pct + artifactdict[artifact].atk_pct
+        self.live_atk_pct = self.atk_pct
         self.flat_atk = characterdict[name].flat_atk + weapondict[weapon].flat_atk + artifactdict[artifact].flat_atk
         self.crit_rate =  characterdict[name].crit_rate + weapondict[weapon].crit_rate + artifactdict[artifact].crit_rate
+        self.live_crit_rate = self.crit_rate
         self.crit_dmg =  characterdict[name].crit_dmg + weapondict[weapon].crit_dmg + artifactdict[artifact].crit_dmg
+        self.live_crit_dmg = self.crit_dmg
         self.physical = characterdict[name].physical + weapondict[weapon].physical + artifactdict[artifact].physical
+        self.live_physical = self.physical
         self.anemo = characterdict[name].anemo + weapondict[weapon].anemo + artifactdict[artifact].anemo
+        self.live_anemo = self.anemo
         self.cryo = characterdict[name].cryo + weapondict[weapon].cryo + artifactdict[artifact].cryo
+        self.live_cryo = self.cryo
         self.electro = characterdict[name].electro + weapondict[weapon].electro + artifactdict[artifact].electro
+        self.live_electro = self.electro
         self.geo = characterdict[name].geo + weapondict[weapon].geo + artifactdict[artifact].geo
+        self.live_geo = self.geo
         self.hydro = characterdict[name].hydro + weapondict[weapon].hydro + artifactdict[artifact].hydro
+        self.live_hydro = self.hydro
         self.pyro = characterdict[name].pyro + weapondict[weapon].pyro + artifactdict[artifact].pyro
+        self.live_pyro = self.pyro
         self.elemental_dmg = characterdict[name].elemental_dmg + weapondict[weapon].elemental_dmg + artifactdict[artifact].elemental_dmg
+        self.live_elemental_dmg = self.elemental_dmg
         self.elemental_mastery = characterdict[name].elemental_mastery + weapondict[weapon].elemental_mastery + artifactdict[artifact].elemental_mastery
+        self.live_elemental_mastery = self.elemental_mastery
         self.energy_recharge = characterdict[name].energy_recharge + weapondict[weapon].energy_recharge + artifactdict[artifact].energy_recharge
+        self.live_energy_recharge = self.energy_recharge
         self.base_hp = characterdict[name].base_hp + weapondict[weapon].base_hp + artifactdict[artifact].base_hp
         self.hp_pct = characterdict[name].hp_pct + weapondict[weapon].hp_pct + artifactdict[artifact].hp_pct
         self.flat_hp = characterdict[name].flat_hp + weapondict[weapon].flat_hp + artifactdict[artifact].flat_hp
@@ -49,12 +62,18 @@ class Unit():
         self.def_pct = characterdict[name].def_pct + weapondict[weapon].def_pct + artifactdict[artifact].def_pct
         self.flat_def = characterdict[name].flat_def + weapondict[weapon].flat_def + artifactdict[artifact].flat_def
         self.all_dmg = characterdict[name].all_dmg + weapondict[weapon].all_dmg + artifactdict[artifact].all_dmg
+        self.live_all_dmg = self.all_dmg
         self.def_red = characterdict[name].def_red + weapondict[weapon].def_red + artifactdict[artifact].def_red
         self.normal_dmg = characterdict[name].normal_dmg + weapondict[weapon].normal_dmg + artifactdict[artifact].normal_dmg
+        self.live_normal_dmg = self.normal_dmg
         self.normal_speed = characterdict[name].normal_speed + weapondict[weapon].normal_speed + artifactdict[artifact].normal_speed
+        self.live_normal_speed = self.normal_speed
         self.charged_dmg = characterdict[name].charged_dmg + weapondict[weapon].charged_dmg + artifactdict[artifact].charged_dmg
+        self.live_charged_dmg = self.charged_dmg
         self.skill_dmg = characterdict[name].skill_dmg + weapondict[weapon].skill_dmg + artifactdict[artifact].skill_dmg
+        self.live_skill_dmg = self.skill_dmg
         self.burst_dmg = characterdict[name].burst_dmg + weapondict[weapon].burst_dmg + artifactdict[artifact].burst_dmg
+        self.live_burst_dmg = self.burst_dmg
         self.healing_bonus = characterdict[name].healing_bonus + weapondict[weapon].healing_bonus + artifactdict[artifact].healing_bonus
         self.ele_res_red = characterdict[name].ele_res_red + weapondict[weapon].ele_res_red + artifactdict[artifact].ele_res_red
         self.swirl_res_red = characterdict[name].swirl_res_red + weapondict[weapon].swirl_res_red + artifactdict[artifact].swirl_res_red
@@ -77,6 +96,7 @@ class Unit():
         self.skill_AT = characterdict[name].skill_AT
         self.skill_CD = characterdict[name].skill_CD
         self.skill_CDR = 1
+        self.live_skill_CDR = self.skill_CDR
         self.current_skill_CD = 0
         self.skill_hits = characterdict[name].skill_hits
         self.skill_dur = characterdict[name].skill_dur
@@ -88,6 +108,7 @@ class Unit():
         self.burst_AT = characterdict[name].burst_AT
         self.burst_CD = characterdict[name].burst_CD
         self.burst_CDR = 1
+        self.live_burst_CDR = self.burst_CDR
         self.current_burst_CD = 0
         self.burst_energy = characterdict[name].burst_energy
         self.current_burst_energy = self.burst_energy
@@ -101,16 +122,25 @@ class Unit():
             if self.constellation >= int(key):
                 for x in range(0,len(self.const_config[constellation])):
                     getattr(c.StaticBuff(),self.const_config[constellation][x])(self)
-        self.active_buff_config = {}
+        self.triggerable_char_buffs = {}
         for buff in charbuffdict:
             if charbuffdict[buff].character == self.name:
                 if charbuffdict[buff].constellation <= self.constellation:
-                    self.active_buff_config[buff] = charbuffdict[buff]
+                    self.triggerable_char_buffs[buff] = charbuffdict[buff]
+        self.active_char_buffs = {}
+
+    def update_stats(self):
+        # clears stat buffs
+        for key in self.active_char_buffs:
+            setattr(self, "live_"+self.active_char_buffs[key].stat , getattr(self,self.active_char_buffs[key].stat))
+        # adds up stat buffs
+        for key in self.active_char_buffs:
+            setattr(self, "live_" + self.active_char_buffs[key].stat,getattr(self,"live_" + self.active_char_buffs[key].stat)+self.active_char_buffs[key].value)
     
     def normal_attack_damage(self,enemy):
-        tot_atk = (self.base_atk * (1 + self.atk_pct) + self.flat_atk)
-        crit_mult = ( 1 + (self.crit_rate * self.crit_dmg))
-        dmg_bon = (1 + self.all_dmg + self.normal_dmg + getattr(self,str(self.normal_attack_type.lower())))
+        tot_atk = (self.base_atk * (1 + self.live_atk_pct) + self.flat_atk)
+        crit_mult = ( 1 + (self.live_crit_rate * self.live_crit_dmg))
+        dmg_bon = (1 + self.live_all_dmg + self.live_normal_dmg + getattr(self,"live_" + str(self.normal_attack_type.lower())))
 
         if self.normal_attack_type == "Physical":
             if self.name == "Razor":
@@ -127,9 +157,9 @@ class Unit():
         return tot_atk * crit_mult * dmg_bon * self.normal_attack_ratio * normal_scaling * enemy_res * defence
 
     def charged_attack_damage(self,enemy):
-        tot_atk = (self.base_atk * (1 + self.atk_pct) + self.flat_atk)
-        crit_mult = ( 1 + (self.crit_rate * self.crit_dmg))
-        dmg_bon = (1 + self.all_dmg + self.normal_dmg + getattr(self,str(self.charged_attack_type.lower())))
+        tot_atk = (self.base_atk * (1 + self.live_atk_pct) + self.flat_atk)
+        crit_mult = ( 1 + (self.live_crit_rate * self.live_crit_dmg))
+        dmg_bon = (1 + self.live_all_dmg + self.live_charged_dmg + getattr(self,"live_" + str(self.charged_attack_type.lower())))
 
         if self.charged_attack_type == "Physical":
             charged_scaling = physratiodict[self.auto_level]
@@ -143,9 +173,9 @@ class Unit():
         return tot_atk * crit_mult * dmg_bon * self.charged_attack_ratio * charged_scaling * enemy_res * defence
 
     def skill_damage(self,enemy):
-        tot_atk = (self.base_atk * (1 + self.atk_pct) + self.flat_atk)
-        crit_mult = ( 1 + (self.crit_rate * self.crit_dmg))
-        dmg_bon = (1 + self.all_dmg + self.normal_dmg + getattr(self,str(self.charged_attack_type.lower())))
+        tot_atk = (self.base_atk * (1 + self.live_atk_pct) + self.flat_atk)
+        crit_mult = ( 1 + (self.live_crit_rate * self.live_crit_dmg))
+        dmg_bon = (1 + self.live_all_dmg + self.live_skill_dmg + getattr(self,"live_" + str(self.element.lower())))
         skill_scaling = eleratiodict[self.skill_level]
         defence  = ( 100 + self.level ) / (( 100 + self.level ) + (100 + enemy.level ))
         restype = str(self.element).lower()+"_res"
@@ -154,9 +184,9 @@ class Unit():
         return tot_atk * crit_mult * dmg_bon * self.skill_ratio * skill_scaling * enemy_res * defence
 
     def burst_damage(self,enemy):
-        tot_atk = (self.base_atk * (1 + self.atk_pct) + self.flat_atk)
-        crit_mult = ( 1 + (self.crit_rate * self.crit_dmg))
-        dmg_bon = (1 + self.all_dmg + self.normal_dmg + getattr(self,str(self.charged_attack_type.lower())))
+        tot_atk = (self.base_atk * (1 + self.live_atk_pct) + self.flat_atk)
+        crit_mult = ( 1 + (self.live_crit_rate * self.live_crit_dmg))
+        dmg_bon = (1 + self.live_all_dmg + self.live_burst_dmg + getattr(self,"live_" + str(self.element.lower())))
         burst_scaling = eleratiodict[self.burst_level]
         defence  = ( 100 + self.level ) / (( 100 + self.level ) + (100 + enemy.level ))
         restype = str(self.element).lower()+"_res"
@@ -165,7 +195,7 @@ class Unit():
         return tot_atk * crit_mult * dmg_bon * self.burst_ratio * burst_scaling * enemy_res * defence
 
     def normal_attack_duration(self,enemy):
-        non_hitlag_dur = (self.normal_AT / (1 + self.normal_speed))
+        non_hitlag_dur = (self.normal_AT / (1 + self.live_normal_speed))
         if self.weapon_type in ["Sword","Polearm","Claymore"]:
             hitlag = self.normal_hits * (enemy.hitlag / 60)
         else:
@@ -226,6 +256,7 @@ class Unit():
 
     # Returns highest_dps_action
     def highest_dps_action(self,enemy):
+        self.update_stats()
         action = self.highest_dps(enemy)
         if action == self.normal_attack_dps(enemy):
             return "normal"
@@ -295,7 +326,13 @@ def main():
     print(Main.skill_flat_ratio)
     print(Main.burst_level)
     print(Main.skill_charges)
-    print(Main.active_buff_config)
+    print(Main.triggerable_char_buffs)
+    for key, value in Main.triggerable_char_buffs.items():
+        print(key,value)
+    print(Main.atk_pct)
+    Main.update_stats()
+    print(type(Main.triggerable_char_buffs["Burst_atk_buff"].stat))
+    print(Main.atk_pct)
 
 if __name__ == '__main__':
     main()

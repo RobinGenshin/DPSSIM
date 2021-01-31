@@ -9,3 +9,4 @@ class ActiveCharBuff:
         self.duration = duration
         self.trigger = trigger
         self.share = share
+        self.time_remaining = self.duration

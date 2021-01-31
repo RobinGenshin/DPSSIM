@@ -42,6 +42,15 @@ class Sim:
                 if self.action.type == "burst":
                     unit.current_burst_CD = unit.burst_CD
                     unit.current_burst_energy = unit.burst_energy
+    
+    def check_buff(self):
+        for key in self.chosen_unit.triggerable_char_buffs:
+            if self.chosen_unit.triggerable_char_buffs[key].trigger == self.action.type:
+                if self.chosen_unit.triggerable_char_buffs[key].share == "Yes":
+                    for unit in self.units:
+                        unit.active_char_buffs[key] = self.chosen_unit.triggerable_char_buffs[key]
+                else:
+                    self.chosen_unit.active_char_buffs[key] = self.chosen_unit.triggerable_char_buffs[key]
 
     def pass_time(self):
         if self.chosen_unit == self.last_unit:
@@ -62,6 +71,13 @@ class Sim:
             else:
                 unit.current_burst_energy = min((unit.current_burst_energy + self.action.particles * 1.6 * unit.energy_recharge),unit.burst_energy)
 
+    def check_buff_end(self):
+        for unit in self.units:
+            for buff in unit.active_char_buffs:
+                unit.active_char_buffs[buff].time_remaining -= self.action.duration
+            unit.active_char_buffs = {k:unit.active_char_buffs[k] for k in unit.active_char_buffs if unit.active_char_buffs[k].time_remaining > 0}
+            unit.update_stats()
+
     def status(self):
         print("#" + str(self.action_order) + " Time:" + str(round(self.EncounterDuration,2)) + ", Action is " + self.chosen_unit.name + "'s "
         + self.action.type + ". It dealt " + str(int(self.action.damage)) + " damage. Total damage is " + str(int(self.Damage)) 
@@ -73,7 +89,9 @@ class Sim:
             self.best_unit()
             self.best_action()
             self.use_ability()
+            self.check_buff()
             self.pass_time()
+            self.check_buff_end()
             self.pass_turn()
             self.status()
 
@@ -83,8 +101,5 @@ Support2 = u.Unit("Fischl", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1,
 Support3 = u.Unit("Ganyu", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10)
 Monster = u.Enemy("Hilichurls", 90)
 
-print(Support1.charged_AT)
-print(Support1.charged_attack_dps(Monster))
-
-Test = Sim(Main,Support1,Support2,Support3,Monster,60)
+Test = Sim(Main,Support1,Support2,Support3,Monster,10)
 Test.turn_on_sim()

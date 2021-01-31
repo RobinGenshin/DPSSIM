@@ -1,2 +1,3 @@
 Buff,Character,Constellation,Stat,Value,Duration,Trigger,Share
 Burst_atk_buff,Amber,6,atk_pct,0.15,10,burst,self
+Burst_atk_buff2,Amber,6,atk_pct,0.15,10,burst,self
