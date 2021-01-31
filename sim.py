@@ -44,13 +44,13 @@ class Sim:
                     unit.current_burst_energy = unit.burst_energy
     
     def check_buff(self):
-        for key in self.chosen_unit.triggerable_char_buffs:
-            if self.chosen_unit.triggerable_char_buffs[key].trigger == self.action.type:
-                if self.chosen_unit.triggerable_char_buffs[key].share == "Yes":
+        for key, trig_buff in self.chosen_unit.triggerable_char_buffs.items():
+            if trig_buff.trigger == self.action.type:
+                if trig_buff.share == "Yes":
                     for unit in self.units:
-                        unit.active_char_buffs[key] = self.chosen_unit.triggerable_char_buffs[key]
+                        unit.active_char_buffs[key] = trig_buff
                 else:
-                    self.chosen_unit.active_char_buffs[key] = self.chosen_unit.triggerable_char_buffs[key]
+                    self.chosen_unit.active_char_buffs[key] = trig_buff
 
     def pass_time(self):
         if self.chosen_unit == self.last_unit:
@@ -73,8 +73,8 @@ class Sim:
 
     def check_buff_end(self):
         for unit in self.units:
-            for buff in unit.active_char_buffs:
-                unit.active_char_buffs[buff].time_remaining -= self.action.duration
+            for buff in unit.active_char_buffs.values():
+                buff.time_remaining -= self.action.duration
             unit.active_char_buffs = {k:unit.active_char_buffs[k] for k in unit.active_char_buffs if unit.active_char_buffs[k].time_remaining > 0}
             unit.update_stats()
 

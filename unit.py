@@ -131,11 +131,11 @@ class Unit():
 
     def update_stats(self):
         # clears stat buffs
-        for key in self.active_char_buffs:
-            setattr(self, "live_"+self.active_char_buffs[key].stat , getattr(self,self.active_char_buffs[key].stat))
+        for buff in self.active_char_buffs.values():
+            setattr(self, "live_" + buff.stat, getattr(self, buff.stat))
         # adds up stat buffs
-        for key in self.active_char_buffs:
-            setattr(self, "live_" + self.active_char_buffs[key].stat,getattr(self,"live_" + self.active_char_buffs[key].stat)+self.active_char_buffs[key].value)
+        for buff in self.active_char_buffs.values():
+            setattr(self, "live_" + buff.stat, getattr(self,"live_" + buff.stat) + buff.value)
     
     def normal_attack_damage(self,enemy):
         tot_atk = (self.base_atk * (1 + self.live_atk_pct) + self.flat_atk)
