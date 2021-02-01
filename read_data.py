@@ -465,9 +465,8 @@ def read_buff_data():
             buff = (row['Buff'])
             buff_dict[buff] = b.Buff(row['Buff'],(row['Share']),
                                 (row['Type']),(row['Character']),
+                                (row['Weapon']),str_to_int(row['Rank']),
                                 str_to_int(row['Constellation']),
-                                                (row['Weapon']),
-                                        str_to_int(row['Rank']),
                                                 (row['method']),
                                     str_to_float(row['Duration']),
                                                 (row['Trigger']))
@@ -503,9 +502,8 @@ def main():
     # print(phys_ratio_dict)
     # print(razor_auto_ratio_dict)
     # print(razor_qas_ratio_dict)
-    print(zhongli_q_ratio_dict)
-    print(buff_dict)
-    print(debuff_dict)
+    for buff in buff_dict:
+        print(buff_dict[buff].weapon!="")
     
 if __name__ == '__main__':
     main()

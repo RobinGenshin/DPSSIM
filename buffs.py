@@ -28,6 +28,12 @@ class Debuff:
         self.time_remaining = self.duration
 
 class StaticBuff:
+    def skill_ratio_20pct(self,unit_obj):
+        unit_obj.skill_ratio *= 1.2
+    def skill_cdr_20pct(self,unit_obj):
+        unit_obj.skill_CDR *= 0.8
+    def burst_crit_rate_10pct(self,unit_obj):
+        unit_obj.burst_crit_rate += 0.1
     def charged_ratio_20pct(self,unit_obj):
         unit_obj.charged_attack_ratio *= 1.2
     def skill_flat_200pct(self,unit_obj):
@@ -46,7 +52,7 @@ class StaticBuff:
         unit_obj.skill_dmg += 0.15
     def aimed_shot_dur_minus_60pct(self,unit_obj):
         unit_obj.charged_AT *= 0.4
-    def skill_charge_plus_1(self,unit_obj):
+    def skill_charges_plus_1(self,unit_obj):
         unit_obj.skill_charges += 1
     def q_on_use_200em(self,unit_obj):
         pass
@@ -66,6 +72,19 @@ class StaticBuff:
 class ActiveBuff:
     def atk_15pct(self,unit_obj):
         unit_obj.live_atk_pct += 0.15
+    def cryo_dmg_20pct(self,unit_obj):
+        unit_obj.live_cryo += 0.2
+    def dmg_15pct(self,unit_obj):
+        unit_obj.live_all_dmg += 0.15
+    def em_200(self,unit_obj):
+        unit_obj.live_elemental_mastery += 200
+    def melee_pyro_15pct(self,unit_obj):
+        if unit_obj.weapon_type in ("Polearm,","Claymore","Sword"):
+            unit_obj.live_pyro += 0.15
+    def ben_q(self,unit_obj):
+        pass
+    def ganyu_charged_reset(self,unit_obj):
+        unit_obj.live_charged_speed = 0
 
 class ActiveDebuff:
     def def_15pct(self,unit_obj):

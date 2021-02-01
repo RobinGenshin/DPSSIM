@@ -106,6 +106,7 @@ class Unit():
         self.skill_particles = characterdict[name].skill_particles
         self.burst_ratio = characterdict[name].burst_ratio
         self.burst_flat_ratio = 0
+        self.burst_crit_rate = 0
         self.burst_AT = characterdict[name].burst_AT
         self.burst_CD = characterdict[name].burst_CD
         self.burst_CDR = 1
@@ -153,7 +154,7 @@ class Unit():
             setattr(self, "live_" + stat, getattr(self, stat))
         # call method to reactivate buff
         for buff in self.active_buffs.values():
-            if type(buff.weapon) == str:
+            if buff.weapon != "":
                 getattr(c.ActiveBuff(),buff.method)(self,buff.weapon_rank)
             else:
                 getattr(c.ActiveBuff(),buff.method)(self)

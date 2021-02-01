@@ -55,14 +55,14 @@ class Sim:
             if trig_buff.trigger == self.chosen_action.type:
                 if trig_buff.share == "Yes":
                     for unit in self.units:
-                        unit.active_char_buffs[key] = trig_buff
+                        unit.active_buffs[key] = trig_buff
                 else:
                     self.chosen_unit.active_buffs[key] = trig_buff
     
     def add_debuff(self):
         for key, trig_debuff in self.chosen_unit.triggerable_debuffs.items():
             if trig_debuff.trigger == self.chosen_action.type:
-                self.enemy.active_debuffs[key] = trig_debuff
+                    self.enemy.active_debuffs[key] = trig_debuff
 
     def pass_time(self):
         if self.chosen_unit == self.last_unit:
@@ -79,16 +79,18 @@ class Sim:
             unit.current_burst_CD = max(unit.current_burst_CD - self.turn_time,0)
 
     def add_energy(self):
+        particles = self.chosen_action.particles
         for unit in self.units:
             if unit == self.chosen_unit:
-                unit.current_burst_energy = min((unit.current_burst_energy + self.chosen_action.particles * 3 * unit.energy_recharge),unit.burst_energy)
+                unit.current_burst_energy = min((unit.current_burst_energy + particles * 3 * unit.energy_recharge),unit.burst_energy)
             else:
-                unit.current_burst_energy = min((unit.current_burst_energy + self.chosen_action.particles * 1.6 * unit.energy_recharge),unit.burst_energy)
+                unit.current_burst_energy = min((unit.current_burst_energy + particles * 1.6 * unit.energy_recharge),unit.burst_energy)
 
     def check_buff_end(self):
         for unit in self.units:
             for buff in unit.active_buffs.values():
                 buff.time_remaining -= self.turn_time
+            unit.update_stats()
             unit.active_buffs = {k:unit.active_buffs[k] for k in unit.active_buffs if unit.active_buffs[k].time_remaining > 0}
             unit.update_stats()
 
@@ -118,15 +120,15 @@ class Sim:
             self.status()
 
 
-# PyroArtifact = artifact_substats.ArtifactStats("atk_pct", "pyro", "crit_rate", "Perfect")
-# CryoArtifact = artifact_substats.ArtifactStats("atk_pct", "cryo", "crit_rate", "Perfect")
-# ElectroArtifact = artifact_substats.ArtifactStats("atk_pct", "electro", "crit_rate", "Perfect")
+PyroArtifact = artifact_substats.ArtifactStats("atk_pct", "pyro", "crit_rate", "Perfect")
+CryoArtifact = artifact_substats.ArtifactStats("atk_pct", "cryo", "crit_rate", "Perfect")
+ElectroArtifact = artifact_substats.ArtifactStats("atk_pct", "electro", "crit_rate", "Perfect")
 
-# Main = u.Unit("Amber", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, PyroArtifact)
-# Support1 = u.Unit("Diona", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
-# Support2 = u.Unit("Fischl", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, ElectroArtifact)
-# Support3 = u.Unit("Ganyu", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
-# Monster = u.Enemy("Hilichurls", 90)
+Main = u.Unit("Amber", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, PyroArtifact)
+Support1 = u.Unit("Diona", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
+Support2 = u.Unit("Fischl", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, ElectroArtifact)
+Support3 = u.Unit("Ganyu", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
+Monster = u.Enemy("Hilichurls", 90)
 
-# Test = Sim(Main,Support1,Support2,Support3,Monster,2)
-# Test.turn_on_sim()
+Test = Sim(Main,Support1,Support2,Support3,Monster,100)
+Test.turn_on_sim()
