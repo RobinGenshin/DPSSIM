@@ -7,7 +7,7 @@ class Enemy:
     def __init__ (self, enemy, level):
         enemydict = rd.read_enemy_data()
         self.name = enemydict[enemy].name
-        self.level = float(level)
+        self.level = int(level)
         self.element = "None"
         self.units = 0
         self.defence = self.level + 100

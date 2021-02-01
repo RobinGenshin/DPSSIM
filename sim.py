@@ -49,7 +49,7 @@ class Sim:
 
     def add_buff_precast(self):
         for key, trig_buff in self.chosen_unit.triggerable_buffs.items():
-            if trig_buff.trigger == self.chosen_action.type or trig_buff.trigger == 'Any':
+            if trig_buff.trigger == self.chosen_action.type or trig_buff.trigger == 'any':
                 if trig_buff.precast == "Yes":
                     if trig_buff.instant == "Instant":
                         if trig_buff.share == "Yes":
@@ -89,7 +89,8 @@ class Sim:
     
     def add_buff_postcast(self):
         for key, trig_buff in self.chosen_unit.triggerable_buffs.items():
-            if trig_buff.trigger == self.chosen_action.type or trig_buff.trigger == 'Any':
+            print(self.chosen_unit.name)
+            if trig_buff.trigger == self.chosen_action.type or trig_buff.trigger == 'any':
                 if trig_buff.precast != "Yes":
                     if trig_buff.instant == "Instant":
                         if trig_buff.share == "Yes":
@@ -118,8 +119,8 @@ class Sim:
             self.turn_time = 0.12 + self.chosen_action.AT
     
     def create_dot_reactions_turn(self):
+        self.reaction_queue = {}
         for dot in self.dot_actions:
-            self.reaction_queue = {}
             time_per_tick = dot.duration / dot.ticks
             times_till_ticks = {}
             times_for_turn = {}
@@ -190,6 +191,8 @@ class Sim:
         self.encounter_duration += self.turn_time
         for dot in self.dot_actions:
             dot.time_remaining -= self.turn_time
+        self.dot_actions = {x for x in self.dot_actions if x.time_remaining > 0}
+
 
     def status(self):
         print("#" + str(self.action_order) + " Time:" + self.chosen_unit.name + " used "
@@ -200,8 +203,9 @@ class Sim:
             self.start_sim()
             self.update_action_list()
             self.choose_action()
-            self.use_ability()
             self.add_buff_precast()
+            self.use_ability()
+            self.add_buff_postcast()
             self.add_debuff()
             self.check_turn_time()
             self.create_dot_reactions_turn()
@@ -219,11 +223,9 @@ PyroArtifact = artifact_substats.ArtifactStats("atk_pct", "pyro", "crit_rate", "
 CryoArtifact = artifact_substats.ArtifactStats("atk_pct", "cryo", "crit_rate", "Perfect")
 ElectroArtifact = artifact_substats.ArtifactStats("atk_pct", "electro", "crit_rate", "Perfect")
 
-Main = u.Unit("Amber", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, PyroArtifact)
+Main = u.Unit("Amber", 90, "Prototype Crescent", "Lavawalker", 6, 1, 10, 10, 10, PyroArtifact)
 Support1 = u.Unit("Diona", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
 Support2 = u.Unit("Fischl", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, ElectroArtifact)
 Support3 = u.Unit("Ganyu", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
 Monster = u.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,10)
-Test.turn_on_sim()

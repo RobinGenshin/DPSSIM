@@ -455,6 +455,7 @@ def read_buff_data():
             buff_dict[buff] = b.Buff(row['Buff'],(row['Share']),
                                 (row['Type']),(row['Character']),
                                 (row['Weapon']),str_to_int(row['Rank']),
+                                                (row['Artifact']),
                                 str_to_int(row['Constellation']),
                                                 (row['method']),
                                     str_to_float(row['Duration']),

@@ -130,6 +130,8 @@ class Unit():
         self.burst_charges = characterdict[name].burst_charges
         self.live_burst_charges = self.burst_charges
         self.burst_U = characterdict[name].burst_U
+        self.stam_save = 0
+        self.live_stam_save = 0
         self.static_buffs = {}
         self.triggerable_buffs = {}
         self.active_buffs = {}
@@ -147,6 +149,12 @@ class Unit():
                 if buff.type == "Static":
                     self.static_buffs[key] = buff
                     getattr(c.StaticBuff(),buff.method)(self,buff.rank)
+                if buff.type == "Active":
+                    self.triggerable_buffs[key] = buff
+            if buff.artifact == self.artifact:
+                if buff.type == "Static":
+                    self.static_buffs[key] = buff
+                    getattr(c.StaticBuff(),buff.method)(self)
                 if buff.type == "Active":
                     self.triggerable_buffs[key] = buff
         
@@ -287,27 +295,14 @@ class Unit():
     def highest_dps_action(self,enemy):
         return max(self.normal_attack_dps(enemy),self.charged_attack_dps(enemy),self.skill_dps(enemy),self.burst_dps(enemy))
 
-    # Returns highest_dps_action
-    def highest_dps_action_type(self,enemy):
-        self.update_stats()
-        action = self.highest_dps_action(enemy)
-        if action == self.normal_attack_dps(enemy):
-            return "normal"
-        if action == self.charged_attack_dps(enemy):
-            return "charged"
-        if action == self.skill_dps(enemy):
-            return "skill"
-        if action == self.burst_dps(enemy):
-            return "burst"
-
 def main():
     # Unit = Unit(Character, level, weapon, artifact set, constellation, weapon rank, auto level, skill level, burst level)
     TestPyro = artifact_substats.ArtifactStats("atk_pct","pyro","crit_dmg","Perfect")
-    Main = Unit("Amber", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 1, 1, 1, TestPyro) 
+    Main = Unit("Amber", 90, "Prototype Crescent", "Crimson Witch", 6, 1, 1, 1, 1, TestPyro) 
     Monster = Enemy("Hilichurls", 90)
     print(type(Monster.defence), type(Monster.defence_debuff))
-    print(Main.atk_pct)
-    print(Main.burst_dur)
+    print(Main.triggerable_buffs)
+    print(type(buffdict["Lavawalker"]))
 
 if __name__ == '__main__':
     main()

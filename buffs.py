@@ -1,7 +1,7 @@
 import csv
 
 class Buff:
-    def __init__(self,Buff,Share,Type,Character,Weapon,Rank,Constellation,method,Duration,Trigger,Instant,Precast):
+    def __init__(self,Buff,Share,Type,Character,Weapon,Rank,Artifact,Constellation,method,Duration,Trigger,Instant,Precast):
         self.name = Buff
         self.share = Share
         self.type = Type
@@ -9,6 +9,7 @@ class Buff:
         self.constellation = Constellation
         self.weapon = Weapon
         self.weapon_rank = Rank
+        self.artifact = Artifact
         self.method = method
         self.duration = Duration
         self.trigger = Trigger
@@ -91,6 +92,15 @@ class ActiveBuff:
         pass
     def skill_cdr_50pct(self,unit_obj):
         pass
+    def stam_10pct(self,unit_obj):
+        unit_obj.live_stam_save += 0.1
+
+    # Artifacts
+    def pyro_7pct(self,unit_obj):
+        unit_obj.live_pyro += 0.075
+
+
+
 
 class ActiveDebuff:
     def def_15pct(self,unit_obj):
