@@ -2,6 +2,7 @@ import csv
 import read_data as rd
 import buffs as c
 import artifact_substats
+from enemy import *
 
 characterdict = rd.character_dict
 weapondict = rd.weapon_dict
@@ -28,40 +29,41 @@ class Unit():
         self.auto_level = autolevel
         self.skill_level = skilllevel
         self.burst_level = burstlevel
-        self.base_atk = characterdict[name].base_atk + weapondict[weapon].base_atk + artifactdict[artifact].base_atk
+        self.base_atk = characterdict[name].base_atk + weapondict[weapon].base_atk
         self.atk_pct = characterdict[name].atk_pct + weapondict[weapon].atk_pct + artifactdict[artifact].atk_pct + artifact_stat.atk_pct
         self.live_atk_pct = self.atk_pct
-        self.flat_atk = characterdict[name].flat_atk + weapondict[weapon].flat_atk + artifactdict[artifact].flat_atk
-        self.crit_rate =  characterdict[name].crit_rate + weapondict[weapon].crit_rate + artifactdict[artifact].crit_rate
+        self.flat_atk = characterdict[name].flat_atk + weapondict[weapon].flat_atk + artifactdict[artifact].flat_atk + artifact_stat.flat_atk
+        self.live_flat_atk = self.flat_atk
+        self.crit_rate =  characterdict[name].crit_rate + weapondict[weapon].crit_rate + artifactdict[artifact].crit_rate + artifact_stat.crit_rate
         self.live_crit_rate = self.crit_rate
-        self.crit_dmg =  characterdict[name].crit_dmg + weapondict[weapon].crit_dmg + artifactdict[artifact].crit_dmg
+        self.crit_dmg =  characterdict[name].crit_dmg + weapondict[weapon].crit_dmg + artifactdict[artifact].crit_dmg + artifact_stat.crit_dmg
         self.live_crit_dmg = self.crit_dmg
-        self.physical = characterdict[name].physical + weapondict[weapon].physical + artifactdict[artifact].physical
+        self.physical = characterdict[name].physical + weapondict[weapon].physical + artifactdict[artifact].physical+ artifact_stat.physical
         self.live_physical = self.physical
-        self.anemo = characterdict[name].anemo + weapondict[weapon].anemo + artifactdict[artifact].anemo
+        self.anemo = characterdict[name].anemo + weapondict[weapon].anemo + artifactdict[artifact].anemo + artifact_stat.anemo
         self.live_anemo = self.anemo
-        self.cryo = characterdict[name].cryo + weapondict[weapon].cryo + artifactdict[artifact].cryo
+        self.cryo = characterdict[name].cryo + weapondict[weapon].cryo + artifactdict[artifact].cryo + artifact_stat.cryo
         self.live_cryo = self.cryo
-        self.electro = characterdict[name].electro + weapondict[weapon].electro + artifactdict[artifact].electro
+        self.electro = characterdict[name].electro + weapondict[weapon].electro + artifactdict[artifact].electro + artifact_stat.electro
         self.live_electro = self.electro
-        self.geo = characterdict[name].geo + weapondict[weapon].geo + artifactdict[artifact].geo
+        self.geo = characterdict[name].geo + weapondict[weapon].geo + artifactdict[artifact].geo + artifact_stat.geo
         self.live_geo = self.geo
-        self.hydro = characterdict[name].hydro + weapondict[weapon].hydro + artifactdict[artifact].hydro
+        self.hydro = characterdict[name].hydro + weapondict[weapon].hydro + artifactdict[artifact].hydro + artifact_stat.hydro
         self.live_hydro = self.hydro
-        self.pyro = characterdict[name].pyro + weapondict[weapon].pyro + artifactdict[artifact].pyro
+        self.pyro = characterdict[name].pyro + weapondict[weapon].pyro + artifactdict[artifact].pyro + artifact_stat.pyro
         self.live_pyro = self.pyro
         self.elemental_dmg = characterdict[name].elemental_dmg + weapondict[weapon].elemental_dmg + artifactdict[artifact].elemental_dmg
         self.live_elemental_dmg = self.elemental_dmg
-        self.elemental_mastery = characterdict[name].elemental_mastery + weapondict[weapon].elemental_mastery + artifactdict[artifact].elemental_mastery
+        self.elemental_mastery = characterdict[name].elemental_mastery + weapondict[weapon].elemental_mastery + artifactdict[artifact].elemental_mastery+ artifact_stat.elemental_mastery
         self.live_elemental_mastery = self.elemental_mastery
-        self.energy_recharge = characterdict[name].energy_recharge + weapondict[weapon].energy_recharge + artifactdict[artifact].energy_recharge
+        self.energy_recharge = characterdict[name].energy_recharge + weapondict[weapon].energy_recharge + artifactdict[artifact].energy_recharge + artifact_stat.energy_recharge
         self.live_energy_recharge = self.energy_recharge
         self.base_hp = characterdict[name].base_hp + weapondict[weapon].base_hp + artifactdict[artifact].base_hp
-        self.hp_pct = characterdict[name].hp_pct + weapondict[weapon].hp_pct + artifactdict[artifact].hp_pct
-        self.flat_hp = characterdict[name].flat_hp + weapondict[weapon].flat_hp + artifactdict[artifact].flat_hp
+        self.hp_pct = characterdict[name].hp_pct + weapondict[weapon].hp_pct + artifactdict[artifact].hp_pct+ artifact_stat.hp_pct
+        self.flat_hp = characterdict[name].flat_hp + weapondict[weapon].flat_hp + artifactdict[artifact].flat_hp + artifact_stat.flat_hp
         self.base_def = characterdict[name].base_def + weapondict[weapon].base_def + artifactdict[artifact].base_def
-        self.def_pct = characterdict[name].def_pct + weapondict[weapon].def_pct + artifactdict[artifact].def_pct
-        self.flat_def = characterdict[name].flat_def + weapondict[weapon].flat_def + artifactdict[artifact].flat_def
+        self.def_pct = characterdict[name].def_pct + weapondict[weapon].def_pct + artifactdict[artifact].def_pct + artifact_stat.def_pct
+        self.flat_def = characterdict[name].flat_def + weapondict[weapon].flat_def + artifactdict[artifact].flat_def + artifact_stat.flat_def
         self.all_dmg = characterdict[name].all_dmg + weapondict[weapon].all_dmg + artifactdict[artifact].all_dmg
         self.live_all_dmg = self.all_dmg
         self.def_red = characterdict[name].def_red + weapondict[weapon].def_red + artifactdict[artifact].def_red
@@ -76,34 +78,39 @@ class Unit():
         self.burst_dmg = characterdict[name].burst_dmg + weapondict[weapon].burst_dmg + artifactdict[artifact].burst_dmg
         self.live_burst_dmg = self.burst_dmg
         self.healing_bonus = characterdict[name].healing_bonus + weapondict[weapon].healing_bonus + artifactdict[artifact].healing_bonus
-        self.ele_res_red = characterdict[name].ele_res_red + weapondict[weapon].ele_res_red + artifactdict[artifact].ele_res_red
-        self.swirl_res_red = characterdict[name].swirl_res_red + weapondict[weapon].swirl_res_red + artifactdict[artifact].swirl_res_red
-        self.normal_attack_type = characterdict[name].normal_attack_type
+        self.normal_attack_element = characterdict[name].normal_attack_type
         self.normal_attack_ratio = characterdict[name].normal_attack_ratio
         self.normal_AT = characterdict[name].normal_AT
         self.normal_AC = characterdict[name].normal_AC
         self.normal_hits = characterdict[name].normal_hits
         self.normal_RP =  characterdict[name].normal_RP
         self.passive_hits = characterdict[name].passive_hits
-        self.charged_attack_type = characterdict[name].charged_attack_type
+        self.charged_attack_element = characterdict[name].charged_attack_type
         self.charged_attack_ratio = characterdict[name].charged_attack_ratio
         self.charged_AT = characterdict[name].charged_AT
         self.charged_AC = characterdict[name].charged_AC
         self.charged_hits = characterdict[name].charged_hits
         self.charged_RP = characterdict[name].charged_RP
         self.charged_stam = characterdict[name].charged_stam
+        self.skill_element = self.element
         self.skill_ratio = characterdict[name].skill_ratio
         self.skill_flat_ratio = 0
         self.skill_AT = characterdict[name].skill_AT
         self.skill_CD = characterdict[name].skill_CD
+        self.live_skill_CD = 0
         self.skill_CDR = 1
         self.live_skill_CDR = self.skill_CDR
-        self.current_skill_CD = 0
         self.skill_hits = characterdict[name].skill_hits
-        self.skill_dur = characterdict[name].skill_dur
+        if characterdict[name].skill_dur == "Instant":
+            self.skill_dur = characterdict[name].skill_dur
+        else:
+            self.skill_dur = rd.str_to_float(characterdict[name].skill_dur)
+        self.skill_ticks = characterdict[name].skill_ticks 
         self.skill_charges = characterdict[name].skill_charges
-        self.skill_RP = characterdict[name].skill_RP
+        self.live_skill_charges = self.skill_charges
+        self.skill_U = characterdict[name].skill_U
         self.skill_particles = characterdict[name].skill_particles
+        self.burst_element = self.element
         self.burst_ratio = characterdict[name].burst_ratio
         self.burst_flat_ratio = 0
         self.burst_crit_rate = 0
@@ -111,13 +118,18 @@ class Unit():
         self.burst_CD = characterdict[name].burst_CD
         self.burst_CDR = 1
         self.live_burst_CDR = self.burst_CDR
-        self.current_burst_CD = 0
+        self.live_burst_CD = 0
         self.burst_energy = characterdict[name].burst_energy
-        self.current_burst_energy = self.burst_energy
+        self.live_burst_energy = self.burst_energy
         self.burst_hits = characterdict[name].burst_hits
-        self.burst_dur = characterdict[name].burst_dur
+        if characterdict[name].burst_dur == "Instant":
+            self.burst_dur = characterdict[name].burst_dur
+        else:
+            self.burst_dur = rd.str_to_float(characterdict[name].burst_dur)
+        self.burst_ticks = characterdict[name].skill_ticks 
         self.burst_charges = characterdict[name].burst_charges
-        self.burst_RP = characterdict[name].burst_RP
+        self.live_burst_charges = self.burst_charges
+        self.burst_U = characterdict[name].burst_U
         self.static_buffs = {}
         self.triggerable_buffs = {}
         self.active_buffs = {}
@@ -162,9 +174,9 @@ class Unit():
     def normal_attack_damage(self,enemy):
         tot_atk = (self.base_atk * (1 + self.live_atk_pct) + self.flat_atk)
         crit_mult = ( 1 + (self.live_crit_rate * self.live_crit_dmg))
-        dmg_bon = (1 + self.live_all_dmg + self.live_normal_dmg + getattr(self,"live_" + str(self.normal_attack_type.lower())))
+        dmg_bon = (1 + self.live_all_dmg + self.live_normal_dmg + getattr(self,"live_" + str(self.normal_attack_element.lower())))
 
-        if self.normal_attack_type == "Physical":
+        if self.normal_attack_element == "Physical":
             if self.name == "Razor":
                 normal_scaling = razorautoratiodict[self.auto_level]
             else:
@@ -173,7 +185,7 @@ class Unit():
             normal_scaling = eleratiodict[self.auto_level]
         
         defence  = ( 100 + self.level ) / (( 100 + self.level ) + (enemy.live_defence)) #enemy def will get updated in sim
-        restype = str(self.normal_attack_type).lower()+"_res"
+        restype = str(self.normal_attack_element).lower()+"_res"
         enemy_res = 1 - getattr(enemy, "live_" + restype) #enemy res will get updated in sim
         
         return tot_atk * crit_mult * dmg_bon * self.normal_attack_ratio * normal_scaling * enemy_res * defence
@@ -181,15 +193,15 @@ class Unit():
     def charged_attack_damage(self,enemy):
         tot_atk = (self.base_atk * (1 + self.live_atk_pct) + self.flat_atk)
         crit_mult = ( 1 + (self.live_crit_rate * self.live_crit_dmg))
-        dmg_bon = (1 + self.live_all_dmg + self.live_charged_dmg + getattr(self,"live_" + str(self.charged_attack_type.lower())))
+        dmg_bon = (1 + self.live_all_dmg + self.live_charged_dmg + getattr(self,"live_" + str(self.charged_attack_element.lower())))
 
-        if self.charged_attack_type == "Physical":
+        if self.charged_attack_element == "Physical":
             charged_scaling = physratiodict[self.auto_level]
         else:
             charged_scaling = eleratiodict[self.auto_level]
 
         defence  = ( 100 + self.level ) / (( 100 + self.level ) + (enemy.live_defence))
-        restype = str(self.charged_attack_type).lower()+"_res"
+        restype = str(self.charged_attack_element).lower()+"_res"
         enemy_res = 1 - getattr(enemy, "live_" + restype)
         
         return tot_atk * crit_mult * dmg_bon * self.charged_attack_ratio * charged_scaling * enemy_res * defence
@@ -261,13 +273,13 @@ class Unit():
             return self.charged_attack_damage(enemy)/self.charged_attack_action_time(enemy)
 
     def skill_dps(self,enemy):
-        if self.current_skill_CD == 0:
+        if self.live_skill_CD == 0:
             return self.skill_damage(enemy)/self.skill_action_time(enemy)
         else:
             return 0
 
     def burst_dps(self,enemy):
-        if self.current_burst_CD == 0 and self.current_burst_energy == self.burst_energy:
+        if self.live_burst_CD == 0 and self.live_burst_energy == self.burst_energy:
             return self.burst_damage(enemy)/self.burst_action_time(enemy)
         else:
             return 0
@@ -288,84 +300,6 @@ class Unit():
         if action == self.burst_dps(enemy):
             return "burst"
 
-#Action Class
-class Action:
-    def __init__ (self,unit,type,enemy):
-        self.unit = unit
-        self.type = type
-        self.dps = getattr(unit,self.type + "_dps")(enemy)
-        self.damage = getattr(unit,self.type + "_damage")(enemy)
-        self.AT = getattr(unit,self.type + "_action_time")(enemy)
-        if self.type == "skill":
-            self.particles = getattr(unit, "skill_particles")
-        else:
-            self.particles = 0
-        if self.type == "skill" or self.type == "burst":
-            self.cd = getattr(unit, self.type + "_CD")
-        else:
-            self.cd = 0
-
-#Enemy with stats
-class Enemy:
-    def __init__ (self, enemy, level):
-        enemydict = rd.read_enemy_data()
-        self.name = enemydict[enemy].name
-        self.level = float(level)
-        self.defence = self.level + 100
-        self.defence_debuff = float(0)
-        self.live_defence = self.defence
-        self.physical_res = enemydict[enemy].physical_res
-        self.physical_res_debuff = 0
-        self.live_physical_res = self.physical_res
-        self.anemo_res = enemydict[enemy].anemo_res
-        self.anemo_res_debuff = 0
-        self.live_anemo_res = self.anemo_res
-        self.cryo_res = enemydict[enemy].cryo_res
-        self.cryo_res_debuff = 0
-        self.live_cryo_res = self.cryo_res
-        self.electro_res = enemydict[enemy].electro_res
-        self.electro_res_debuff = 0
-        self.live_electro_res = self.electro_res
-        self.geo_res = enemydict[enemy].geo_res
-        self.geo_res_debuff = 0
-        self.live_geo_res = self.geo_res
-        self.hydro_res = enemydict[enemy].hydro_res
-        self.hydro_res_debuff = 0
-        self.live_hydro_res = self.hydro_res
-        self.pyro_res = enemydict[enemy].pyro_res
-        self.pyro_res_debuff = 0
-        self.live_pyro_res = self.pyro_res
-        self.active_debuffs = {}
-        self.hitlag = enemydict[enemy].hitlag
-        self.stats = {"defence", "anemo_res", "cryo_res", "geo_res", "electro_res", "hydro_res", "pyro_res"}
-        self.debuffs = {"defence_debuff", "anemo_res_debuff", "cryo_res_debuff", "geo_res_debuff", "electro_res_debuff", "hydro_res_debuff", "pyro_res"}
-    
-    def update_stats(self):
-        # resets live stats
-        for stat in self.stats:
-            setattr(self, "live_" + stat, getattr(self,stat))
-        # clears stat debuffs
-        for debuff in self.debuffs:
-            setattr(self, debuff, 0)
-        # adds up stat debuff
-        for _, debuff in self.active_debuffs.items():
-            getattr(c.ActiveDebuff(),debuff.method)(self)
-
-        # applies stat debuffs to main stat
-        self.live_defence = self.live_defence * ( 1 - self.defence_debuff )
-
-        elements = {"anemo","cryo","electro","geo","hydro","pyro"}
-        for element in elements:
-            if getattr( self, element + "_res") <= 0:
-                setattr(self, "live_" + element + "_res", getattr( self, element + "_res") - ( getattr( self, element + "_res_debuff") / 2 ))
-            elif ( getattr( self, element + "_res") - getattr( self, element + "_res_debuff")) <= 0:
-                setattr(self, "live_" + element + "_res", (getattr( self, element + "_res") - getattr( self, element + "_res_debuff")) / 2)
-            else:
-                setattr(self, "live_" + element + "_res", (getattr( self, element + "_res") - getattr( self, element + "_res_debuff")))
-        
-
-
-
 def main():
     # Unit = Unit(Character, level, weapon, artifact set, constellation, weapon rank, auto level, skill level, burst level)
     TestPyro = artifact_substats.ArtifactStats("atk_pct","pyro","crit_dmg","Perfect")
@@ -373,6 +307,7 @@ def main():
     Monster = Enemy("Hilichurls", 90)
     print(type(Monster.defence), type(Monster.defence_debuff))
     print(Main.atk_pct)
+    print(Main.burst_dur)
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,37 @@
+
+> Start sim 
+
+> Start Loop
+
+> Create list of actions
+
+> Pick action based on effective DPS
+> Effective dps is a function which checks enemy element and if the action is special, i.e. has more value than damage
+> Check if action is instant or dot
+> If action creates buff on cast, recalculate damage
+
+> If dot, move action to dot_actions
+
+> If instant
+> Check if action created reaction
+> Update enemy.element + update action damage
+
+> Check if action created buff after cast, apply buff
+> Check if action created debuff after cast, apply debuff
+
+> Check how long the action takes
+
+> Check how many dot ticks occured in that time
+> Check if dots created reactions
+> Update DoT damage based on new enemy RES/DEF and if they melt/vape
+
+> Pass time
+> Reduce CDs, increase energy
+
+> Check if buffs, debuffs, dots have run out
+> Remove them if they've run out
+
+Repeat Loop
+
+
+

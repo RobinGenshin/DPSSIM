@@ -100,8 +100,9 @@ class Character():
         self.skill_CD = 0
         self.skill_hits = 0
         self.skill_dur = 0
+        self.skill_ticks = 0
         self.skill_charges = 0
-        self.skill_RP = 0
+        self.skill_U = 0
         self.skill_particles = 0
         self.burst_ratio = 0
         self.burst_flat_ratio = 0
@@ -110,8 +111,9 @@ class Character():
         self.burst_energy = 0
         self.burst_hits = 0
         self.burst_dur = 0
+        self.burst_ticks = 0
         self.burst_charges = 0
-        self.burst_RP = 0
+        self.burst_U = 0
 
 def read_character_data():
     with open(CHARACTER_FILENAME) as charfile:
@@ -156,9 +158,6 @@ def read_character_data():
             newname.skill_dmg = pctstr_to_float(row['Skill DMG%'])
             newname.burst_dmg = pctstr_to_float(row['Burst DMG%'])
             newname.healing_bonus = pctstr_to_float(row['Healing Bonus%'])
-            newname.ele_res_red = pctstr_to_float(row['Ele Res Reduce'])
-            newname.swirl_res_red = pctstr_to_float(row['Swirl Res Reduce'])
-            newname.phys_res_red = pctstr_to_float(row['Phys Res Reduce'])
             newname.normal_attack_type = row['Normal Attack Type']
             newname.normal_attack_ratio = pctstr_to_float(row['Normal Attack Ratio'])
             newname.normal_AT =  str_to_float(row['Normal AT'])
@@ -177,18 +176,20 @@ def read_character_data():
             newname.skill_AT = str_to_float(row['E AT'])
             newname.skill_CD = str_to_float(row['E cd'])
             newname.skill_hits = str_to_int(row['E hits'])
-            newname.skill_dur = str_to_int(row['E duration'])
+            newname.skill_dur = (row['E duration'])
+            newname.skill_ticks = str_to_float(row['E ticks'])
             newname.skill_charges = str_to_int(row['E Charges'])
-            newname.skill_RP = str_to_int(row['E RP'])
+            newname.skill_U = str_to_int(row['E Units'])
             newname.skill_particles = str_to_float(row['Particles'])
             newname.burst_ratio = pctstr_to_float(row['Q Ratio'])
             newname.burst_AT = str_to_float(row['Q AT'])
             newname.burst_CD = str_to_float(row['Q cd'])
             newname.burst_energy = str_to_int(row['Q energy'])
             newname.burst_hits = str_to_int(row['Q hits'])
-            newname.burst_dur = str_to_float(row['Q duration'])
-            newname.burst_charges = ""
-            newname.burst_RP =  str_to_float(row['Q RP'])
+            newname.burst_dur = (row['Q duration'])
+            newname.burst_ticks = str_to_float(row['Q ticks'])
+            newname.burst_charges = float()
+            newname.burst_U =  str_to_float(row['Q Units'])
 
     return character_dict
 
@@ -233,9 +234,6 @@ class Weapon():
         self.skill_dmg = 0
         self.burst_dmg = 0
         self.healing_bonus = 0
-        self.ele_res_red = 0
-        self.swirl_res_red = 0
-        self.phys_res_red = 0
 
 # Reads weapon data
 def read_weapon_data():
@@ -279,9 +277,6 @@ def read_weapon_data():
             newweapon.skill_dmg = pctstr_to_float(row['Skill DMG%'])
             newweapon.burst_dmg = pctstr_to_float(row['Burst DMG%'])
             newweapon.healing_bonus = pctstr_to_float(row['Healing Bonus%'])
-            newweapon.ele_res_red = pctstr_to_float(row['Ele Res Reduce'])
-            newweapon.swirl_res_red = pctstr_to_float(row['Swirl Res Reduce'])
-            newweapon.phys_res_red = pctstr_to_float(row['Phys Res Reduce'])
     return weapon_dict
 
 class Enemy:
@@ -357,9 +352,6 @@ class Artifact():
         self.skill_dmg = 0
         self.burst_dmg = 0
         self.healing_bonus = 0
-        self.ele_res_red = 0
-        self.swirl_res_red = 0
-        self.phys_res_red = 0
 
 # Reads artifact set data
 def read_artifact_set_data():
@@ -402,9 +394,6 @@ def read_artifact_set_data():
             newarti.skill_dmg = pctstr_to_float(row['Skill DMG%'])
             newarti.burst_dmg = pctstr_to_float(row['Burst DMG%'])
             newarti.healing_bonus = pctstr_to_float(row['Healing Bonus%'])
-            newarti.ele_res_red = pctstr_to_float(row['Ele Res Reduce'])
-            newarti.swirl_res_red = pctstr_to_float(row['Swirl Res Reduce'])
-            newarti.phys_res_red = pctstr_to_float(row['Phys Res Reduce'])
     return artifact_dict
 
 # Reads elemental ratio data
@@ -469,7 +458,9 @@ def read_buff_data():
                                 str_to_int(row['Constellation']),
                                                 (row['method']),
                                     str_to_float(row['Duration']),
-                                                (row['Trigger']))
+                                                (row['Trigger']),
+                                                (row['Instant']),
+                                                (row['Precast']))
         return buff_dict
 
 def read_debuff_data():
@@ -478,7 +469,14 @@ def read_debuff_data():
         reader = csv.DictReader(debuff_file,delimiter=',')
         for row in reader:
             debuff = (row['Debuff'])
-            debuff_dict[debuff] = b.Debuff((row['Debuff']),(row['Character']),str_to_int(row['Constellation']),(row['Weapon']),str_to_int(row['Rank']),(row['Artifact']),(row['method']),str_to_float(row['Duration']),(row['Trigger']))
+            debuff_dict[debuff] = b.Debuff((row['Debuff']),
+                                                (row['Character']),
+                                                str_to_int(row['Constellation']),
+                                                (row['Weapon']),str_to_int(row['Rank']),
+                                                (row['Artifact']),
+                                                (row['method']),
+                                                str_to_float(row['Duration']),
+                                                (row['Trigger']))
         return debuff_dict
 
 character_dict = read_character_data()

@@ -1,7 +1,7 @@
 import csv
 
 class Buff:
-    def __init__(self,Buff,Share,Type,Character,Weapon,Rank,Constellation,method,Duration,Trigger):
+    def __init__(self,Buff,Share,Type,Character,Weapon,Rank,Constellation,method,Duration,Trigger,Instant,Precast):
         self.name = Buff
         self.share = Share
         self.type = Type
@@ -12,6 +12,8 @@ class Buff:
         self.method = method
         self.duration = Duration
         self.trigger = Trigger
+        self.instant = Instant
+        self.precast = Precast
         self.time_remaining = self.duration
 
 class Debuff:
@@ -85,6 +87,10 @@ class ActiveBuff:
         pass
     def ganyu_charged_reset(self,unit_obj):
         unit_obj.live_charged_speed = 0
+    def charged_speed_60pct(self,unit_obj):
+        pass
+    def skill_cdr_50pct(self,unit_obj):
+        pass
 
 class ActiveDebuff:
     def def_15pct(self,unit_obj):
