@@ -63,4 +63,5 @@ class Enemy:
 
     def update_units(self):
         if self.units <= 0:
+            self.units = 0
             self.element = "None"

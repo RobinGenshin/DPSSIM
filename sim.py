@@ -162,6 +162,7 @@ class Sim:
             unit = new.tick_units[new.tick]
             if unit > 0:
                 getattr(React(),React().check(new,self.enemy))(self,new,self.enemy,unit)
+            self.enemy.update_units()
             self.damage += new.calculate_tick_damage(new,self.enemy)
 
     ## Proccesses the dot ticks
