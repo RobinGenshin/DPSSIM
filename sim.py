@@ -8,6 +8,7 @@ import itertools
 import reactions as r
 import buffs as c
 from action import Action
+import enemy
 
 # Creating a list of actions
 class Sim:
@@ -25,7 +26,7 @@ class Sim:
         self.last_action = None
         self.dot_actions = set()
         self.action_list = set()
-        self.reaction_queue = {}
+        self.reaction_queue = []
         self.sorted_queue = []
 
     def start_sim(self):
@@ -64,7 +65,7 @@ class Sim:
                         else:
                             self.chosen_unit.active_buffs[key] = trig_buff
         for unit in self.units:
-            unit.update_stats()
+            unit.update_stats(self)
 
     def use_ability(self):
         self.chosen_action.recalc_dps(self.enemy)
@@ -89,7 +90,6 @@ class Sim:
     
     def add_buff_postcast(self):
         for key, trig_buff in self.chosen_unit.triggerable_buffs.items():
-            print(self.chosen_unit.name)
             if trig_buff.trigger == self.chosen_action.type or trig_buff.trigger == 'any':
                 if trig_buff.precast != "Yes":
                     if trig_buff.instant == "Instant":
@@ -107,7 +107,7 @@ class Sim:
 
     def add_debuff(self):
         for key, trig_debuff in self.chosen_unit.triggerable_debuffs.items():
-            if trig_debuff.trigger == self.chosen_action.type or trig_debuff.trigger == "Any":
+            if trig_debuff.trigger == self.chosen_action.type or trig_debuff.trigger == "any":
                     self.enemy.active_debuffs[key] = trig_debuff
 
     def check_turn_time(self):
@@ -119,20 +119,21 @@ class Sim:
             self.turn_time = 0.12 + self.chosen_action.AT
     
     def create_dot_reactions_turn(self):
-        self.reaction_queue = {}
+        self.reaction_queue = []
         for dot in self.dot_actions:
             time_per_tick = dot.duration / dot.ticks
-            times_till_ticks = {}
-            times_for_turn = {}
+            times_till_ticks = list()
+            times_for_turn = list()
             for i in range(int(dot.ticks)):
-                times_till_ticks[int(dot.ticks)-i]  = (dot.time_remaining - i*time_per_tick)
-            for i in times_till_ticks:
-                if 0 <= times_till_ticks[i] <= self.turn_time:
-                    times_for_turn[i] = (dot,times_till_ticks[i])
-            self.reaction_queue.update(times_for_turn)
+                times_till_ticks.append((i,(dot.time_remaining - i*time_per_tick)))
+            for i in range(int(dot.ticks)):
+                if 0 <= times_till_ticks[i][1] <= self.turn_time:
+                    times_for_turn.append((i,(dot,times_till_ticks[i][1])))
+            for i in times_for_turn:
+                self.reaction_queue.append(i)
 
     def sort_dot_reactions_turn(self):
-        self.sorted_queue = sorted(self.reaction_queue.items(), key=lambda x: x[1][1])
+        self.sorted_queue = sorted(self.reaction_queue, key=lambda i: i[1][1])
 
     def process_dot(self):
         while self.sorted_queue:
@@ -179,13 +180,13 @@ class Sim:
             for key, _, in unit.active_buffs.items():
                 unit.active_buffs[key].time_remaining -= self.turn_time
             unit.active_buffs = {k:unit.active_buffs[k] for k in unit.active_buffs if unit.active_buffs[k].time_remaining > 0}
-            unit.update_stats()
+            unit.update_stats(self)
 
     def check_debuff_end(self):
         for _, debuff in self.enemy.active_debuffs.items():
             debuff.time_remaining -= self.turn_time
         self.enemy.active_debuffs = {k:self.enemy.active_debuffs[k] for k in self.enemy.active_debuffs if self.enemy.active_debuffs[k].time_remaining > 0}
-        self.enemy.update_stats()
+        self.enemy.update_stats(self)
     
     def pass_time(self):
         self.encounter_duration += self.turn_time
@@ -217,15 +218,17 @@ class Sim:
             self.add_energy()
             self.pass_time()
             self.status()
-        print("DPS was " + str(self.damage/self.encounter_duration))
+        print(round(self.damage /self.encounter_duration))
 
-PyroArtifact = artifact_substats.ArtifactStats("atk_pct", "pyro", "crit_rate", "Perfect")
-CryoArtifact = artifact_substats.ArtifactStats("atk_pct", "cryo", "crit_rate", "Perfect")
-ElectroArtifact = artifact_substats.ArtifactStats("atk_pct", "electro", "crit_rate", "Perfect")
+PyroArtifact = artifact_substats.ArtifactStats("energy_recharge", "pyro", "crit_rate", "Perfect")
+CryoArtifact = artifact_substats.ArtifactStats("energy_recharge", "cryo", "crit_rate", "Perfect")
+ElectroArtifact = artifact_substats.ArtifactStats("energy_recharge", "electro", "crit_rate", "Perfect")
 
-Main = u.Unit("Amber", 90, "Prototype Crescent", "Lavawalker", 6, 1, 10, 10, 10, PyroArtifact)
+Main = u.Unit("Amber", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, PyroArtifact)
 Support1 = u.Unit("Diona", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
 Support2 = u.Unit("Fischl", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, ElectroArtifact)
 Support3 = u.Unit("Ganyu", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
-Monster = u.Enemy("Hilichurls", 90)
+Monster = enemy.Enemy("Hilichurls", 90)
 
+Test = Sim(Main,Support1,Support2,Support3,Monster,10)
+Test.turn_on_sim()

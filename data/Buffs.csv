@@ -239,8 +239,8 @@ Zhongli_C5,No,Static,Zhongli,,,,5,burst_level_plus_3,,,,
 Noblesse,Yes,Active,,,,Noblesse,,atk_20pct,12,burst,,
 Crimson Witch,No,Active,,,,Crimson Witch,,pyro_7pct,10,skill,,
 Heart of Depth,No,Active,,,,Heart of Depth,,normal_charged_30pct,15,skill,,
-Thundersoother,No,Active,,,,Thundersoother,,thundersoother,1,any,Yes,
-Blizzard Strayer,No,Active,,,,Blizzard Strayer,,blizzard_strayer,1,any,Yes,
+Thundersoother,No,Active,,,,Thundersoother,,thundersoother,1,any,,Yes
+Blizzard Strayer,No,Active,,,,Blizzard Strayer,,blizzard_strayer,1,any,,Yes
 Archaic Petra,No,Active,,,,Archaic Petra,,archaic_petra,10,any,,
-Lavawalker,No,Active,,,,Lavawalker,,lavawalker,1,any,Yes,
+Lavawalker,No,Active,,,,Lavawalker,,lavawalker,1,any,,Yes
 Thundering Fury,No,Active,,,,Thundering Fury,,thundering_fury,,any,,

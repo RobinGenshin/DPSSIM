@@ -2,7 +2,7 @@ import csv
 import read_data as rd
 import buffs as c
 import artifact_substats
-from enemy import *
+import enemy
 
 characterdict = rd.character_dict
 weapondict = rd.weapon_dict
@@ -167,7 +167,7 @@ class Unit():
             if debuff.artifact == self.artifact:
                     self.triggerable_debuffs[key] = debuff                
 
-    def update_stats(self):
+    def update_stats(self,sim):
         # clears active buffs
         x = {"atk_pct", "crit_rate", "crit_dmg", "anemo", "cryo", "electro", "geo", "hydro", "pyro", "elemental_dmg", "all_dmg", "normal_dmg", "normal_speed", "charged_dmg", "skill_dmg", "burst_dmg", "skill_CDR", "burst_CDR"}
         for stat in x:
@@ -176,8 +176,10 @@ class Unit():
         for buff in self.active_buffs.values():
             if buff.weapon != "":
                 getattr(c.ActiveBuff(),buff.method)(self,buff.weapon_rank)
-            else:
+            if buff.weapon != "":
                 getattr(c.ActiveBuff(),buff.method)(self)
+            if buff.artifact != "":
+                getattr(c.ActiveBuff(),buff.method)(self,sim)
     
     def normal_attack_damage(self,enemy):
         tot_atk = (self.base_atk * (1 + self.live_atk_pct) + self.flat_atk)
@@ -296,13 +298,12 @@ class Unit():
         return max(self.normal_attack_dps(enemy),self.charged_attack_dps(enemy),self.skill_dps(enemy),self.burst_dps(enemy))
 
 def main():
-    # Unit = Unit(Character, level, weapon, artifact set, constellation, weapon rank, auto level, skill level, burst level)
-    TestPyro = artifact_substats.ArtifactStats("atk_pct","pyro","crit_dmg","Perfect")
-    Main = Unit("Amber", 90, "Prototype Crescent", "Crimson Witch", 6, 1, 1, 1, 1, TestPyro) 
-    Monster = Enemy("Hilichurls", 90)
-    print(type(Monster.defence), type(Monster.defence_debuff))
-    print(Main.triggerable_buffs)
-    print(type(buffdict["Lavawalker"]))
+    # # Unit = Unit(Character, level, weapon, artifact set, constellation, weapon rank, auto level, skill level, burst level)
+    # TestPyro = artifact_substats.ArtifactStats("atk_pct","pyro","crit_dmg","Perfect")
+    # Main = Unit("Amber", 90, "Prototype Crescent", "Viridescent Venerer", 6, 1, 1, 1, 1, TestPyro) 
+    # Monster = Enemy("Hilichurls", 90)
+    # print(type(Monster.defence), type(Monster.defence_debuff))
+    pass
 
 if __name__ == '__main__':
     main()

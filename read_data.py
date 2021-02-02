@@ -469,8 +469,8 @@ def read_debuff_data():
         debuff_dict = {}
         reader = csv.DictReader(debuff_file,delimiter=',')
         for row in reader:
-            debuff = (row['Debuff'])
-            debuff_dict[debuff] = b.Debuff((row['Debuff']),
+            debuff = (row['Buff'])
+            debuff_dict[debuff] = b.Debuff((row['Buff']),
                                                 (row['Character']),
                                                 str_to_int(row['Constellation']),
                                                 (row['Weapon']),str_to_int(row['Rank']),

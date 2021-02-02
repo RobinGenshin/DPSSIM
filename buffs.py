@@ -73,36 +73,63 @@ class StaticBuff:
         pass
 
 class ActiveBuff:
-    def atk_15pct(self,unit_obj):
+    def atk_15pct(self,unit_obj,sim):
         unit_obj.live_atk_pct += 0.15
-    def cryo_dmg_20pct(self,unit_obj):
+    def cryo_dmg_20pct(self,unit_obj,sim):
         unit_obj.live_cryo += 0.2
-    def dmg_15pct(self,unit_obj):
+    def dmg_15pct(self,unit_obj,sim):
         unit_obj.live_all_dmg += 0.15
-    def em_200(self,unit_obj):
+    def em_200(self,unit_obj,sim):
         unit_obj.live_elemental_mastery += 200
-    def melee_pyro_15pct(self,unit_obj):
+    def melee_pyro_15pct(self,unit_obj,sim):
         if unit_obj.weapon_type in ("Polearm,","Claymore","Sword"):
             unit_obj.live_pyro += 0.15
-    def ben_q(self,unit_obj):
+    def ben_q(self,unit_obj,sim):
         pass
-    def ganyu_charged_reset(self,unit_obj):
+    def ganyu_charged_reset(self,unit_obj,sim):
         unit_obj.live_charged_speed = 0
-    def charged_speed_60pct(self,unit_obj):
+    def charged_speed_60pct(self,unit_obj,sim):
         pass
-    def skill_cdr_50pct(self,unit_obj):
+    def skill_cdr_50pct(self,unit_obj,sim):
         pass
-    def stam_10pct(self,unit_obj):
+    def stam_10pct(self,unit_obj,sim):
         unit_obj.live_stam_save += 0.1
 
     # Artifacts
-    def pyro_7pct(self,unit_obj):
+    def pyro_7pct(self,unit_obj,sim):
         unit_obj.live_pyro += 0.075
+    def lavawalker(self,unit_obj,sim):
+        if sim.enemy.element == "Pyro":
+            unit_obj.live_all_dmg += 0.35
+    def thundersoother(self,unit_obj,sim):
+        if sim.enemy.element == "Electro":
+            unit_obj.live_all_dmg += 0.35
+    def blizzard_strayer(self,unit_obj,sim):
+        if sim.enemy.element == "Cryo":
+            unit_obj.live_crit_rate += 0.2
+        if sim.enemy.element == "Frozen":
+            unit_obj.live_crit_rate += 0.2
+    def archaic_petra(self,unit_obj,sim):
+        pass
+
+    def normal_charged_30pct(self,unit_obj,sim):
+        unit_obj.live_normal_dmg += 0.3
+        unit_obj.live_charged_dmg += 0.3
+    
+    def thundering_fury(self,unit_obj,sim):
+        unit_obj.live_skill_CD -= max(0, unit_obj.live_skill_CD - 1)
+
+
 
 
 
 
 class ActiveDebuff:
-    def def_15pct(self,unit_obj):
+    def def_15pct(self,unit_obj,sim):
         unit_obj.defence_debuff += 0.15
+
+    # Artifact
+    def infused_40pct(self,unit_obj,sim):
+        if sim.enemy.element != "None":
+            setattr(sim.enemy, getattr(sim.enemy,"element").lower() + "_res_debuff", getattr(sim.enemy,(getattr(sim.enemy,"element").lower() +"_res_debuff")) + 0.4)
 

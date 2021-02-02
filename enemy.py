@@ -39,7 +39,7 @@ class Enemy:
         self.stats = {"defence", "anemo_res", "cryo_res", "geo_res", "electro_res", "hydro_res", "pyro_res"}
         self.debuffs = {"defence_debuff", "anemo_res_debuff", "cryo_res_debuff", "geo_res_debuff", "electro_res_debuff", "hydro_res_debuff", "pyro_res"}
     
-    def update_stats(self):
+    def update_stats(self,sim):
         # resets live stats
         for stat in self.stats:
             setattr(self, "live_" + stat, getattr(self,stat))
@@ -48,7 +48,10 @@ class Enemy:
             setattr(self, debuff, 0)
         # adds up stat debuff
         for _, debuff in self.active_debuffs.items():
-            getattr(c.ActiveDebuff(),debuff.method)(self)
+            if debuff.artifact == "Viridiscent Venerer":
+                getattr(c.ActiveDebuff(),debuff.method)(self,sim)
+            else:
+                getattr(c.ActiveDebuff(),debuff.method)(self,sim)
 
         # applies stat debuffs to main stat
         self.live_defence = self.live_defence * ( 1 - self.defence_debuff )
