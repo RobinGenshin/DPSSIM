@@ -1,6 +1,5 @@
 import read_data as rd
-import buffs as c
-
+import activeeffects as a
 
 #Enemy with stats
 class Enemy:
@@ -48,10 +47,7 @@ class Enemy:
             setattr(self, debuff, 0)
         # adds up stat debuff
         for _, debuff in self.active_debuffs.items():
-            if debuff.artifact == "Viridiscent Venerer":
-                getattr(c.ActiveDebuff(),debuff.method)(self,sim)
-            else:
-                getattr(c.ActiveDebuff(),debuff.method)(self,sim)
+            getattr(a.ActiveDebuff(),debuff.method)(self,sim)
 
         # applies stat debuffs to main stat
         self.live_defence = self.live_defence * ( 1 - self.defence_debuff )

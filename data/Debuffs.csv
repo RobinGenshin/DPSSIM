@@ -1,4 +1,4 @@
-Buff,Character,Weapon,Artifact,Rank,Constellation,method,Duration,Trigger
+Debuff,Character,Weapon,Artifact,Rank,Constellation,method,Duration,Trigger
 Amber C6,Amber,,,,6,def_15pct,10,burst
 ,,,,,,,,
 Beidou_C6,Beidou,,,,6,electro_15pct,15,burst
@@ -27,4 +27,7 @@ Xingqiu_C2,Xingqiu,,,,1,hydro_15pct,20,burst
 ,,,,,,,,
 Xinyan_C2,Xinyan,,,,4,physical_15pct,12,skill
 ,,,,,,,,
-,,,Viridescent Venerer,,4,infused_40pct,10,any
+VV_Pyro,,,,,,vv_pyro_40pct,10,
+VV_Hydro,,,,,,vv_hydro_40pct,10,
+VV_Electro,,,,,,vv_electro_40pct,10,
+VV_Cryo,,,,,,vv_cryo_40pct,10,

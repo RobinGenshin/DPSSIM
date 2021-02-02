@@ -1,5 +1,6 @@
 import csv
-import buffs as b
+from buffs import Buff
+from buffs import Debuff
 
 CHARACTER_FILENAME = 'data/Characters.csv'
 WEAPON_FILENAME = 'data/Weapons.csv'
@@ -10,11 +11,9 @@ PHYSRATIO_FILENAME = 'data/PhysicalRatio.csv'
 RAZORAUTO_FILENAME = 'data/RazorAutoRatio.csv'
 RAZORQAS_FILENAME = 'data/RazorQASRatio.csv'
 ZHONGLIQ_FILENAME = 'data/ZhongliQRatio.csv'
-CONST_FILENAME = 'data/Constellations.csv'
-CHARBUFF_FILENAME = 'data/ActiveCharBuffs.csv'
-CHARDEBUFF_FILENAME = 'data/ActiveDebuffs.csv'
 BUFF_FILENAME = 'data/Buffs.csv'
 DEBUFF_FILENAME = 'data/Debuffs.csv'
+TIME_FILENAME = 'data/times.csv'
 
 # Converts percentage strings to decimals [0, 1]
 def pctstr_to_float(pctstr):
@@ -43,11 +42,6 @@ class Character():
         self.element = ""
         self.weapon = ""
         self.artifact = ""
-        self.constellation = 0
-        self.weapon_rank = 0
-        self.auto_level = 0
-        self.skill_level = 0
-        self.burst_level = 0
         self.base_atk = 0
         self.atk_pct = 0
         self.flat_atk = 0
@@ -77,43 +71,39 @@ class Character():
         self.skill_dmg = 0
         self.burst_dmg = 0
         self.healing_bonus = 0
-        self.ele_res_red = 0
-        self.swirl_res_red = 0
-        self.phys_res_red = 0
-        self.normal_attack_type = ""
-        self.normal_attack_ratio = 0
-        self.normal_AT = ""
-        self.normal_AC = 0
+        self.normal_type = ""
         self.normal_hits = 0
-        self.normal_RP = 0
+        self.normal_AT = ""
+        self.normal_AC = ""
+        self.normal_tick_times = []
+        self.normal_tick_damage = []
+        self.normal_tick_units = []
         self.passive_hits = 0
-        self.charged_attack_type = 0
-        self.charged_attack_ratio = 0
+        self.charged_type = 0
+        self.charged_hits = 0
         self.charged_AT = 0
         self.charged_AC = ""
-        self.charged_hits = 0
-        self.charged_RP = 0
+        self.charged_tick_times = []
+        self.charged_tick_damage = []
+        self.charged_tick_units = []
         self.charged_stam = 0
-        self.skill_ratio = 0
-        self.skill_flat_ratio = 0
-        self.skill_AT = 0
-        self.skill_CD = 0
         self.skill_hits = 0
+        self.skill_AT = 0
+        self.skill_cd = 0
         self.skill_dur = 0
-        self.skill_ticks = 0
+        self.skill_tick_times = []
+        self.skill_tick_damage = []
+        self.skill_tick_units = []
         self.skill_charges = 0
-        self.skill_U = 0
         self.skill_particles = 0
-        self.burst_ratio = 0
-        self.burst_flat_ratio = 0
+        self.burst_hits = 0
         self.burst_AT = 0
         self.burst_CD = 0
         self.burst_energy = 0
-        self.burst_hits = 0
-        self.burst_dur = 0
-        self.burst_ticks = 0
+        self.burst_tick_times = []
+        self.burst_tick_damage = []
+        self.burst_tick_units = []
         self.burst_charges = 0
-        self.burst_U = 0
 
 def read_character_data():
     with open(CHARACTER_FILENAME) as charfile:
@@ -123,12 +113,9 @@ def read_character_data():
             name = row['Character']
             newname = Character(name) 
             character_dict[name] = newname
-
             newname.name = row['Character']
             newname.element = row['Element']
             newname.weapon = row['Weapon Type']
-            newname.constellation = 0
-            newname.weapon_rank = 0
             newname.base_atk = str_to_int(row['Base ATK'])
             newname.atk_pct = pctstr_to_float(row['ATK%'])
             newname.flat_atk = str_to_int(row['Flat ATK'])
@@ -158,38 +145,41 @@ def read_character_data():
             newname.skill_dmg = pctstr_to_float(row['Skill DMG%'])
             newname.burst_dmg = pctstr_to_float(row['Burst DMG%'])
             newname.healing_bonus = pctstr_to_float(row['Healing Bonus%'])
-            newname.normal_attack_type = row['Normal Attack Type']
-            newname.normal_attack_ratio = pctstr_to_float(row['Normal Attack Ratio'])
+
+            newname.normal_type = row['Normal type']
+            newname.normal_hits = str_to_int(row['Normal hits'])
             newname.normal_AT =  str_to_float(row['Normal AT'])
             newname.normal_AC = row['Normal AC']
-            newname.normal_hits =  str_to_int(row['Normal attack hits'])
-            newname.normal_RP =  str_to_float(row['Normal RP'])
+            newname.normal_tick_times = [float(item) for item in row['Normal tick times'].split(',')]
+            newname.normal_tick_damage = [float(item) for item in row['Normal tick damage'].split(',')]
+            newname.normal_tick_units = [float(item) for item in row['Normal tick units'].split(',')]
             newname.passive_hits = pctstr_to_float(row['Passive hits'])
-            newname.charged_attack_type = row['Charged Attack Type']
-            newname.charged_attack_ratio = pctstr_to_float(row['Charged Attack Ratio'])
+
+            newname.charged_type = row['Charged type']
+            newname.charged_hits = str_to_int(row['Charged hits'])
             newname.charged_AT =  str_to_float(row['Charged AT'])
             newname.charged_AC = row['Charged AC']
-            newname.charged_hits =  str_to_int(row['Charged attack hits'])
-            newname.charged_RP = str_to_float(row['Charged RP'])
+            newname.charged_tick_times = [float(item) for item in row['Charged tick times'].split(',')]
+            newname.charged_tick_damage = [float(item) for item in row['Charged tick damage'].split(',')]
+            newname.charged_tick_units = [float(item) for item in row['Charged tick units'].split(',')]
             newname.charged_stam = str_to_float(row['Stamina'])
-            newname.skill_ratio = pctstr_to_float(row['E Ratio'])
+
+            newname.skill_hits = str_to_int(row['E hits'])
             newname.skill_AT = str_to_float(row['E AT'])
             newname.skill_CD = str_to_float(row['E cd'])
-            newname.skill_hits = str_to_int(row['E hits'])
-            newname.skill_dur = (row['E duration'])
-            newname.skill_ticks = str_to_float(row['E ticks'])
+            newname.skill_tick_times = [float(item) for item in row['E tick times'].split(',')]
+            newname.skill_tick_damage = [float(item) for item in row['E tick damage'].split(',')]
+            newname.skill_tick_units = [float(item) for item in row['E tick units'].split(',')]
             newname.skill_charges = str_to_int(row['E Charges'])
-            newname.skill_U = str_to_int(row['E Units'])
             newname.skill_particles = str_to_float(row['Particles'])
-            newname.burst_ratio = pctstr_to_float(row['Q Ratio'])
+
+            newname.burst_hits = str_to_int(row['Q hits'])
             newname.burst_AT = str_to_float(row['Q AT'])
             newname.burst_CD = str_to_float(row['Q cd'])
             newname.burst_energy = str_to_int(row['Q energy'])
-            newname.burst_hits = str_to_int(row['Q hits'])
-            newname.burst_dur = (row['Q duration'])
-            newname.burst_ticks = str_to_float(row['Q ticks'])
-            newname.burst_charges = float()
-            newname.burst_U =  str_to_float(row['Q Units'])
+            newname.burst_tick_times = [float(item) for item in row['Q tick times'].split(',')]
+            newname.burst_tick_damage = [float(item) for item in row['Q tick damage'].split(',')]
+            newname.burst_tick_units = [float(item) for item in row['Q tick units'].split(',')]
 
     return character_dict
 
@@ -452,7 +442,7 @@ def read_buff_data():
         reader = csv.DictReader(buff_file,delimiter=',')
         for row in reader:
             buff = (row['Buff'])
-            buff_dict[buff] = b.Buff(row['Buff'],(row['Share']),
+            buff_dict[buff] = Buff(row['Buff'],(row['Share']),
                                 (row['Type']),(row['Character']),
                                 (row['Weapon']),str_to_int(row['Rank']),
                                                 (row['Artifact']),
@@ -469,8 +459,8 @@ def read_debuff_data():
         debuff_dict = {}
         reader = csv.DictReader(debuff_file,delimiter=',')
         for row in reader:
-            debuff = (row['Buff'])
-            debuff_dict[debuff] = b.Debuff((row['Buff']),
+            debuff = (row['Debuff'])
+            debuff_dict[debuff] = Debuff((row['Debuff']),
                                                 (row['Character']),
                                                 str_to_int(row['Constellation']),
                                                 (row['Weapon']),str_to_int(row['Rank']),
@@ -501,8 +491,8 @@ def main():
     # print(phys_ratio_dict)
     # print(razor_auto_ratio_dict)
     # print(razor_qas_ratio_dict)
-    for buff in buff_dict:
-        print(buff_dict[buff].weapon!="")
+    for character in character_dict:
+        print(character_dict[character].normal_tick_times)
     
 if __name__ == '__main__':
     main()

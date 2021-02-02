@@ -1,6 +1,9 @@
 #Turn dot reactions into damage/reactions
 
 class React:
+    def __init__(self):
+        self.print = True
+
     def check(self,action,enemy):
         #Anemo
         if action.element == "Anemo":
@@ -61,67 +64,65 @@ class React:
         else:
             return "no_reaction"
     
-    def swirl(self,damage_sim,action,enemy):
-        enemy.element = enemy.element
-        print(action.unit.name + "proced swirl")
+    def swirl(self,sim,action,enemy,unit):
+        enemy.element -= unit*0.5
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " proced swirl")
 
-    def overload(self,damage_sim,action,enemy):
-        enemy.units -= action.element_units
-        enemy.update_units()
-        print(action.unit.name + "proced overload")
+    def overload(self,sim,action,enemy,unit):
+        enemy.units -= unit
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " proced overload")
 
-    def crystallise(self,damage_sim,action,enemy):
-        print(action.unit.name + "proced crystallise")
+    def crystallise(self,sim,action,enemy,unit):
+        enemy.element -= unit*0.5
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " proced crystallise")
 
-    def superconduct(self,damage_sim,action,enemy):
-        enemy.units -= action.element_units
-        enemy.update_units()
-        print(action.unit.name + "proced superconduct")
+    def superconduct(self,sim,action,enemy,unit):
+        enemy.units -= unit
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " proced superconduct")
 
-    def electro_charged(self,damage_sim,action,enemy):
-        enemy.units -= action.element_units
-        enemy.update_units()
-        print(action.unit.name + "proced electro_charged")
+    def electro_charged(self,sim,action,enemy,unit):
+        enemy.units -= unit
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " proced electro_charged")
 
-    def frozen(self,damage_sim,action,enemy):
-        print(action.unit.name + "proced frozen")
+    def frozen(self,sim,action,enemy,unit):
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " proced frozen")
 
-    def vaporise2(self,damage_sim,action,enemy):
+    def vaporise2(self,sim,action,enemy,unit):
         action.damage *= 2 * (action.unit.elemental_mastery*25) / (9*(action.unit.elemental_mastery+1400))
-        enemy.units -= action.element_units*2
-        print(action.unit.name + "proc'd Vaporise Vaporise for 2x damage")
+        enemy.units -= unit*2
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " proc'd Vaporise Vaporise for 2x damage")
 
-    def vaporise15(self,damage_sim,action,enemy):
+    def vaporise15(self,sim,action,enemy,unit):
         action.damage *= 2 * (action.unit.elemental_mastery*25) / (9*(action.unit.elemental_mastery+1400))
-        enemy.units -= action.element_units*0.5
+        enemy.units -= unit*0.5
 
-    def melt2(self,damage_sim,action,enemy):
+    def melt2(self,sim,action,enemy,unit):
         action.damage *= 2 * (action.unit.elemental_mastery*25) / (9*(action.unit.elemental_mastery+1400))
-        enemy.units -= action.element_units*2
+        enemy.units -= unit*2
 
-    def melt15(self,damage_sim,action,enemy):
+    def melt15(self,sim,action,enemy,unit):
         action.damage *= 1.5 * (action.unit.elemental_mastery*25) / (9*(action.unit.elemental_mastery+1400))
-        enemy.units -= action.element_units*0.5
+        enemy.units -= unit*0.5
 
-    def enemyelectro(self,damage_sim,action,enemy):
+    def enemyelectro(self,sim,action,enemy,unit):
         enemy.element = action.element
-        enemy.units = action.element_units*0.8
-        print(action.unit.name + " applied electro")
+        enemy.units += unit*0.8
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " applied electro")
     
-    def enemypyro(self,damage_sim,action,enemy):
+    def enemypyro(self,sim,action,enemy,unit):
         enemy.element = action.element
-        enemy.units = action.element_units*0.8
-        print(action.unit.name + " applied pyro")
+        enemy.units += unit*0.8
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " applied pyro")
 
-    def enemycryo(self,damage_sim,action,enemy):
+    def enemycryo(self,sim,action,enemy,unit):
         enemy.element = action.element
-        enemy.units = action.element_units*0.8
-        print(action.unit.name + " applied cryo")
+        enemy.units += unit*0.8
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " applied cryo")
 
-    def enemyhydro(self,damage_sim,action,enemy):
+    def enemyhydro(self,sim,action,enemy,unit):
         enemy.element = action.element
-        enemy.units = action.element_units*0.8
-        print(action.unit.name + " applied hydro")
+        enemy.units += unit*0.8
+        print("#" + str(sim.action_order) + " Time:" + str(round(sim.encounter_duration,2)) + " " + action.unit.name + " applied hydro")
 
-    def no_reaction(self,damage_sim,action,enemy):
+    def no_reaction(self,sim,action,enemy,unit):
         pass
