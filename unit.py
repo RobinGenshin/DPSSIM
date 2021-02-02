@@ -132,6 +132,8 @@ class Unit():
         self.burst_U = characterdict[name].burst_U
         self.stam_save = 0
         self.live_stam_save = 0
+        self.field_time = 0
+
         self.static_buffs = {}
         self.triggerable_buffs = {}
         self.active_buffs = {}
@@ -175,9 +177,9 @@ class Unit():
         # call method to reactivate buff
         for buff in self.active_buffs.values():
             if buff.weapon != "":
-                getattr(c.ActiveBuff(),buff.method)(self,buff.weapon_rank)
-            if buff.weapon != "":
-                getattr(c.ActiveBuff(),buff.method)(self)
+                getattr(c.ActiveBuff(),buff.method)(self,sim)
+            if buff.character != "":
+                getattr(c.ActiveBuff(),buff.method)(self,sim)
             if buff.artifact != "":
                 getattr(c.ActiveBuff(),buff.method)(self,sim)
     
@@ -296,6 +298,18 @@ class Unit():
 
     def highest_dps_action(self,enemy):
         return max(self.normal_attack_dps(enemy),self.charged_attack_dps(enemy),self.skill_dps(enemy),self.burst_dps(enemy))
+
+    def phys_weapon_hit(self,enemy,ratio):
+        tot_atk = (self.base_atk * (1 + self.live_atk_pct) + self.flat_atk)
+        crit_mult = ( 1 + (self.live_crit_rate * self.live_crit_dmg))
+        dmg_bon = (1 + self.live_all_dmg + self.live_normal_dmg + self.live_physical)
+
+        defence  = ( 100 + self.level ) / (( 100 + self.level ) + (enemy.live_defence)) #enemy def will get updated in sim
+
+        enemy_res = enemy.live_physical_res #enemy res will get updated in sim
+        
+        return tot_atk * crit_mult * dmg_bon * ratio  * enemy_res * defence
+
 
 def main():
     # # Unit = Unit(Character, level, weapon, artifact set, constellation, weapon rank, auto level, skill level, burst level)

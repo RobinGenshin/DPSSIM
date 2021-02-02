@@ -95,9 +95,9 @@ class Sim:
                     if trig_buff.instant == "Instant":
                         if trig_buff.share == "Yes":
                             for unit in self.units:
-                                getattr(c.ActiveBuff(),trig_buff.method)(unit)
+                                getattr(c.ActiveBuff(),trig_buff.method)(unit,self)
                         else:
-                            getattr(c.ActiveBuff(),trig_buff.method)(self.chosen_unit)                     
+                            getattr(c.ActiveBuff(),trig_buff.method)(self.chosen_unit,self)                     
                     else:
                         if trig_buff.share == "Yes":
                             for unit in self.units:
@@ -223,12 +223,16 @@ class Sim:
 PyroArtifact = artifact_substats.ArtifactStats("energy_recharge", "pyro", "crit_rate", "Perfect")
 CryoArtifact = artifact_substats.ArtifactStats("energy_recharge", "cryo", "crit_rate", "Perfect")
 ElectroArtifact = artifact_substats.ArtifactStats("energy_recharge", "electro", "crit_rate", "Perfect")
+AnemoArtifact = artifact_substats.ArtifactStats("energy_recharge", "anemo", "crit_rate", "Perfect")
 
-Main = u.Unit("Amber", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, PyroArtifact)
-Support1 = u.Unit("Diona", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
-Support2 = u.Unit("Fischl", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, ElectroArtifact)
-Support3 = u.Unit("Ganyu", 90, "Prototype Crescent", "Wanderer's Troupe", 6, 1, 10, 10, 10, CryoArtifact)
-Monster = enemy.Enemy("Hilichurls", 90)
+Main = u.Unit("Venti", 90, "The Stringless", "Noblesse", 0, 1, 6, 6, 6, AnemoArtifact)
+Support1 = u.Unit("Diona", 90, "The Stringless", "Noblesse", 0, 1, 6, 6, 6, CryoArtifact)
+Support2 = u.Unit("Fischl", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 6, 6, 6, ElectroArtifact)
+Support3 = u.Unit("Ganyu", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 6, 6, 6, CryoArtifact)
+Monster = enemy.Enemy("Hilichurls", 100)
 
+print(Monster.live_pyro_res)
 Test = Sim(Main,Support1,Support2,Support3,Monster,10)
 Test.turn_on_sim()
+print(Monster.live_pyro_res)
+
