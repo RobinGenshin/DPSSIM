@@ -22,6 +22,12 @@ class Action:
         self.element_units = 0
         if self.type == "skill" or self.type == "burst":
             self.element_units = getattr(unit,self.type + "_U") 
+
+    def __str__(self):
+        return "{" + f"n: {self.unit.name} t: {self.type} d:{self.damage} tr:{self.time_remaining}" + "}"
+
+    def __repr__(self):
+        return self.__str__()
     
     def recalc_dps(self,enemy):
         self.dps = getattr(self.unit,self.type + "_dps")(enemy)
