@@ -1,31 +1,32 @@
 import csv
 
 class Buff:
-    def __init__(self,Buff,Share,Type,Character,Weapon,Rank,Artifact,Constellation,method,Duration,Trigger,Instant,Precast):
-        self.name = Buff
-        self.share = Share
-        self.type = Type
-        self.character = Character
-        self.constellation = Constellation
-        self.weapon = Weapon
-        self.weapon_rank = Rank
-        self.artifact = Artifact
-        self.method = method
-        self.duration = Duration
-        self.trigger = Trigger
-        self.instant = Instant
-        self.precast = Precast
-        self.time_remaining = self.duration
+    def __init__(self, name):
+        self.name = name
+        self.share = ""
+        self.type = ""
+        self.character = ""
+        self.constellation = 0
+        self.weapon = ""
+        self.artifact = ""
+        self.method = ""
+        self.duration = 0
+        self.on_hit = ""
+        self.trigger = ""
+        self.instant = ""
+        self.precast = ""
+        self.time_remaining = 0
+        self.stacks = 0
 
 class Debuff:
-    def __init__(self,Debuff,Character,Constellation,Weapon,Rank,Artifact,method,Duration,Trigger):
-        self.name = Debuff
-        self.character = Character
-        self.constellation = Constellation
-        self.weapon = Weapon
-        self.weapon_rank = Rank
-        self.artifact = Artifact
-        self.method = method
-        self.duration = Duration
-        self.trigger = Trigger
-        self.time_remaining = self.duration
+    def __init__(self,name):
+        self.name = name
+        self.character = ""
+        self.constellation = 0
+        self.weapon = ""
+        self.weapon_rank = 0
+        self.artifact = ""
+        self.method = ""
+        self.duration = 0
+        self.trigger = ""
+        self.time_remaining = 0

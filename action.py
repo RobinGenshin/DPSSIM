@@ -74,3 +74,27 @@ class Action:
             damage = tot_atk * crit_mult * dmg_bon * scaling * defence * enemy_res * ratio
             return damage
 
+class WeaponAction:
+    def __init__(self,unit_obj,enemy,ratio):
+        self.unit = unit_obj
+        self.type = "weapon"
+        self.element = "physical"
+        self.tick = 0
+        self.ticks = []
+        self.tick_times = []
+        self.energy_times = []
+        self.tick_damage = []
+        self.tick_units = []
+        self.snapshot = ""
+        self.particles = 0
+
+        self.initial_time = 0
+        self.time_remaining = 0
+        self.snapshotted_mult = 0
+
+    def calculate_tick_damage(self,tick,enemy):
+        if self.snapshot == True:
+            ratio = ratio = tick.tick_damage[tick]
+            return ratio * self.snapshotted_mult
+
+

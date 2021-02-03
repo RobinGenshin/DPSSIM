@@ -442,16 +442,24 @@ def read_buff_data():
         reader = csv.DictReader(buff_file,delimiter=',')
         for row in reader:
             buff = (row['Buff'])
-            buff_dict[buff] = Buff(row['Buff'],(row['Share']),
-                                (row['Type']),(row['Character']),
-                                (row['Weapon']),str_to_int(row['Rank']),
-                                                (row['Artifact']),
-                                str_to_int(row['Constellation']),
-                                                (row['method']),
-                                    str_to_float(row['Duration']),
-                                                (row['Trigger']),
-                                                (row['Instant']),
-                                                (row['Precast']))
+            newbuff = Buff(buff)
+            buff_dict[buff] = newbuff
+
+            newbuff.share = (row['Share'])
+            newbuff.type =  (row['Type'])
+            newbuff.type2 = (row['Type2'])
+            newbuff.character = (row['Character'])
+            newbuff.constellation = str_to_int(row['Constellation'])
+            newbuff.weapon = (row['Weapon'])
+            newbuff.artifact = (row['Artifact'])
+            newbuff.method = (row['method'])
+            newbuff.duration = str_to_float(row['Duration'])
+            newbuff.trigger = (row['Trigger'])
+            newbuff.instant = (row['Instant'])
+            newbuff.cooldown = str_to_float(row['Cooldown'])
+            newbuff.stacks = str_to_int(row['Stacks'])
+            newbuff.time_remaining = newbuff.duration
+            newbuff.live_cooldown = 0
         return buff_dict
 
 def read_debuff_data():
@@ -460,14 +468,17 @@ def read_debuff_data():
         reader = csv.DictReader(debuff_file,delimiter=',')
         for row in reader:
             debuff = (row['Debuff'])
-            debuff_dict[debuff] = Debuff((row['Debuff']),
-                                                (row['Character']),
-                                                str_to_int(row['Constellation']),
-                                                (row['Weapon']),str_to_int(row['Rank']),
-                                                (row['Artifact']),
-                                                (row['method']),
-                                                str_to_float(row['Duration']),
-                                                (row['Trigger']))
+            newdebuff = Debuff(debuff)
+            debuff_dict[debuff] = newdebuff
+
+            newdebuff.character = (row['Character'])
+            newdebuff.constellation = str_to_int(row['Constellation'])
+            newdebuff.weapon = (row['Weapon'])
+            newdebuff.artifact = (row['Artifact'])
+            newdebuff.method = (row['method'])
+            newdebuff.duration = str_to_float(row['Duration'])
+            newdebuff.trigger = (row['Trigger'])
+            newdebuff.time_remaining = newdebuff.duration
         return debuff_dict
 
 character_dict = read_character_data()

@@ -56,7 +56,7 @@ class Sim:
     def add_buff_precast(self):
         for key, trig_buff in self.chosen_unit.triggerable_buffs.items():
             if trig_buff.trigger == self.chosen_action.type or trig_buff.trigger == 'any':
-                if trig_buff.precast == "Yes":
+                if trig_buff.type2 == "precast":
                     if trig_buff.instant == "Instant":
                         if trig_buff.share == "Yes":
                             for unit in self.units:
@@ -92,7 +92,7 @@ class Sim:
     def add_buff_postcast(self):
         for key, trig_buff in self.chosen_unit.triggerable_buffs.items():
             if trig_buff.trigger == self.chosen_action.type or trig_buff.trigger == 'any':
-                if trig_buff.precast != "Yes":
+                if trig_buff.type2 == "postcast":
                     if trig_buff.instant == "Instant":
                         if trig_buff.share == "Yes":
                             for unit in self.units:
@@ -143,16 +143,55 @@ class Sim:
             new = self.sorted_dot_queue.pop(0)
             action = new[1]
             tick = new[0]
-            unit = action.tick_units[tick]
+            action_unit = action.tick_units[tick]
+
+            for key, trig_buff in self.chosen_unit.triggerable_buffs.items():
+                if trig_buff.trigger == self.chosen_action.type or trig_buff.trigger == 'any':
+                    if trig_buff.type2 == "pre_hit":
+                        if trig_buff.instant == "Instant":
+                            if trig_buff.share == "Yes":
+                                for unit in self.units:
+                                    getattr(a.ActiveBuff(),trig_buff.method)(unit,self)
+                            else:
+                                getattr(a.ActiveBuff(),trig_buff.method)(self.chosen_unit,self)
+
+                        else:
+                            if trig_buff.share == "Yes":
+                                for unit in self.units:
+                                    unit.active_buffs[key] = trig_buff
+                            else:
+                                self.chosen_unit.active_buffs[key] = trig_buff
+
+            for unit in self.units:
+                unit.update_stats(self) 
+
             multiplier = 1
-            if unit > 0:
-                multiplier = getattr(React(),React().check(action,self.enemy))(self,action,self.enemy,unit)
+            if action_unit > 0:
+                multiplier = getattr(React(),React().check(action,self.enemy))(self,action,self.enemy,action_unit)
             self.enemy.update_units()
             instance_damage = action.calculate_tick_damage(tick,self.enemy) * multiplier
             # print(instance_damage, action.unit.name, action.type, multiplier)
             self.damage += instance_damage
-            
 
+            for key, trig_buff in self.chosen_unit.triggerable_buffs.items():
+                if trig_buff.trigger == self.chosen_action.type or trig_buff.trigger == 'any':
+                    if trig_buff.type2 == "on_hit":
+                        if trig_buff.instant == "Instant":
+                            if trig_buff.share == "Yes":
+                                for unit in self.units:
+                                    getattr(a.ActiveBuff(),trig_buff.method)(unit,self)
+                            else:
+                                getattr(a.ActiveBuff(),trig_buff.method)(self.chosen_unit,self)
+
+                        else:
+                            if trig_buff.share == "Yes":
+                                for unit in self.units:
+                                    unit.active_buffs[key] = trig_buff
+                            else:
+                                self.chosen_unit.active_buffs[key] = trig_buff
+            for unit in self.units:
+                unit.update_stats(self) 
+            
     ## Calc which hits give energy on the turn
     def create_energy_turn(self):
         self.energy_queue = []
@@ -249,11 +288,12 @@ CryoArtifact = artifact_substats.ArtifactStats("energy_recharge", "cryo", "crit_
 ElectroArtifact = artifact_substats.ArtifactStats("energy_recharge", "electro", "crit_rate", "Perfect")
 AnemoArtifact = artifact_substats.ArtifactStats("energy_recharge", "anemo", "crit_rate", "Perfect")
 
-Main = u.Unit("Fischl", 90, "The Stringless", "Viridescent Venerer", 0, 1, 6, 6, 6, AnemoArtifact)
+Main = u.Unit("Fischl", 90, "Skyward Harp", "Viridescent Venerer", 0, 1, 6, 6, 6, AnemoArtifact)
 Support1 = u.Unit("Amber", 90, "The Stringless", "Noblesse", 0, 1, 6, 6, 6, PyroArtifact)
 Support2 = u.Unit("Kaeya", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 6, 6, 6, CryoArtifact)
 Support3 = u.Unit("Lisa", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 6, 6, 6, ElectroArtifact)
 Monster = enemy.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,100)
+Test = Sim(Main,Support1,Support2,Support3,Monster,10)
 Test.turn_on_sim()
+print(Main.triggerable_buffs["Skyward Harp 2"].instant)

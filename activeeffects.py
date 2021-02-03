@@ -1,5 +1,6 @@
 import read_data
 debuffdict = read_data.read_debuff_data()
+from action import WeaponAction
 
 class ActiveBuff:
 
@@ -36,8 +37,14 @@ class ActiveBuff:
     
     # Weapons
 
-    def skyward_harp_2(self,unit_obj,sim):
-        pass
+    def skyward_harp2(self,unit_obj,sim):
+        totatk = unit_obj.base_atk * ( 1 + unit_obj.live_atk_pct ) + unit_obj.live_flat_atk
+        crit = 1 + unit_obj.live_crit_dmg * unit_obj.live_crit_rate
+        dmg_bon = 1 + unit_obj.live_physical + unit_obj.live_all_dmg
+        res = sim.enemy.live_physical_res
+        defence = ( 100 + unit_obj.level ) / ( 100 +unit_obj.level + sim.enemy.live_defence )
+        damage = totatk * crit * dmg_bon * (1 - res) * defence
+        sim.damage += damage
         
     def compound_bow(self,unit_obj,sim):
         pass
