@@ -3,6 +3,7 @@ import read_data as rd
 import staticeffects as s
 import activeeffects as a
 import artifact_substats
+import copy
 
 characterdict = rd.character_dict
 weapondict = rd.weapon_dict
@@ -37,10 +38,15 @@ class Unit():
         self.live_atk_pct = self.atk_pct
         self.flat_atk = characterdict[name].flat_atk + weapondict[weapon].flat_atk + artifactdict[artifact].flat_atk + artifact_stat.flat_atk
         self.live_flat_atk = self.flat_atk
+
         self.crit_rate =  characterdict[name].crit_rate + weapondict[weapon].crit_rate + artifactdict[artifact].crit_rate + artifact_stat.crit_rate
         self.live_crit_rate = self.crit_rate
+        self.cond_crit_rate = 0
+        self.live_cond_crit_rate = 0
+
         self.crit_dmg =  characterdict[name].crit_dmg + weapondict[weapon].crit_dmg + artifactdict[artifact].crit_dmg + artifact_stat.crit_dmg
         self.live_crit_dmg = self.crit_dmg
+
         self.physical = characterdict[name].physical + weapondict[weapon].physical + artifactdict[artifact].physical+ artifact_stat.physical
         self.live_physical = self.physical
         self.anemo = characterdict[name].anemo + weapondict[weapon].anemo + artifactdict[artifact].anemo + artifact_stat.anemo
@@ -64,9 +70,13 @@ class Unit():
         self.base_hp = characterdict[name].base_hp + weapondict[weapon].base_hp + artifactdict[artifact].base_hp
         self.hp_pct = characterdict[name].hp_pct + weapondict[weapon].hp_pct + artifactdict[artifact].hp_pct+ artifact_stat.hp_pct
         self.flat_hp = characterdict[name].flat_hp + weapondict[weapon].flat_hp + artifactdict[artifact].flat_hp + artifact_stat.flat_hp
+
         self.base_def = characterdict[name].base_def + weapondict[weapon].base_def + artifactdict[artifact].base_def
         self.def_pct = characterdict[name].def_pct + weapondict[weapon].def_pct + artifactdict[artifact].def_pct + artifact_stat.def_pct
+        self.live_def_pct = self.def_pct
         self.flat_def = characterdict[name].flat_def + weapondict[weapon].flat_def + artifactdict[artifact].flat_def + artifact_stat.flat_def
+        self.live_flat_def = self.flat_def
+
         self.all_dmg = characterdict[name].all_dmg + weapondict[weapon].all_dmg + artifactdict[artifact].all_dmg
         self.live_all_dmg = self.all_dmg
         self.def_red = characterdict[name].def_red + weapondict[weapon].def_red + artifactdict[artifact].def_red
@@ -81,6 +91,8 @@ class Unit():
         self.burst_dmg = characterdict[name].burst_dmg + weapondict[weapon].burst_dmg + artifactdict[artifact].burst_dmg
         self.live_burst_dmg = self.burst_dmg
         self.healing_bonus = characterdict[name].healing_bonus + weapondict[weapon].healing_bonus + artifactdict[artifact].healing_bonus
+        self.cond_dmg = 0
+        self.live_cond_dmg = 0
 
         self.normal_type = characterdict[name].normal_type
         self.normal_hits = characterdict[name].normal_hits
@@ -114,6 +126,7 @@ class Unit():
         self.skill_charges = characterdict[name].skill_charges
         self.live_skill_charges = self.skill_charges
         self.skill_particles = characterdict[name].skill_particles
+        self.skill_crit_rate = 0
 
         self.burst_type = self.element
         self.burst_hits = characterdict[name].burst_hits
@@ -144,22 +157,22 @@ class Unit():
             if buff.character == self.name:
                 if buff.constellation <= self.constellation:
                     if buff.type == "Static":
-                        self.static_buffs[key] = buff
+                        self.static_buffs[key] = copy.deepcopy(buff)
                         getattr(s.StaticBuff(),buff.method)(self)
                     if buff.type == "Active":
-                        self.triggerable_buffs[key] = buff
-            if buff.weapon == self.weapon:
+                        self.triggerable_buffs[key] = copy.deepcopy(buff)
+            if self.weapon in buff.weapon:
                 if buff.type == "Static":
-                    self.static_buffs[key] = buff
+                    self.static_buffs[key] = copy.deepcopy(buff)
                     getattr(s.StaticBuff(),buff.method)(self)
                 if buff.type == "Active":
-                    self.triggerable_buffs[key] = buff
+                    self.triggerable_buffs[key] = copy.deepcopy(buff)
             if buff.artifact == self.artifact:
                 if buff.type == "Static":
-                    self.static_buffs[key] = buff
+                    self.static_buffs[key] = copy.deepcopy(buff)
                     getattr(s.StaticBuff(),buff.method)(self)
                 if buff.type == "Active":
-                    self.triggerable_buffs[key] = buff
+                    self.triggerable_buffs[key] = copy.deepcopy(buff)
         
         for key,debuff in debuffdict.items():
             if debuff.character == self.name:
@@ -172,11 +185,13 @@ class Unit():
 
     def update_stats(self,sim):
         # clears active buffs
-        x = {"atk_pct", "crit_rate", "crit_dmg", "anemo", "cryo", "electro", "geo", "hydro", "pyro", "elemental_dmg", "all_dmg", "normal_dmg", "normal_speed", "charged_dmg", "skill_dmg", "burst_dmg", "skill_CDR", "burst_CDR"}
+        x = {"atk_pct", "crit_rate", "crit_dmg", "anemo", "cryo", "electro", "geo", "hydro", 
+        "pyro", "elemental_dmg", "all_dmg", "normal_dmg", "normal_speed", "charged_dmg", 
+        "skill_dmg", "burst_dmg", "skill_CDR", "burst_CDR", "cond_dmg", "cond_crit_rate"}
         for stat in x:
             setattr(self, "live_" + stat, getattr(self, stat))
         # call method to reactivate buff
-        for buff in self.active_buffs.values():
+        for _, buff in self.active_buffs.items():
             if buff.weapon != "":
                 getattr(a.ActiveBuff(),buff.method)(self,sim)
             if buff.character != "":
@@ -185,11 +200,12 @@ class Unit():
                 getattr(a.ActiveBuff(),buff.method)(self,sim)
 
 def main():
-    # Unit = Unit(Character, level, weapon, artifact set, constellation, weapon rank, auto level, skill level, burst level)
-    TestPyro = artifact_substats.ArtifactStats("atk_pct","pyro","crit_dmg","Perfect")
-    Main = Unit("Amber", 90, "Prototype Crescent", "Viridescent Venerer", 6, 1, 1, 1, 1, TestPyro) 
-    # print(type(Monster.defence), type(Monster.defence_debuff))
-    print(type(Main.skill_hits))
+    AnemoArtifact = artifact_substats.ArtifactStats("energy_recharge", "anemo", "crit_rate", "Perfect")
+    Main = Unit("Albedo", 90, "Skyward Atlas", "Thundersoother", 0, 5, 6, 6, 6, AnemoArtifact)
+    print(len(Main.burst_tick_times))
+    print(len(Main.burst_tick_damage))
+    print(len(Main.burst_tick_units))
+    
 
 if __name__ == '__main__':
     main()

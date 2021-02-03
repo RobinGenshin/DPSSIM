@@ -1,4 +1,19 @@
 class StaticBuff:
+
+
+    # Character
+
+    # Albedo
+
+    def albedo_a2(self,unit_obj):
+        unit_obj.skill_dmg += 0.125
+
+
+    # Amber
+
+    def amber_a2(self,unit_obj):
+        unit_obj.skill_crit_rate += 0.1
+
     def skill_ratio_20pct(self,unit_obj):
         pass
     def skill_cdr_20pct(self,unit_obj):
@@ -42,15 +57,14 @@ class StaticBuff:
 
     ## Weapons
 
+    # Bows
+
     def amos_bow(self,unit_obj):
         unit_obj.normal_dmg += 0.12 + (unit_obj.weapon_rank-1)*0.03
         unit_obj.charged_dmg += 0.12 + (unit_obj.weapon_rank-1)*0.03
     
     def skyward_harp(self,unit_obj):
         unit_obj.crit_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
-
-    def blackcliff(self,unit_obj):
-        unit_obj.atk_pct += 0.12 + (unit_obj.weapon_rank-1)*0.03
     
     def rust(self,unit_obj):
         unit_obj.normal_dmg += 0.4 + (unit_obj.weapon_rank-1)*0.1
@@ -66,8 +80,12 @@ class StaticBuff:
     def slingshot(self,unit_obj):
         unit_obj.charged_dmg += 0.36 + (unit_obj.weapon_rank-1)*0.6
 
+    # Catalyst
+
     def skyward_atlas(self,unit_obj):
         unit_obj.elemental_dmg += 0.12 + (unit_obj.weapon_rank-1)*0.03
+
+    # Claymore
 
     def wolfs_gravestone(self,unit_obj):
         unit_obj.atk_pct += 0.2 + (unit_obj.weapon_rank-1)*0.05
@@ -75,17 +93,23 @@ class StaticBuff:
     def skyward_pride(self,unit_obj):
         unit_obj.all_dmg += 0.8 + (unit_obj.weapon_rank-1)*0.02
 
+    # Polearm
+
+    def prim_cutter(self,unit_obj):
+        unit_obj.hp_pct += 0.2 + (unit_obj.weapon_rank-1)*0.05
+        unit_obj.flat_atk += (0.012 + (unit_obj.weapon_rank-1)*0.003) * (unit_obj.base_hp * unit_obj.hp_pct + unit_obj.flat_hp)
+
     def skyward_spine(self,unit_obj):
         unit_obj.crit_rate += 0.8 + (unit_obj.weapon_rank-1)*0.02
-
-    def crescent_spine(self,unit_obj):
-        unit_obj.phys_on_hit += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
     def deathmatch(self,unit_obj):
         unit_obj.atk_pct += 0.24 + (unit_obj.weapon_rank-1)*0.05 
 
     def white_tassel(self,unit_obj):
         unit_obj.normal_dmg += 0.24 + (unit_obj.weapon_rank-1)*0.06
+
+
+    # Sword
 
     def aquila_favonia(self,unit_obj):
         unit_obj.atk_pct += 0.2 + (unit_obj.weapon_rank-1)*0.05
@@ -100,3 +124,8 @@ class StaticBuff:
     def festering_desire(self,unit_obj):
         unit_obj.skill_crit_rate += 0.06 + (unit_obj.weapon_rank-1)*0.015
         unit_obj.skill_dmg += 0.16 + (unit_obj.weapon_rank-1)*0.04
+
+    # Misc
+
+    def blackcliff(self,unit_obj):
+        unit_obj.atk_pct += 0.12 + (unit_obj.weapon_rank-1)*0.03

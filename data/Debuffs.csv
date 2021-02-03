@@ -1,33 +1,33 @@
-Debuff,Character,Weapon,Artifact,Rank,Constellation,method,Duration,Trigger
-Amber C6,Amber,,,,6,def_15pct,10,burst
-,,,,,,,,
-Beidou_C6,Beidou,,,,6,electro_15pct,15,burst
-,,,,,,,,
-Chongyun_A2,Chongyun,,,,0,cryo_10pct,8,skill
-,,,,,,,,
-Jean_C4,Jean,,,,4,anemo_40pct,10,burst
-,,,,,,,,
-Klee_C2,Klee,,,,2,def_23pct,10,skill
-,,,,,,,,
-Lisa_A4,Lisa,,,,0,def_15pct,25,burst
-,,,,,,,,
-Razor_C4,Razor,,,,4,def_15pct,7,skill
-,,,,,,,,
-Traveler_(Anemo)_C6,Traveler (Anemo),,,,6,anemo_20pct,10,burst
-Traveler_(Anemo)_C6,Traveler (Anemo),,,,6,infused_20pct,10,burst
-,,,,,,,,
-Venti_C2,Venti,,,,2,anemo_12pct,10,skill
-Venti_C2,Venti,,,,2,physical_12pct,10,skill
-Venti_C6,Venti,,,,6,anemo_12pct,10,burst
-Venti_C6,Venti,,,,6,infused_12pct,10,burst
-,,,,,,,,
-Xiangling_C1,Xiangling,,,,1,pyro_15pct,15,skill
-,,,,,,,,
-Xingqiu_C2,Xingqiu,,,,1,hydro_15pct,20,burst
-,,,,,,,,
-Xinyan_C2,Xinyan,,,,4,physical_15pct,12,skill
-,,,,,,,,
-VV_Pyro,,,,,,vv_pyro_40pct,10,
-VV_Hydro,,,,,,vv_hydro_40pct,10,
-VV_Electro,,,,,,vv_electro_40pct,10,
-VV_Cryo,,,,,,vv_cryo_40pct,10,
+Debuff,Character,Weapon,Artifact,Rank,Constellation,method,Duration,Type2,Trigger
+Amber C6,Amber,,,,6,def_15pct,10,on_hit,burst
+,,,,,,,,,
+Beidou_C6,Beidou,,,,6,electro_15pct,15,on_hit,burst
+,,,,,,,,,
+Chongyun_A2,Chongyun,,,,0,cryo_10pct,8,on_hit,skill
+,,,,,,,,,
+Jean_C4,Jean,,,,4,anemo_40pct,10,on_hit,burst
+,,,,,,,,,
+Klee_C2,Klee,,,,2,def_23pct,10,on_hit,skill
+,,,,,,,,,
+Lisa_A4,Lisa,,,,0,def_15pct,25,on_hit,burst
+,,,,,,,,,
+Razor_C4,Razor,,,,4,def_15pct,7,on_hit,skill
+,,,,,,,,,
+Traveler_(Anemo)_C6,Traveler (Anemo),,,,6,anemo_20pct,10,on_hit,burst
+Traveler_(Anemo)_C6,Traveler (Anemo),,,,6,infused_20pct,10,on_hit,burst
+,,,,,,,,,
+Venti_C2,Venti,,,,2,anemo_12pct,10,on_hit,skill
+Venti_C2,Venti,,,,2,physical_12pct,10,on_hit,skill
+Venti_C6,Venti,,,,6,anemo_12pct,10,on_hit,burst
+Venti_C6,Venti,,,,6,infused_12pct,10,on_hit,burst
+,,,,,,,,,
+Xiangling_C1,Xiangling,,,,1,pyro_15pct,15,on_hit,skill
+,,,,,,,,,
+Xingqiu_C2,Xingqiu,,,,1,hydro_15pct,20,on_hit,burst
+,,,,,,,,,
+Xinyan_C2,Xinyan,,,,4,physical_15pct,12,on_hit,skill
+,,,,,,,,,
+VV_Pyro,,,,,,vv_pyro_40pct,10,"on_hit,react",
+VV_Hydro,,,,,,vv_hydro_40pct,10,"on_hit,react",
+VV_Electro,,,,,,vv_electro_40pct,10,"on_hit,react",
+VV_Cryo,,,,,,vv_cryo_40pct,10,"on_hit,react",

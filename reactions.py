@@ -65,7 +65,7 @@ class React:
             return "no_reaction"
     
     def swirl(self,sim,action,enemy,unit):
-        enemy.element -= unit*0.5
+        enemy.units -= unit*0.5
         sim.damage += 722 * (1 + (( 4.44 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))) * (1 - enemy.live_anemo_res )
         print(action.unit.name + " proced swirl")
         return 1
@@ -77,7 +77,7 @@ class React:
         return 1
 
     def crystallise(self,sim,action,enemy,unit):
-        enemy.element -= unit*0.5
+        enemy.units -= unit*0.5
         print(action.unit.name + " proced crystallise")
         return 1
 

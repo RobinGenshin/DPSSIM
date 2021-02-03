@@ -1,5 +1,6 @@
 #Action Class
 from scaling import ratio_type
+from copy import deepcopy
 
 class Action:
     def __init__ (self,unit,atype,enemy):
@@ -7,7 +8,7 @@ class Action:
         self.type = atype
         self.AT = getattr(unit,self.type + "_AT")
         self.element = getattr(self.unit,self.type + "_type")
-        self.scaling = ratio_type(self)
+        self.scaling = ratio_type(self)[getattr(unit,self.type + "_level")]
 
         self.tick = 0
         self.ticks = getattr(self.unit,self.type + "_hits")
@@ -15,6 +16,7 @@ class Action:
         self.energy_times = [ x + 1.6 for x in self.tick_times]
         self.tick_damage = getattr(self.unit,self.type + "_tick_damage")
         self.tick_units = getattr(self.unit,self.type + "_tick_units")
+        self.tick_used = ["no" for i in self.tick_times]
         self.snapshot = ""
         self.particles = 0
         if self.type == "skill":
@@ -25,7 +27,14 @@ class Action:
         self.infused = ""
         self.initial_time = max(self.tick_times)
         self.time_remaining = self.initial_time
-        self.snapshotted_mult = 0
+
+        self.snapshot = True
+        self.snapshot_totatk = deepcopy(self.unit.base_atk * ( 1 + self.unit.live_atk_pct) + self.unit.flat_atk)
+        self.snapshot_crit_rate = deepcopy(self.unit.live_crit_rate)
+        self.snapshot_crit_dmg = deepcopy(self.unit.live_crit_dmg)
+        self.snapshot_dmg = deepcopy(1 + self.unit.live_all_dmg + getattr(self.unit, "live_" + self.type + "_dmg") + 
+                            getattr(self.unit, "live_" + self.element.lower()))
+
 
     def available(self):
         if self.type == "skill" and self.unit.live_skill_CD != 0:
@@ -42,10 +51,10 @@ class Action:
             return 0
         else:
             unit = self.unit
-            tot_atk = unit.base_atk * (1 + unit.live_atk_pct) + unit.flat_atk
-            crit_mult = 1 + unit.live_crit_rate * unit.live_crit_dmg
-            dmg_bon = 1 + unit.live_all_dmg + getattr(unit,self.type + "_dmg") + getattr(unit, "live_" + self.element.lower())
-            scaling = self.scaling[getattr(unit,self.type + "_level")]
+            tot_atk = self.snapshot_totatk
+            crit_mult = 1 + (self.snapshot_crit_rate * self.snapshot_crit_dmg)
+            dmg_bon = self.snapshot_dmg
+            scaling = self.scaling
             defence = ( 100 + unit.level ) / (( 100 + unit.level ) + (enemy.live_defence))
             enemy_res = 1 - getattr(enemy, "live_" + self.element.lower() + "_res")
             mult = tot_atk * crit_mult * dmg_bon * scaling * defence * enemy_res
@@ -55,27 +64,33 @@ class Action:
             self.snapshotted_mult = mult
             return damage
 
-    def calculate_dps(self,enemy):
+    def calculate_dps_snapshot(self,enemy):
         return self.calculate_damage_snapshot(enemy) / self.AT
 
     def calculate_tick_damage(self,tick,enemy):
         if self.snapshot == True:
-            ratio = ratio = tick.tick_damage[tick]
-            return ratio * self.snapshotted_mult
+            attack_multiplier = self.tick_damage[tick]
+            tot_crit_rate = self.snapshot_crit_rate + self.unit.live_cond_crit_rate
+            tot_crit_mult = 1 + (tot_crit_rate * self.snapshot_crit_dmg)
+            tot_dmg = self.snapshot_dmg + self.unit.live_cond_dmg
+            res = getattr(enemy, "live_" + self.element.lower() + "_res")
+            defence = ( 100 + self.unit.level ) / (( 100 + self.unit.level ) + (enemy.live_defence))
+            return self.snapshot_totatk * tot_crit_mult * tot_dmg * defence * (1-res) * attack_multiplier
+
         else:
             unit = self.unit
             tot_atk = unit.base_atk * (1 + unit.live_atk_pct) + unit.flat_atk
-            crit_mult = 1 + unit.live_crit_rate * unit.live_crit_dmg
-            dmg_bon = 1 + unit.live_all_dmg + getattr(unit,self.type + "_dmg") + getattr(unit, "live_" + self.element.lower())
+            crit_mult = 1 + (unit.live_crit_rate + unit.live_cond_crit_rate) * unit.live_crit_dmg
+            dmg_bon = 1 + unit.live_all_dmg + unit.live_cond_dmg + getattr(unit, "live_ " + self.type + "_dmg") + getattr(unit, "live_" + self.element.lower())
             scaling = self.scaling[getattr(unit,self.type + "_level")]
             defence = ( 100 + unit.level ) / (( 100 + unit.level ) + (enemy.live_defence))
-            enemy_res = 1 - getattr(enemy, "live_" + self.element.lower() + "_res")
-            ratio = self.tick_damage[tick]
-            damage = tot_atk * crit_mult * dmg_bon * scaling * defence * enemy_res * ratio
+            res = getattr(enemy, "live_" + self.element.lower() + "_res")
+            attack_multiplier = self.tick_damage[tick]
+            damage = tot_atk * crit_mult * dmg_bon * scaling * defence * (1-res) * attack_multiplier
             return damage
 
 class WeaponAction:
-    def __init__(self,unit_obj,enemy,ratio):
+    def __init__(self,unit_obj,enemy):
         self.unit = unit_obj
         self.type = "weapon"
         self.element = "physical"
@@ -85,16 +100,54 @@ class WeaponAction:
         self.energy_times = []
         self.tick_damage = []
         self.tick_units = []
-        self.snapshot = ""
+        self.tick_used = ["no"]
+        self.snapshot = True
         self.particles = 0
 
         self.initial_time = 0
         self.time_remaining = 0
-        self.snapshotted_mult = 0
+        self.snapshot = True
+        self.snapshot_totatk = deepcopy(self.unit.base_atk * ( 1 + self.unit.live_atk_pct) + self.unit.flat_atk)
+        self.snapshot_crit_rate = deepcopy(self.unit.live_crit_rate)
+        self.snapshot_crit_dmg = deepcopy(self.unit.live_crit_dmg)
+        self.snapshot_dmg = deepcopy(1 + self.unit.live_all_dmg + getattr(self.unit, "live_physical"))
 
     def calculate_tick_damage(self,tick,enemy):
-        if self.snapshot == True:
-            ratio = ratio = tick.tick_damage[tick]
-            return ratio * self.snapshotted_mult
+        attack_multiplier = self.tick_damage[tick]
+        tot_crit_rate = self.snapshot_crit_rate + self.unit.live_cond_crit_rate
+        tot_crit_mult = 1 + (tot_crit_rate * self.snapshot_crit_dmg)
+        tot_dmg = self.snapshot_dmg + self.unit.live_cond_dmg
+        res = getattr(enemy, "live_" + self.element.lower() + "_res")
+        defence = ( 100 + self.unit.level ) / (( 100 + self.unit.level ) + (enemy.live_defence))
+        return self.snapshot_totatk * tot_crit_mult * tot_dmg * defence * (1-res) * attack_multiplier
 
+class AlbedoTrigger:
+    def __init__(self,unit_obj,enemy):
+        self.unit = unit_obj
+        self.type = "skill"
+        self.element = "geo"
+        self.tick = 0
+        self.ticks = 1
+        self.tick_times = [0.05]
+        self.energy_times = [0.05]
+        self.tick_damage = [1.34]
+        self.tick_used = ["no"]
+        self.tick_units = [1]
+        self.snapshot = True
+        self.particles = (2/3)
+
+        self.initial_time = 0
+        self.time_remaining = 0
+        self.snapshot = False
+
+    def calculate_tick_damage(self,tick,enemy):
+        attack_multiplier = self.tick_damage[tick]
+        tot_def = self.unit.base_def * ( 1 + self.unit.live_def_pct ) + self.unit.live_flat_def
+        tot_crit_rate = self.unit.live_crit_rate + self.unit.live_cond_crit_rate
+        tot_crit_mult = 1 + (tot_crit_rate * self.unit.live_crit_dmg)
+        tot_dmg = 1 + self.unit.live_all_dmg + self.unit.live_geo + self.unit.live_skill_dmg + self.unit.live_cond_dmg
+        res = getattr(enemy, "live_geo_res")
+        defence = ( 100 + self.unit.level ) / (( 100 + self.unit.level ) + (enemy.live_defence))
+        damage = attack_multiplier * tot_def * tot_crit_mult * tot_dmg * ( 1 - res ) * defence
+        return damage
 

@@ -450,16 +450,20 @@ def read_buff_data():
             newbuff.type2 = (row['Type2'])
             newbuff.character = (row['Character'])
             newbuff.constellation = str_to_int(row['Constellation'])
-            newbuff.weapon = (row['Weapon'])
+            newbuff.weapon = row['Weapon'].split(',')
             newbuff.artifact = (row['Artifact'])
             newbuff.method = (row['method'])
             newbuff.duration = str_to_float(row['Duration'])
-            newbuff.trigger = (row['Trigger'])
+            newbuff.trigger = row['Trigger'].split(',')
             newbuff.instant = (row['Instant'])
-            newbuff.cooldown = str_to_float(row['Cooldown'])
-            newbuff.stacks = str_to_int(row['Stacks'])
+            newbuff.cd = str_to_float(row['Cooldown'])
             newbuff.time_remaining = newbuff.duration
-            newbuff.live_cooldown = 0
+            newbuff.live_cd = 0
+            newbuff.field = (row['Field'])
+            newbuff.max_stacks = str_to_int(row['Max Stacks'])
+            newbuff.stacks = 0
+            newbuff.temporary = (row['Temporary'])
+
         return buff_dict
 
 def read_debuff_data():
@@ -471,6 +475,7 @@ def read_debuff_data():
             newdebuff = Debuff(debuff)
             debuff_dict[debuff] = newdebuff
 
+            newdebuff.type2 = (row['Type2'])
             newdebuff.character = (row['Character'])
             newdebuff.constellation = str_to_int(row['Constellation'])
             newdebuff.weapon = (row['Weapon'])
@@ -502,8 +507,7 @@ def main():
     # print(phys_ratio_dict)
     # print(razor_auto_ratio_dict)
     # print(razor_qas_ratio_dict)
-    for character in character_dict:
-        print(character_dict[character].normal_tick_times)
+    print(buff_dict["Skyward Blade 3"].type2)
     
 if __name__ == '__main__':
     main()
