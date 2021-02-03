@@ -16,13 +16,15 @@ class Action:
         self.tick_damage = getattr(self.unit,self.type + "_tick_damage")
         self.tick_units = getattr(self.unit,self.type + "_tick_units")
         self.snapshot = ""
-
+        self.particles = 0
         if self.type == "skill":
             self.particles = getattr(unit, "skill_particles")
         else:
             self.particles = 0
 
-        self.time_remaining = max(self.tick_times)
+        self.infused = ""
+        self.initial_time = max(self.tick_times)
+        self.time_remaining = self.initial_time
         self.snapshotted_mult = 0
 
     def available(self):
@@ -68,7 +70,7 @@ class Action:
             scaling = self.scaling[getattr(unit,self.type + "_level")]
             defence = ( 100 + unit.level ) / (( 100 + unit.level ) + (enemy.live_defence))
             enemy_res = 1 - getattr(enemy, "live_" + self.element.lower() + "_res")
-            ratio = tick.tick_damage[tick.tick]
+            ratio = self.tick_damage[tick]
             damage = tot_atk * crit_mult * dmg_bon * scaling * defence * enemy_res * ratio
             return damage
 

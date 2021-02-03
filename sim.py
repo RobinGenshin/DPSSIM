@@ -6,6 +6,7 @@ from reactions import React
 import activeeffects as a
 from action import Action
 import enemy
+import copy
 
 # Creating a list of actions
 class Sim:
@@ -23,9 +24,9 @@ class Sim:
         self.last_action = None
         self.action_list = set()
         self.dot_actions = set()
-        self.energy_over_time = set()
+        self.energy_actions = set()
         self.dot_queue = []
-        self.sorted_queue = []
+        self.sorted_dot_queue = []
         self.energy_queue = []
         self.sorted_energy_queue = []
 
@@ -74,17 +75,18 @@ class Sim:
     ## Uses the action, adds either adds damage if it's instant or adds it to the dot_actions, puts action on cd
     def use_ability(self):
         self.dot_actions.add(self.chosen_action)
-        self.energy_over_time.add(self.chosen_action)
-        for unit in self.units:
-            if unit == self.chosen_unit:
-                if self.chosen_action.type == "skill":
-                    if self.chosen_unit.live_skill_charges > 0:
-                        self.chosen_unit.live_skill_charges -= 1
-                    else:
-                        unit.live_skill_CD = unit.skill_CD
-                if self.chosen_action.type == "burst":
-                    unit.live_burst_CD = unit.burst_CD
-                    unit.live_burst_energy = 0
+        energy_copy = copy.deepcopy(self.chosen_action)
+        energy_copy.initial_time += 1.6
+        energy_copy.time_remaining += 1.6
+        self.energy_actions.add(energy_copy)
+        if self.chosen_action.type == "skill":
+            if self.chosen_unit.live_skill_charges > 0:
+                self.chosen_unit.live_skill_charges -= 1
+            else:
+                self.chosen_unit.live_skill_CD = self.chosen_unit.skill_CD
+        if self.chosen_action.type == "burst":
+            self.chosen_unit.live_burst_CD = self.chosen_unit.burst_CD
+            self.chosen_unit.live_burst_energy = 0
     
     ## Adds a buff postcast if the action would trigger a buff
     def add_buff_postcast(self):
@@ -125,47 +127,44 @@ class Sim:
         self.dot_queue = []
         for dot in self.dot_actions:
             times_till_ticks = []
-            times_for_turn = []
             for i in range(dot.ticks):
-                times_till_ticks.append((i,dot.tick_times[i]))
+                times_till_ticks.append((i,dot.tick_times[i] - (dot.initial_time - dot.time_remaining)))
             for i in range(dot.ticks):
                 if 0 <= times_till_ticks[i][1] <= self.turn_time:
-                    dot_tick = dot
-                    dot_tick.tick = i
-                    times_for_turn.append((i,(dot_tick,times_till_ticks[i][1])))
-            for j in times_for_turn:
-                self.dot_queue.append(j)
-
-    def create_energy_turn(self):
-        self.energy_queue = []
-        for energy in self.energy_over_time:
-            times_till_ticks = []
-            times_for_turn = []
-            for i in range(energy.ticks):
-                times_till_ticks.append((i,energy.energy_times[i]))
-            for i in range(energy.ticks):
-                if 0 <= times_till_ticks[i][1] <= self.turn_time:
-                    energy_tick = energy
-                    energy_tick.tick = i
-                    times_for_turn.append((i,(energy_tick,times_till_ticks[i][1])))
-            for j in times_for_turn:
-                self.energy_queue.append(j)
+                    self.dot_queue.append((i,dot,times_till_ticks[i][1]))
 
     ## Sort the dot ticks in order of when they tick
     def sort_dot_turn(self):
-        self.sorted_dot_queue = sorted(self.dot_queue, key=lambda i: i[1][1])
+        self.sorted_dot_queue = sorted(self.dot_queue, key=lambda i: i[2])
 
     ## Proccesses the dot ticks
     def process_dot_damage(self):
         while self.sorted_dot_queue:
-            new = self.sorted_dot_queue.pop(0)[1][0]
-            unit = new.tick_units[new.tick]
+            new = self.sorted_dot_queue.pop(0)
+            action = new[1]
+            tick = new[0]
+            unit = action.tick_units[tick]
+            multiplier = 1
             if unit > 0:
-                getattr(React(),React().check(new,self.enemy))(self,new,self.enemy,unit)
+                multiplier = getattr(React(),React().check(action,self.enemy))(self,action,self.enemy,unit)
             self.enemy.update_units()
-            self.damage += new.calculate_tick_damage(new,self.enemy)
+            instance_damage = action.calculate_tick_damage(tick,self.enemy) * multiplier
+            # print(instance_damage, action.unit.name, action.type, multiplier)
+            self.damage += instance_damage
+            
 
-    ## Proccesses the dot ticks
+    ## Calc which hits give energy on the turn
+    def create_energy_turn(self):
+        self.energy_queue = []
+        for energy in self.energy_actions:
+            times_till_ticks = []
+            for i in range(energy.ticks):
+                times_till_ticks.append((i,energy.energy_times[i] - (energy.initial_time - energy.time_remaining)))
+            for i in range(energy.ticks):
+                if 0 <= times_till_ticks[i][1] <= self.turn_time:
+                    self.energy_queue.append(energy)
+
+    ## Proccesses the energy
     def process_energy(self):
         for energy in self.energy_queue:
             particles = energy.particles / energy.ticks
@@ -206,11 +205,17 @@ class Sim:
     
     ## Increase the encounter time based on the turn time
     ## Reduce time remaining on dots
+
     def pass_time(self):
         self.encounter_duration += self.turn_time
+
         for dot in self.dot_actions:
             dot.time_remaining -= self.turn_time
         self.dot_actions = {x for x in self.dot_actions if x.time_remaining > 0}
+
+        for energy in self.energy_actions:
+            energy.time_remaining -= self.turn_time
+        self.energy_actions = {x for x in self.energy_actions if x.time_remaining > 0}
 
     ## Print status
     def status(self):
@@ -229,8 +234,10 @@ class Sim:
             self.add_debuff()
             self.check_turn_time()
             self.create_dot_turn()
+            self.create_energy_turn()
             self.sort_dot_turn()
             self.process_dot_damage()
+            self.process_energy()
             self.reduce_cd()
             self.check_buff_end()
             self.check_debuff_end()
@@ -243,11 +250,10 @@ ElectroArtifact = artifact_substats.ArtifactStats("energy_recharge", "electro", 
 AnemoArtifact = artifact_substats.ArtifactStats("energy_recharge", "anemo", "crit_rate", "Perfect")
 
 Main = u.Unit("Fischl", 90, "The Stringless", "Viridescent Venerer", 0, 1, 6, 6, 6, AnemoArtifact)
-Support1 = u.Unit("Amber", 90, "The Stringless", "Noblesse", 0, 1, 6, 6, 6, CryoArtifact)
-Support2 = u.Unit("Kaeya", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 6, 6, 6, ElectroArtifact)
-Support3 = u.Unit("Lisa", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 6, 6, 6, CryoArtifact)
-Monster = enemy.Enemy("Hilichurls", 100)
+Support1 = u.Unit("Amber", 90, "The Stringless", "Noblesse", 0, 1, 6, 6, 6, PyroArtifact)
+Support2 = u.Unit("Kaeya", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 6, 6, 6, CryoArtifact)
+Support3 = u.Unit("Lisa", 90, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 6, 6, 6, ElectroArtifact)
+Monster = enemy.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,20)
+Test = Sim(Main,Support1,Support2,Support3,Monster,100)
 Test.turn_on_sim()
-
