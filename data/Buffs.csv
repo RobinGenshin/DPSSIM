@@ -1,16 +1,15 @@
 Buff,Share,Type,Character,Weapon,Rank,Artifact,Constellation,method,Duration,Type2,Trigger,Instant,Cooldown,Field,Max Stacks,Temporary
 ,,,,,,,,,,,,,,,,
-Albedo_E_cast,No,Active,Albedo,,,,0,albedo_e,30,postcast,skill,Instant,0,No,0,
-Albedo_E_trigger,No,Active,,,,,,albedo_e_trigger,30,on_hit,any,Instant,,,,Yes
+Albedo_E_cast,No,Active,Albedo,,,,0,albedo_e,,postcast,skill,Instant,0,No,0,
+Albedo_E_trigger,No,Active,,,,,,albedo_e_trigger,,on_hit,any,Instant,0,No,0,Yes
 ,,,,,,,,,,,,,,,,
 Albedo_A2,No,Static,Albedo,,,,0,albedo_a2,,,,,,,,
 Albedo_A4,Yes,Active,Albedo,,,,0,albedo_a4,10,postcast,burst,,0,Yes,0,
-Albedo_C1,No,Static,Albedo,,,,1,albedo_c1,,,,,,,,
-Albedo_C2,No,Active,Albedo,,,,2,albedo_c1,,on_hit,any,,0,Yes,7,
+Albedo_C2,No,Active,Albedo,,,,2,albedo_c2,,postcast,any,Instant,0,Yes,0,
 Albedo_C3,No,Static,Albedo,,,,3,skill_level_plus_3,,,,,,,,
 Albedo_C4,Yes,Active,Albedo,,,,4,albedo_c4,30,postcast,skill,,0,Yes,0,
 Albedo_C5,No,Static,Albedo,,,,5,burst_level_plus_3,,,,,,,,
-Albedo_C6,Yes,Active,Albedo,,,,6,albedo_c6,,postcast,skill,,0,Yes,0,
+Albedo_C6,Yes,Active,Albedo,,,,6,albedo_c6,15,crystallise,any,,0,Yes,0,
 ,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
 Amber_A2,No,Static,Amber,,,,0,amber_a2,,,,,,,,

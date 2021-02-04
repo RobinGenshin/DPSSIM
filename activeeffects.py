@@ -1,38 +1,364 @@
 import read_data
 debuffdict = read_data.read_debuff_data()
 buffdict = read_data.read_buff_data()
+chardict = read_data.read_character_data()
+eleratiodict = read_data.read_ele_ratio_data()
 from action import WeaponAction
 from action import AlbedoTrigger
+from action import BeidouQ
 import copy
 
 class ActiveBuff:
-
+    
     ## Characters ##
+
+    # Albedo
 
     def albedo_e(self,unit_obj,sim):
         for unit in sim.units:
             unit.triggerable_buffs["Albedo_E_Trigger"] = copy.deepcopy(buffdict["Albedo_E_trigger"])
-        
+            unit.triggerable_buffs["Albedo_E_Trigger"].time_remaining = 30
+
     def albedo_e_trigger(self,unit_obj,sim):
         for unit in sim.units:
             if unit.name == "Albedo":
                 action = AlbedoTrigger(unit, sim.enemy)
-        x = sim.time_into_turn
-        action.tick_times = [y+x for y in action.tick_times]
-        action.energy_times = [y+x+1.6 for y in action.energy_times]
-        sim.floating_actions_damage.add(action)
-        print("#" + str(sim.action_order) + " " + str(round((sim.encounter_duration + sim.time_into_turn),2)) + " Albedo E PROC")
+                x = sim.time_into_turn
+                action.tick_times = [y+x for y in action.tick_times]
+                action.energy_times = [y+x+1.6 for y in action.energy_times]
+                sim.floating_actions_damage.add(action)
         for unit in sim.units:
             unit.triggerable_buffs["Albedo_E_Trigger"].live_cd = 2
 
+        for unit in sim.units:
+            if unit.name == "Albedo" and unit.constellation >= 1:
+                unit.live_burst_energy = max(0, unit.live_burst_energy + 1.2)
+
+        for unit in sim.units:
+            if unit.name == "Albedo":
+                if hasattr(unit, "c2_stacks"):
+                    unit.c2_stacks = max(7,unit.c2_stacks+1)
+                else:
+                    unit.c2_stacks = 1
+
     def albedo_a4(self,unit_obj,sim):
         unit_obj.live_elemental_mastery += 120
+
+    def albedo_c1(self,unit_obj,sim):
+        pass
+
+    def albedo_c2(self,unit_obj,sim):
+        if hasattr(unit_obj, "c2_stacks"):
+            d = unit_obj.c2_stacks
+        else:
+            unit_obj.c2_stacks = 0
+            d = unit_obj.c2_stacks
+
+        action = AlbedoTrigger(unit_obj, sim.enemy)
+        action.tick_times = copy.deepcopy(chardict["Albedo"].burst_tick_times)
+        action.tick_damage = copy.deepcopy(chardict["Albedo"].burst_tick_damage)
+        action.tick_units = copy.deepcopy(chardict["Albedo"].burst_tick_units)
+        action.scaling = 1
+
+        action.tick_times = [x+0.1 for x in action.tick_times]
+        action.damage = [0.3*d for x in action.tick_times]
+        action.tick_units = [0 for x in action.tick_units]
+        action.energy_times = [x+1.6 for x in action.tick_times]
+        sim.floating_actions_damage.add(action)
+
+    def albedo_c4(self,unit_obj,sim):
+        unit_obj.live_plunge_dmg += 0.3
+
+    def albedo_c6(self,unit_obj,sim):
+        unit_obj.live_all_dmg += 0.17
+
+    ## Amber ##
+
+    def amber_a2(self,unit_obj,sim):
+        unit_obj.live_atk_pct += 0.15
+
+    def amber_c2(self,unit_obj,sim):
+        for action in sim.sorted_damage_queue:
+            if action.unit == unit_obj and action.type == "skill":
+                pass
+        
+    def amber_c6(self,unit_obj,sim):
+        unit_obj.live_atk_pct += 0.15
+
+    
+    ## Barbara ##
+
+    def barbara_a2(self,unit_obj,sim):
+        unit_obj.live_stam_save += sim.turn_time
+
+    def barbara_a4(self,unit_obj,sim):
+        pass
+
+    def barbara_c1(self,unit_obj,sim):
+        unit_obj.live_burst_energy += 1
+
+    def barbara_c2_2(self,unit_obj,sim):
+        unit_obj.live_hydro += 0.15
+
+    def barbara_c4(self,unit_obj,sim):
+        unit_obj.live_burst_energy += 1
+
+    
+    ## Beidou ##
+
+    def beidou_q_cast(self,unit_obj,sim):
+        for unit in sim.units:
+            unit.triggerable_buffs["Beidou_Q_Trigger"] = copy.deepcopy(buffdict["Beidou_Q_trigger"])
+    
+    def beidou_q_on_hit(self,unit_obj,sim):
+        for unit in sim.units:
+            if unit.name == "Beidou":
+                action = BeidouQ(unit, sim.enemy)
+                x = sim.time_into_turn
+                action.tick_times = [y+x for y in action.tick_times]
+                action.energy_times = [y+x+1.6 for y in action.energy_times]
+                sim.floating_actions_damage.add(action)
+        for unit in sim.units:
+            unit.triggerable_buffs["Beidou_Q_Trigger"].live_cd = 1
+
+    def beidou_a4(self,unit_obj,sim):
+        unit_obj.live_normal_dmg += 0.15
+        unit_obj.live_charged_dmg += 0.15
+        unit_obj.live_normal_speed += 0.15
+        unit_obj.live_charged_speed += 0.15
+
+    def beidou_c2(self,unit_obj,sim):
+        pass
+
+    def beidou_c4(self,unit_obj,sim):
+        pass
+
+    ## Bennett ##
+
+    def bennett_q_1(self,unit_obj,sim):
+        atk_mult = eleratiodict[unit_obj.burst_level] * 0.56
+        snapshot = atk_mult * copy.deepcopy(unit_obj.base_atk)
+        unit_obj.snapshot_buff = snapshot
+        for unit in sim.units:
+            unit.active_buffs["Bennett_Q_2"] = copy.deepcopy(buffdict["Benntt_Q_2"])
+
+    def bennet_q_2(self,unit_obj,sim):
+        atk_buff = 0
+        for unit in sim.units:
+            if unit.name == "Bennett":
+                atk_buff == unit.snapshot_buff
+            else:
+                pass
+
+    def bennet_q_3(self,unit_obj,sim):
+        unit_obj.live_skill_CDR *= 0.5
+
+    def bennett_c4(self,unit_obj,sim):
+        pass
+
+    def bennet_c6(self,unit_obj,sim):
+        if unit_obj.weapon_type in {"Claymore", "Polearm", "Sword"}:
+            unit_obj.live_pyro += 0.15
+            unit_obj.live_normal_type = "Pyro"
+            unit_obj.live_charged_type = "Pyro"
+
+    ## Chongyun ##
+
+    def chongyun_a2(self,unit_obj,sim):
+        unit_obj.live_normal_speed += 0.08
+
+    def chongyun_c1(self,unit_obj,sim):
+        pass
+
+    def chongyun_c2(self,unit_obj,sim):
+        unit_obj.live_skill_CDR *= 0.85
+        unit_obj.live_burst_CDR *= 0.85
+
+    def chonyun_c4(self,unit_obj,sim):
+        if sim.enemy.element == "Cryo":
+            unit_obj.live_burst_energy += 1
+            unit_obj.triggerable_buffs["Chongyun_C2"].live_cd = 2
+
+    ## Diluc ##
+
+    def diluc_q(self,unit_obj,sim):
+        unit_obj.live_normal_type = "Pyro"
+        unit_obj.live_charged_type = "Pyro"
+        unit_obj.live_pyro += 0.2
+
+    def diluc_c2(self,unit_obj,sim):
+        pass
+
+    def diluc_c4(self,unit_obj,sim):
+        pass
+
+    def diluc_c6(self,unit_obj,sim):
+        pass
+
+    ## Diona ##
+
+    def diona_a2(self,unit_obj,sim):
+        unit_obj.live_stam_save += 0.1
+
+    def diona_c1(self,unit_obj,sim):
+        unit_obj.live_burst_energy += 15
+
+    def diona_c4(self,unit_obj,sim):
+        unit_obj.live_charged_speed += 0.6
+
+    def diona_c6(self,unit_obj,sim):
+        unit_obj.live_elemental_mastery += 200
+
+    ## Fischl ##
+
+    def fischl_e(self,unit_obj,sim):
+        unit_obj.live_burst_CD = max(12,unit_obj.live_skill_CD)
+    
+    def fischl_q(self,unit_obj,sim):
+        unit_obj.live_skill_CD = max(12,unit_obj.live_burst_CD)
+
+    def fischl_c1(self,unit_obj,sim):
+        ## check if fischl skill isn't in action list ##
+        pass
+
+    def fischl_c2(self,unit_obj,sim):
+        pass
+
+    def fischl_c4(self,unit_obj,sim):
+        pass
+
+    def fischl_c6(self,unit_obj,sim):
+        pass
+
+    ## Ganyu ##
+
+    def ganyu_a2(self,unit_obj,sim):
+        unit_obj.live_charged_crit_rate += 0.2
+
+    def ganyu_a4(self,unit_obj,sim):
+        unit_obj.live_cryo += 0.2
+
+    def ganyu_c1_1(self,unit_obj,sim):
+        unit_obj.live_burst_energy += 2
+
+    def ganyu_c4(self,unit_obj,sim):
+        unit_obj.live_all_dmg += 0.15
+
+    def ganyu_c6(self,unit_obj,sim):
+        pass
+
+    ## Jean ##
+
+    def jean_a4(self,unit_obj,sim):
+        unit_obj.live_burst_energy += 16
+
+    def jean_c1(self,unit_obj,sim):
+        pass
+
+    def jean_c2(self,unit_obj,sim):
+        unit_obj.live_normal_speed += 0.15
+
+    ## Kaeya ##
+
+    def kaeya_a4(self,unit_obj,sim):
+        ## move a copy to energy queue##
+        pass
+
+    def kaeya_c1(self,unit_obj,sim):
+        if sim.enemy.element == "Cryo":
+            unit_obj.live_cond_norm_crit_rate += 0.15
+            unit_obj.live_cond_norm_crit_rate += 0.15
+
+    def kaeya_c2(self,unit_obj,sim):
+        pass
+
+    def kaeya_c6_2(self,unit_obj,sim):
+        unit_obj.live_burst_energy += 15
+
+    ## Keqing ##
+
+    def keqing_a2(self,unit_obj,sim):
+        unit_obj.live_normal_type = "Electro"
+        unit_obj.live_charged_type = "Electro"
+
+    def keqing_a4(self,unit_obj,sim):
+        unit_obj.live_crit_rate += 0.15
+        unit_obj.live_energy_recharge += 0.15
+
+    def keqing_c1(self,unit_obj,sim):
+        pass
+
+    def keqing_c2(self,unit_obj,sim):
+        if sim.enemy.element == "Electro":
+            ## add particle to queue ##
+            unit_obj.triggerable_buffs["Keqing_C2"].live_cd = 5
+            pass
+
+    def keqing_c4(self,unit_obj,sim):
+        unit_obj.live_atk_pct += 0.25
+
+    def keqing_c6_1(self,unit_obj,sim): ## Normal
+        unit_obj.live_electro += 0.06
+    def keqing_c6_2(self,unit_obj,sim): ## Charged
+        unit_obj.live_electro += 0.06
+    def keqing_c6_3(self,unit_obj,sim): ## Skill
+        unit_obj.live_electro += 0.06
+    def keqing_c6_4(self,unit_obj,sim): ## Burst
+        unit_obj.live_electro += 0.06    
+
+    ## Klee ##
+    
+    def klee_a2_1(self,unit_obj,sim):
+        unit_obj.spark = True
+        unit_obj.triggerable_buffs["Klee_A2"].live_cd = 4
+
+    def klee_a2_2(self,unit_obj,sim):
+        if hasattr(unit_obj,"sparks") == False:
+            unit_obj.sparks = 0
+        if unit_obj.sparks == True:
+            unit_obj.live_charged_dmg += 0.5
+            unit_obj.sparks = False
+
+    def klee_a4(self,unit_obj,sim):
+        unit_obj.live_burst_energy += 2
+
+    def klee_c1(self,unit_obj,sim):
+        pass
+
+    def klee_c4(self,unit_obj,sim):
+        pass
+
+    def klee_c6_1(self,unit_obj,sim):
+        pass
+
+    def klee_c6_2(self,unit_obj,sim):
+        unit_obj.live_pyro += 0.1
+
+    ## Lisa ##
+
+    def lisa_c1(self,unit_obj,sim):
+        unit_obj.live_burst_energy += 2
+
+    def lisa_c4(self,unit_obj,sim):
+        pass
+
+    def lisa_c6(self,unit_obj,sim):
+        pass
+
+
+
+    
+
+
 
     def venti_infuse_15e_refund(self,unit_obj,sim):
         for unit in sim.units:
             if unit != unit_obj:
                 if unit.element == sim.enemy.element:
                    unit.live_burst_energy = min(unit.live_burst_energy+15,unit.burst_energy)
+
+
+
 
     def atk_15pct(self,unit_obj,sim):
         unit_obj.live_atk_pct += 0.15
@@ -387,6 +713,35 @@ class ActiveBuff:
             print(sim.chosen_unit.name + " reduced enemy " + sim.enemy.element + " RES with VV")
 
 class ActiveDebuff:
+
+
+    ## Beidou ##
+
+    def beidou_c6(self,unit_obj,sim):
+        sim.enemy.electro_res_debuff += 0.15
+
+    ## Chongyun ##
+
+    def chongyun_a4(self,unit_obj,sim):
+        pass
+
+    ## Jean ##
+
+    def jean_c4(self,unit_obj,sim):
+        sim.enemy.anemo_res_debuff += 0.4
+
+    ## Klee ##
+
+    def klee_c2(self,unit_obj,sim):
+        sim.enemy.defence_debuff += 0.23
+
+    ## Lisa ##
+
+    def lisa_a4(self,unit_obj,sim):
+        sim.enemy.defence_debuff += 0.15
+
+    
+
     def def_15pct(self,unit_obj,sim):
         unit_obj.defence_debuff += 0.15
 

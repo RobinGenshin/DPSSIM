@@ -110,6 +110,7 @@ class Sim:
         for unit in self.units:
             unit.active_buffs = {k:unit.active_buffs[k] for k in unit.active_buffs if unit.active_buffs[k].time_remaining > 0}
             unit.update_stats(self)
+
             for buff in copy.deepcopy(unit.triggerable_buffs):
                 if unit.triggerable_buffs[buff].temporary == "Yes":
                     if unit.triggerable_buffs[buff].time_remaining == 0:
@@ -125,8 +126,8 @@ class Sim:
         self.chosen_action = max(self.action_list, key=methodcaller('calculate_dps_snapshot',self.enemy))
         self.chosen_unit = self.chosen_action.unit
         if self.action_order == 1:
-            self.last_unit = self.chosen_unit
-            self.last_action = self.chosen_action
+            self.last_unit = copy.deepcopy(self.chosen_unit)
+            self.last_action = copy.deepcopy(self.chosen_action)
 
     ## Uses the action, adds either adds damage if it's instant or adds it to the dot_actions, puts action on cd
     def use_ability(self):
@@ -195,10 +196,12 @@ class Sim:
 
         multiplier = 1
         if action_unit > 0:
-            multiplier = getattr(React(),React().check(action,self.enemy))(self,action,self.enemy,action_unit)
+            reaction = getattr(React(),React().check(action,self.enemy))(self,action,self.enemy,action_unit)
+            multiplier = reaction[0]
+            self.check_buff(reaction[1],action)
+
         self.enemy.update_units()
         instance_damage = action.calculate_tick_damage(tick,self.enemy) * multiplier
-        # print(instance_damage, action.unit.name, action.type, multiplier)
         self.damage += instance_damage
 
         self.check_buff("on_hit",action)
@@ -262,10 +265,10 @@ class Sim:
         for unit in self.units:
             for _, trig_buff in unit.triggerable_buffs.items():
                 trig_buff.live_cd = max(0, trig_buff.live_cd - (self.turn_time-self.time_into_turn))
-                # if trig_buff.temporary == "Yes":
-                #     trig_buff.live_cd = max(0, trig_buff.live_cd - (self.turn_time-self.time_into_turn))
+                if trig_buff.temporary == "Yes":
+                    trig_buff.time_remaining = max(0, trig_buff.time_remaining - (self.turn_time-self.time_into_turn))
             for _, buff in unit.active_buffs.items():
-                buff.time_remaining = max(0, trig_buff.time_remaining - (self.turn_time-self.time_into_turn))
+                buff.time_remaining = max(0, buff.time_remaining - (self.turn_time-self.time_into_turn))
 
     ## Print status
     def status(self):
@@ -283,11 +286,13 @@ class Sim:
             self.check_buff("postcast",self.chosen_action)
             self.check_turn_time()
             self.process_loop()
+            self.create_energy_turn()
             self.process_energy()
             self.reduce_cd()
             self.pass_turn_time()
             self.check_buff_end()
             self.check_debuff_end()
+            
         print(round(self.damage /self.encounter_duration))
 
 PyroArtifact = artifact_substats.ArtifactStats("energy_recharge", "pyro", "crit_rate", "Perfect")
@@ -295,13 +300,11 @@ CryoArtifact = artifact_substats.ArtifactStats("energy_recharge", "cryo", "crit_
 ElectroArtifact = artifact_substats.ArtifactStats("energy_recharge", "electro", "crit_rate", "Perfect")
 AnemoArtifact = artifact_substats.ArtifactStats("energy_recharge", "anemo", "crit_rate", "Perfect")
 
-Main = u.Unit("Albedo", 90, "Skyward Atlas", "Thundersoother", 0, 5, 6, 6, 6, AnemoArtifact)
-Support1 = u.Unit("Amber", 1, "Skyward Harp", "Crimson Witch", 0, 1, 1, 1, 1, PyroArtifact)
+Main = u.Unit("Albedo", 90, "Rust", "Wanderer's Troupe", 5, 5, 6, 6, 6, AnemoArtifact)
+Support1 = u.Unit("Amber", 6, "Skyward Harp", "Crimson Witch", 0, 1, 1, 1, 1, PyroArtifact)
 Support2 = u.Unit("Kaeya", 1, "Skyward Harp", "Wanderer's Troupe", 0, 1, 1, 1, 1, CryoArtifact)
 Support3 = u.Unit("Lisa", 1, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 1, 1, 1, ElectroArtifact)
 Monster = enemy.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,30)
+Test = Sim(Main,Support1,Support2,Support3,Monster,100)
 Test.turn_on_sim()
-for unit in Test.units:
-    print(unit.triggerable_buffs)

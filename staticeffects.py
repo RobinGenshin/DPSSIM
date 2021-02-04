@@ -14,6 +14,56 @@ class StaticBuff:
     def amber_a2(self,unit_obj):
         unit_obj.skill_crit_rate += 0.1
 
+    def amber_c1(self,unit_obj):
+        unit_obj.charged_tick_times.append(unit_obj.charged_tick_times[0]+0.1)
+        unit_obj.charged_tick_damage.append(1.24*0.2)
+        unit_obj.charged_tick_units.append(1)
+
+    def amber_c4(self,unit_obj):
+        unit_obj.skill_charges += 1
+        unit_obj.skill_CDR *= 0.8
+
+    ## Barbara ##
+
+    def barbara_c2_1(self,unit_obj):
+        unit_obj.skill_CDR *= 0.85
+
+    ## Bennett ##
+
+    def bennett_a2(self,unit_obj):
+        unit_obj.skill_CDR *= 0.8
+
+    ## Chongyun ##
+
+    def chongyun_c6(self,unit_obj):
+        pass
+
+    ## Diluc ##
+
+    def diluc_c1(self,unit_obj):
+        unit_obj.all_dmg += 0.075
+
+    ## Diona ##
+
+    def diona_c2(self,unit_obj):
+        unit_obj.skill_dmg += 0.075
+
+    ## Ganyu ##
+
+    def ganyu_c2(self,unit_obj):
+        unit_obj.skill_charges += 1
+
+    ## Kaeya ##
+
+    def kaeya_c6_1(self,unit_obj):
+        unit_obj.burst_tick_times.append[8.217+0.666,8.217+0.666*2,8.217+0.666*3,8.217*4]
+        unit_obj.burst_tick_times = [x*(3/4) for x in unit_obj.burst_tick_times]
+        unit_obj.burst_tick_damage.append[0.776,0.776,0.776,0.776]
+        unit_obj.burst_tick_units.append[0,1,0,1]
+
+    ## 
+
+
     def skill_ratio_20pct(self,unit_obj):
         pass
     def skill_cdr_20pct(self,unit_obj):

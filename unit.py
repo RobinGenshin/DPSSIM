@@ -91,10 +91,13 @@ class Unit():
         self.burst_dmg = characterdict[name].burst_dmg + weapondict[weapon].burst_dmg + artifactdict[artifact].burst_dmg
         self.live_burst_dmg = self.burst_dmg
         self.healing_bonus = characterdict[name].healing_bonus + weapondict[weapon].healing_bonus + artifactdict[artifact].healing_bonus
+        self.plunge_dmg = 0
+        self.live_plunge_dmg = self.plunge_dmg
         self.cond_dmg = 0
-        self.live_cond_dmg = 0
+        self.live_cond_dmg = self.cond_dmg
 
         self.normal_type = characterdict[name].normal_type
+        self.live_normal_type = self.normal_type
         self.normal_hits = characterdict[name].normal_hits
         self.normal_AT = characterdict[name].normal_AT
         self.normal_AC = characterdict[name].normal_AC
@@ -104,6 +107,7 @@ class Unit():
         self.passive_hits = characterdict[name].passive_hits
 
         self.charged_type = characterdict[name].charged_type
+        self.live_charged_type = self.charged_type
         self.charged_hits = characterdict[name].charged_hits
         self.charged_AT = characterdict[name].charged_AT
         self.charged_AC = characterdict[name].charged_AC
@@ -202,9 +206,9 @@ class Unit():
 def main():
     AnemoArtifact = artifact_substats.ArtifactStats("energy_recharge", "anemo", "crit_rate", "Perfect")
     Main = Unit("Albedo", 90, "Skyward Atlas", "Thundersoother", 0, 5, 6, 6, 6, AnemoArtifact)
-    print(len(Main.burst_tick_times))
-    print(len(Main.burst_tick_damage))
-    print(len(Main.burst_tick_units))
+    print(Main.name)
+    test = [0,1]
+    print(len(test))
     
 
 if __name__ == '__main__':
