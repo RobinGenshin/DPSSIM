@@ -99,29 +99,47 @@ class Unit():
         self.normal_type = characterdict[name].normal_type
         self.live_normal_type = self.normal_type
         self.normal_hits = characterdict[name].normal_hits
+        self.live_normal_hits = self.normal_hits
         self.normal_AT = characterdict[name].normal_AT
+        self.live_normal_AT = self.normal_AT
         self.normal_AC = characterdict[name].normal_AC
+        self.live_normal_AC = self.normal_AC
         self.normal_tick_times = characterdict[name].normal_tick_times
+        self.live_normal_tick_times = self.normal_tick_times
         self.normal_tick_damage = characterdict[name].normal_tick_damage
+        self.live_normal_tick_damage = self.normal_tick_damage
         self.normal_tick_units = characterdict[name].normal_tick_units
-        self.passive_hits = characterdict[name].passive_hits
+        self.live_normal_tick_units = self.normal_tick_units
 
         self.charged_type = characterdict[name].charged_type
         self.live_charged_type = self.charged_type
         self.charged_hits = characterdict[name].charged_hits
+        self.live_charged_hits = self.charged_hits
         self.charged_AT = characterdict[name].charged_AT
+        self.live_charged_AT = self.charged_AT
         self.charged_AC = characterdict[name].charged_AC
+        self.live_charged_AC = self.charged_AC
         self.charged_tick_times = characterdict[name].charged_tick_times
+        self.live_charged_tick_times = self.charged_tick_times
         self.charged_tick_damage = characterdict[name].charged_tick_damage
+        self.live_charged_tick_damage = self.charged_tick_damage
         self.charged_tick_units = characterdict[name].charged_tick_units
+        self.live_charged_tick_units = self.charged_tick_units
         self.charged_stam = characterdict[name].charged_stam
+        self.live_charged_stam = self.charged_stam
 
         self.skill_type = self.element
+        self.live_skill_type = self.skill_type
         self.skill_hits = characterdict[name].skill_hits
+        self.live_skill_hits = self.skill_hits
         self.skill_AT = characterdict[name].skill_AT
+        self.live_skill_AT = self.skill_AT
         self.skill_tick_times = characterdict[name].skill_tick_times
+        self.live_skill_tick_times = self.skill_tick_times
         self.skill_tick_damage = characterdict[name].skill_tick_damage
+        self.live_skill_tick_damage = self.skill_tick_damage
         self.skill_tick_units = characterdict[name].skill_tick_units
+        self.live_skill_tick_units =  self.skill_tick_units
         self.skill_flat_ratio = 0
         self.skill_CD = characterdict[name].skill_CD
         self.live_skill_CD = 0
@@ -133,11 +151,17 @@ class Unit():
         self.skill_crit_rate = 0
 
         self.burst_type = self.element
+        self.live_burst_type = self.burst_type
         self.burst_hits = characterdict[name].burst_hits
+        self.live_burst_hits = self.burst_hits
         self.burst_AT = characterdict[name].burst_AT
+        self.live_burst_AT = self.burst_AT
         self.burst_tick_times = characterdict[name].burst_tick_times
+        self.live_burst_tick_times = self.burst_tick_times
         self.burst_tick_damage = characterdict[name].burst_tick_damage
+        self.live_burst_tick_damage = self.burst_tick_damage
         self.burst_tick_units = characterdict[name].burst_tick_units
+        self.live_burst_tick_units = self.burst_tick_units
         self.burst_flat_ratio = 0
         self.burst_crit_rate = 0
         self.burst_CD = characterdict[name].burst_CD
@@ -191,7 +215,11 @@ class Unit():
         # clears active buffs
         x = {"atk_pct", "crit_rate", "crit_dmg", "anemo", "cryo", "electro", "geo", "hydro", 
         "pyro", "elemental_dmg", "all_dmg", "normal_dmg", "normal_speed", "charged_dmg", 
-        "skill_dmg", "burst_dmg", "skill_CDR", "burst_CDR", "cond_dmg", "cond_crit_rate"}
+        "skill_dmg", "burst_dmg", "cond_dmg", "cond_crit_rate",
+        "normal_type", "normal_hits", "normal_AT", "normal_AC", "normal_tick_times", "normal_tick_damage", "normal_tick_units",
+        "charged_type", "charged_hits", "charged_AT", "charged_AC", "charged_tick_times", "charged_tick_damage", "charged_tick_units",
+        "skill_type", "skill_hits", "skill_AT", "skill_tick_times", "skill_tick_damage", "skill_tick_units", "skill_CDR",
+        "burst_type", "burst_hits", "burst_AT", "burst_tick_times", "burst_tick_damage", "burst_tick_units", "burst_CDR"}
         for stat in x:
             setattr(self, "live_" + stat, getattr(self, stat))
         # call method to reactivate buff

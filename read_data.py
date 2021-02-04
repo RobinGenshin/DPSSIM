@@ -456,7 +456,6 @@ def read_buff_data():
             newbuff.duration = str_to_float(row['Duration'])
             newbuff.trigger = row['Trigger'].split(',')
             newbuff.instant = (row['Instant'])
-            newbuff.cd = str_to_float(row['Cooldown'])
             newbuff.time_remaining = newbuff.duration
             newbuff.live_cd = 0
             newbuff.field = (row['Field'])

@@ -56,54 +56,82 @@ class StaticBuff:
     ## Kaeya ##
 
     def kaeya_c6_1(self,unit_obj):
-        unit_obj.burst_tick_times.append[8.217+0.666,8.217+0.666*2,8.217+0.666*3,8.217*4]
+        unit_obj.burst_tick_times.extend([8.217+0.666,8.217+0.666*2,8.217+0.666*3,8.217*4])
         unit_obj.burst_tick_times = [x*(3/4) for x in unit_obj.burst_tick_times]
-        unit_obj.burst_tick_damage.append[0.776,0.776,0.776,0.776]
-        unit_obj.burst_tick_units.append[0,1,0,1]
+        unit_obj.burst_tick_damage.extend([0.776,0.776,0.776,0.776])
+        unit_obj.burst_tick_units.extend([0,1,0,1])
 
-    ## 
+    ## Noelle ##
 
+    def noelle_c2(self,unit_obj):
+        unit_obj.charged_dmg += 0.15
+        unit_obj.charged_stamina += 0.15
 
-    def skill_ratio_20pct(self,unit_obj):
+    def noelle_c6(self,unit_obj):
+        unit_obj.triggerable_buffs["Noelle Q 2"].duration += 5
+
+    ## Razor ##
+
+    def razor_a2_1(self,unit_obj):
+        unit_obj.skill_CD *= 0.82
+    
+    def razor_c2(self,unit_obj):
+        unit_obj.crit_rate += 0.03
+
+    ## Sucrose ##
+
+    def sucrose_c1(self,unit_obj):
+        unit_obj.skill_charges += 1
+
+    def sucrose_c2(self,unit_obj):
+        unit_obj.burst_hits += 1
+        unit_obj.burst_tick_times.append(unit_obj.burst_tick_times[2]+2)
+        unit_obj.burst_tick_damage.append(1.48)
+        unit_obj.burst_tick_units.append(1)
+
+    ## Tartaglia ##
+
+    def tartaglia_autolevel(self,unit_obj):
+        unit_obj.normal_level += 1
+        unit_obj.charged_level += 1
+
+    ## Venti ##
+
+    def venti_c1(self,unit_obj):
+        unit_obj.charged_hits += 2
+        unit_obj.charged_tick_times.append(unit_obj.burst_tick_times[0]+0.1)
+        unit_obj.charged_tick_times.append(unit_obj.burst_tick_times[0]+0.15)
+        unit_obj.charged_tick_damage.append(124/3,124/3)
+        unit_obj.charged_tick_units.append(0,0)
+
+    ## Xiangling ##
+
+    def xiangling_c4(self,unit_obj):
         pass
-    def skill_cdr_20pct(self,unit_obj):
-        unit_obj.skill_CDR *= 0.8
-    def burst_crit_rate_10pct(self,unit_obj):
-        unit_obj.burst_crit_rate += 0.1
-    def charged_ratio_20pct(self,unit_obj):
+
+    ## Xiao ##
+
+    def xiao_c1(self,unit_obj,sim):
+        unit_obj.skill_charges += 1
+
+    ## Xingqiu ##
+
+    def xingqiu_a4(self,unit_obj,sim):
+        unit_obj.hydro += 0.2
+
+    ## Xinyan ##
+
+    def xinyan_c6(self,unit_obj,sim):
         pass
-    def skill_flat_200pct(self,unit_obj):
-        unit_obj.skill_flat_ratio += 2
+
+    
+
+
+
     def burst_level_plus_3(self,unit_obj):
         unit_obj.burst_level += 3
     def skill_level_plus_3(self,unit_obj):
         unit_obj.skill_level += 3
-    def skill_cd_minus_20pct(self,unit_obj):
-        unit_obj.skill_CDR *= 0.8
-    def q_on_use_atk_pct_10pct(self,unit_obj):
-        unit_obj.atk_pct += 0
-    def burst_refund_15(self,unit_obj):
-        unit_obj.burst_energy -= 15
-    def skill_dmg_15pct(self,unit_obj):
-        unit_obj.skill_dmg += 0.15
-    def aimed_shot_dur_minus_60pct(self,unit_obj):
-        unit_obj.charged_AT *= 0.4
-    def skill_charges_plus_1(self,unit_obj):
-        unit_obj.skill_charges += 1
-    def q_on_use_200em(self,unit_obj):
-        pass
-    def electro_on_hit_self_22pct(self,unit_obj):
-        pass
-    def burst_flat_222pct(self,unit_obj):
-        unit_obj.burst_flat_ratio += 2.22
-    def electro_on_hit_30pct(self,unit_obj):
-        pass
-    def charged_cryo_res_15pct(self,unit_obj):
-        pass
-    def q_on_hit_15_pct(self,unit_obj):
-        pass
-    def skill_skip_charge(self,unit_obj):
-        pass
 
     ## Weapons
 

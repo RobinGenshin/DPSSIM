@@ -4,18 +4,19 @@ from copy import deepcopy
 
 class Action:
     def __init__ (self,unit,atype,enemy):
+        self.action_type = "damage"
         self.unit = unit
         self.type = atype
-        self.AT = getattr(unit,self.type + "_AT")
-        self.element = getattr(self.unit,self.type + "_type")
+        self.AT = getattr(unit,"live_" + self.type + "_AT")
+        self.element = getattr(self.unit,"live_" + self.type + "_type")
         self.scaling = ratio_type(self)[getattr(unit,self.type + "_level")]
 
         self.tick = 0
-        self.ticks = getattr(self.unit,self.type + "_hits")
-        self.tick_times = getattr(self.unit,self.type + "_tick_times")
+        self.ticks = getattr(self.unit,"live_" + self.type + "_hits")
+        self.tick_times = getattr(self.unit,"live_" + self.type + "_tick_times")
         self.energy_times = [ x + 1.6 for x in self.tick_times]
-        self.tick_damage = getattr(self.unit,self.type + "_tick_damage")
-        self.tick_units = getattr(self.unit,self.type + "_tick_units")
+        self.tick_damage = getattr(self.unit,"live_" + self.type + "_tick_damage")
+        self.tick_units = getattr(self.unit,"live_" + self.type + "_tick_units")
         self.tick_used = ["no" for i in self.tick_times]
         self.snapshot = ""
         self.particles = 0
@@ -51,6 +52,10 @@ class Action:
 
         else:
             return True
+
+    def update_time(self):
+        self.initial_time = max(self.tick_times)
+        self.time_remaining = self.initial_time
 
     def calculate_damage_snapshot(self,enemy):
         if self.available() == False:
@@ -98,6 +103,7 @@ class Action:
 
 class WeaponAction:
     def __init__(self,unit_obj,enemy):
+        self.action_type = "damage"
         self.unit = unit_obj
         self.type = "weapon"
         self.element = "physical"
@@ -130,6 +136,7 @@ class WeaponAction:
 
 class AlbedoTrigger:
     def __init__(self,unit_obj,enemy):
+        self.action_type = "damage"
         self.unit = unit_obj
         self.type = "skill"
         self.element = "Geo"
@@ -161,6 +168,7 @@ class AlbedoTrigger:
 
 class BeidouQ:
     def __init__(self,unit_obj,enemy):
+        self.action_type = "damage"
         self.unit = unit_obj
         self.type = "burst"
         self.element = "Electro"

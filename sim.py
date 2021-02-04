@@ -26,11 +26,9 @@ class Sim:
         self.chosen_action = None
         self.last_action = None
         self.action_list = set()
-        self.floating_actions_damage = set()
-        self.floating_actions_energy = set()
-        self.damage_queue = []
-        self.sorted_damage_queue = []
-        self.energy_queue = []
+        self.floating_actions= set()
+        self.action_queue = []
+        self.sorted_action_queue = []
 
     ### Starts the sim, adds 1 to the turn number and updates the previous unit
     def start_sim(self):
@@ -50,52 +48,114 @@ class Sim:
     ## Checks for buffs/triggers and updates stats
     def check_buff(self, type2, action):
         for key, trig_buff in copy.deepcopy(action.unit.triggerable_buffs).items():
-            if trig_buff.field == "Yes":
-                if self.chosen_unit == action.unit:
-                    if action.type in trig_buff.trigger or 'any' in trig_buff.trigger:
-                        if trig_buff.live_cd == 0:
-                            if trig_buff.type2 == type2:
-                                if trig_buff.instant == "Instant":
-                                    if trig_buff.share == "Yes":
-                                        for unit in self.units:
-                                            getattr(a.ActiveBuff(),trig_buff.method)(unit,self)
-                                    else:
-                                        getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self)
-                                else:
-                                    if trig_buff.share == "Yes":
-                                        for unit in self.units:
-                                            unit.active_buffs[key] = copy.deepcopy(trig_buff)
-                                            unit.update_stats(self)
-                                    else:
-                                        if key in self.chosen_unit.active_buffs and trig_buff.max_stacks > 0 and self.chosen_unit.active_buffs[key].stacks > 0:
-                                            self.chosen_unit.active_buffs[key].stacks = min(self.chosen_unit.active_buffs[key].max_stacks,self.chosen_unit.active_buffs[key].stacks + 1)
-                                            self.chosen_unit.active_buffs[key].time_remaining = self.chosen_unit.active_buffs[key].duration
-                                        else:
-                                            if trig_buff.max_stacks > 0:
-                                                self.chosen_unit.active_buffs[key] = copy.deepcopy(self.chosen_unit.triggerable_buffs[key])
-                                                self.chosen_unit.active_buffs[key].stacks += 1
-                                                self.chosen_unit.update_stats(self)
-                                            else:
-                                                self.chosen_unit.active_buffs[key] = copy.deepcopy(trig_buff)
-                                                self.chosen_unit.update_stats(self)
-            else:
-                if action.type in trig_buff.trigger or 'any' in trig_buff.trigger:
-                    if trig_buff.live_cd == 0:
-                        if trig_buff.type2 == type2:
-                            if trig_buff.instant == "Instant":
-                                if trig_buff.share == "Yes":
-                                    for unit in self.units:
-                                        getattr(a.ActiveBuff(),trig_buff.method)(unit,self)
-                                else:
-                                    getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self)
+            if trig_buff.field == "Yes" and self.chosen_unit == action.unit:
+                if (action.type in trig_buff.trigger or 'any'in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type2 == type2:
+                    if trig_buff.instant == "Instant":
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                getattr(a.ActiveBuff(),trig_buff.method)(unit,self)
+                        else:
+                            getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self)
+                    else:
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                unit.active_buffs[key] = copy.deepcopy(trig_buff)
+                                unit.update_stats(self)
+                        else:
+                            if key in self.chosen_unit.active_buffs and trig_buff.max_stacks > 0 and self.chosen_unit.active_buffs[key].stacks > 0:
+                                self.chosen_unit.active_buffs[key].stacks = min(self.chosen_unit.active_buffs[key].max_stacks,self.chosen_unit.active_buffs[key].stacks + 1)
+                                self.chosen_unit.active_buffs[key].time_remaining = self.chosen_unit.active_buffs[key].duration
                             else:
-                                if trig_buff.share == "Yes":
-                                    for unit in self.units:
-                                            unit.active_buffs[key] = copy.deepcopy(trig_buff)
-                                            unit.update_stats(self)
+                                if trig_buff.max_stacks > 0:
+                                    self.chosen_unit.active_buffs[key] = copy.deepcopy(self.chosen_unit.triggerable_buffs[key])
+                                    self.chosen_unit.active_buffs[key].stacks += 1
+                                    self.chosen_unit.update_stats(self)
                                 else:
                                     self.chosen_unit.active_buffs[key] = copy.deepcopy(trig_buff)
-                                    self.chosen_unit.update_stats(self)   
+                                    self.chosen_unit.update_stats(self)
+            else:
+                if (action.type in trig_buff.trigger or 'any' in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type2 == type2:
+                    if trig_buff.instant == "Instant":
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                getattr(a.ActiveBuff(),trig_buff.method)(unit,self)
+                        else:
+                            getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self)
+                    else:
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                    unit.active_buffs[key] = copy.deepcopy(trig_buff)
+                                    unit.update_stats(self)
+                        else:
+                            self.chosen_unit.active_buffs[key] = copy.deepcopy(trig_buff)
+                            self.chosen_unit.update_stats(self)   
+
+    ## Dupe of above but for reactions (too lazy to integrate)
+    def check_buff_reaction(self,type2,action,reaction):
+        for key, trig_buff in copy.deepcopy(action.unit.triggerable_buffs).items():
+            if trig_buff.field == "Yes" and self.chosen_unit == action.unit:
+                if (action.type in trig_buff.trigger or 'any'in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type == type2:
+                    if trig_buff.instant == "Instant":
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                getattr(a.ActiveBuff(),trig_buff.method)(unit,self,reaction)
+                        else:
+                            getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self,reaction)
+                    else:
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                unit.active_buffs[key] = copy.deepcopy(trig_buff)
+                                unit.update_stats(self)
+                        else:
+                            if key in self.chosen_unit.active_buffs and trig_buff.max_stacks > 0 and self.chosen_unit.active_buffs[key].stacks > 0:
+                                self.chosen_unit.active_buffs[key].stacks = min(self.chosen_unit.active_buffs[key].max_stacks,self.chosen_unit.active_buffs[key].stacks + 1)
+                                self.chosen_unit.active_buffs[key].time_remaining = self.chosen_unit.active_buffs[key].duration
+                            else:
+                                if trig_buff.max_stacks > 0:
+                                    self.chosen_unit.active_buffs[key] = copy.deepcopy(self.chosen_unit.triggerable_buffs[key])
+                                    self.chosen_unit.active_buffs[key].stacks += 1
+                                    self.chosen_unit.update_stats(self)
+                                else:
+                                    self.chosen_unit.active_buffs[key] = copy.deepcopy(trig_buff)
+                                    self.chosen_unit.update_stats(self)
+            else:
+                if (action.type in trig_buff.trigger or 'any' in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type2 == type2:
+                    if trig_buff.instant == "Instant":
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                getattr(a.ActiveBuff(),trig_buff.method)(unit,self,reaction)
+                        else:
+                            getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self,reaction)
+                    else:
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                    unit.active_buffs[key] = copy.deepcopy(trig_buff)
+                                    unit.update_stats(self)
+                        else:
+                            self.chosen_unit.active_buffs[key] = copy.deepcopy(trig_buff)
+                            self.chosen_unit.update_stats(self) 
+
+    def check_buff_particle(self,type2,action):
+        for _, trig_buff in copy.deepcopy(action.unit.triggerable_buffs).items():
+            if trig_buff.field == "Yes" and self.chosen_unit == action.unit:
+                if (action.type in trig_buff.trigger or 'any'in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type == type2:
+                    if trig_buff.instant == "Instant":
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                getattr(a.ActiveBuff(),trig_buff.method)(unit,self,action)
+                        else:
+                            getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self,action)
+
+    def check_buff_specific_hit(self,type2,action,tick):
+        for _, trig_buff in copy.deepcopy(action.unit.triggerable_buffs).items():
+            if trig_buff.field == "Yes" and self.chosen_unit == action.unit:
+                if (action.type in trig_buff.trigger or 'any'in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type == type2:
+                    if trig_buff.instant == "Instant":
+                        if trig_buff.share == "Yes":
+                            for unit in self.units:
+                                getattr(a.ActiveBuff(),trig_buff.method)(unit,self,action,tick)
+                        else:
+                            getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self,action,tick)
 
     ## Checks for debuffs/triggers and updates stats
     def check_debuff(self, type2, action):
@@ -131,11 +191,13 @@ class Sim:
 
     ## Uses the action, adds either adds damage if it's instant or adds it to the dot_actions, puts action on cd
     def use_ability(self):
-        self.floating_actions_damage.add(self.chosen_action)
+        self.chosen_action.action_type = "damage"
+        self.floating_actions.add(self.chosen_action)
         energy_copy = copy.deepcopy(self.chosen_action)
+        energy_copy.action_type = "energy"
         energy_copy.initial_time += 1.6
         energy_copy.time_remaining += 1.6
-        self.floating_actions_energy.add(energy_copy)
+        self.floating_actions.add(energy_copy)
         if self.chosen_action.type == "skill":
             if self.chosen_unit.live_skill_charges > 0:
                 self.chosen_unit.live_skill_charges -= 1
@@ -165,102 +227,113 @@ class Sim:
                 buff.time_remaining = max(0, buff.time_remaining - time_interval)
 
     ## Check which dot ticks occur in the turn time
-    def create_damage_queue_turn(self,time_into_turn):
-        self.damage_queue = []
-        for dot in self.floating_actions_damage:
+    def create_action_queue_turn(self,time_into_turn):
+        self.action_queue = []
+        for action in self.floating_actions:
             times_till_ticks = []
-            for i in range(dot.ticks):
-                times_till_ticks.append((i,dot.tick_times[i] - (dot.initial_time - dot.time_remaining)))
-            for i in range(dot.ticks):
+            for i in range(action.ticks):
+                times_till_ticks.append((i,action.tick_times[i] - (action.initial_time - action.time_remaining)))
+            for i in range(action.ticks):
                 if time_into_turn <= times_till_ticks[i][1] <= self.turn_time:
-                    if dot.tick_used[i] == "no":
-                        self.damage_queue.append((i,dot,times_till_ticks[i][1]))
+                    if action.tick_used[i] == "no":
+                        self.action_queue.append((i,action,times_till_ticks[i][1]))
 
     ## Sort the dot ticks in order of when they tick
-    def sort_damage_turn(self):
-        self.sorted_damage_queue = sorted(self.damage_queue, key=lambda i: i[2])
+    def sort_action_turn(self):
+        self.sorted_action_queue = sorted(self.action_queue, key=lambda i: i[2])
 
-    ## Proccesses the dot ticks
-    def process_dot_damage(self):
-        new = self.sorted_damage_queue.pop(0)
+    ## Proccesses actions
+    def process_action(self):
+        new = self.sorted_action_queue.pop(0)
+        if new[1].action_type == "damage":
+            self.process_action_damage(new)
+        elif new[1].action_type == "energy":
+            self.process_action_energy(new)
+        else:
+            print("Error",new[1].unit.name)
+
+    ## Processes damage actions (ticks)
+    def process_action_damage(self,new):
         tick = new[0]
-        action = new[1]
-        action.tick_used[tick] = "yes"
+        damage_action = new[1]
+        damage_action.tick_used[tick] = "yes"
         self.last_action_time = copy.deepcopy(self.time_into_turn)
         self.time_into_turn = new[2]
-        action_unit = action.tick_units[tick]
 
-        time_since_last_damage = self.time_into_turn - self.last_action_time
-        self.reduce_buff_times_cds (time_since_last_damage)
-        self.check_buff("pre_hit",action)
+        time_since_last_action = self.time_into_turn - self.last_action_time
+        self.reduce_buff_times_cds (time_since_last_action)
 
+        self.check_buff("pre_hit",damage_action)
+        self.check_buff_specific_hit("specific_hit",damage_action,tick)
+
+        damage_action_element_unit = damage_action.tick_units[tick]
         multiplier = 1
-        if action_unit > 0:
-            reaction = getattr(React(),React().check(action,self.enemy))(self,action,self.enemy,action_unit)
+        if damage_action_element_unit > 0:
+            reaction = getattr(React(),React().check(damage_action,self.enemy))(self,damage_action,self.enemy,damage_action_element_unit)
+            reaction.append(damage_action)
             multiplier = reaction[0]
-            self.check_buff(reaction[1],action)
+            self.check_buff_reaction("reaction",damage_action,reaction[1])
 
         self.enemy.update_units()
-        instance_damage = action.calculate_tick_damage(tick,self.enemy) * multiplier
+        instance_damage = damage_action.calculate_tick_damage(tick,self.enemy) * multiplier
         self.damage += instance_damage
 
-        self.check_buff("on_hit",action)
-        self.check_debuff("on_hit", action)
+        self.check_buff("on_hit",damage_action)
+        self.check_debuff("on_hit", damage_action)
 
+        self.check_buff_end()
+        self.check_debuff_end()
+
+    ## Proccesses the energy
+    def process_action_energy(self,new):
+        tick = new[0]
+        energy_action = new[1]
+        energy_action.tick_used[tick] = "yes"
+        self.last_action_time = copy.deepcopy(self.time_into_turn)
+        self.time_into_turn = new[2]
+
+        time_since_last_action = self.time_into_turn - self.last_action_time
+        self.reduce_buff_times_cds (time_since_last_action)
+
+        particles = energy_action.particles / energy_action.ticks
+        for unit in self.units:
+            if unit == self.chosen_unit:
+                if self.chosen_unit.element == energy_action.element:
+                    self.chosen_unit.live_burst_energy += particles * 3 * (1+self.chosen_unit.energy_recharge)
+                else:
+                    self.chosen_unit.live_burst_energy += particles * 1 * (1+self.chosen_unit.energy_recharge)
+            else:
+                if unit.element == energy_action.element:
+                    unit.live_burst_energy += particles * 1.8 * (1+self.chosen_unit.energy_recharge)
+                else:
+                    unit.live_burst_energy += particles * 0.6 * (1+self.chosen_unit.energy_recharge)
+
+        self.check_buff("particle",energy_action)
+        self.check_buff_particle("specific_particle",energy_action)
         self.check_buff_end()
         self.check_debuff_end()
     
     ## Loops damage queue processing
     def process_loop(self):
-        self.create_damage_queue_turn(self.time_into_turn)
-        while len(self.damage_queue) > 0:
-            self.sort_damage_turn()
-            self.process_dot_damage()
-            self.create_damage_queue_turn(self.time_into_turn)
-            
-    ## Calc which hits give energy on the turn
-    def create_energy_turn(self):
-        self.energy_queue = []
-        for energy in self.floating_actions_energy:
-            times_till_ticks = []
-            for i in range(energy.ticks):
-                times_till_ticks.append((i,energy.energy_times[i] - (energy.initial_time - energy.time_remaining)))
-            for i in range(energy.ticks):
-                if 0 <= times_till_ticks[i][1] <= self.turn_time:
-                    self.energy_queue.append(energy)
-
-    ## Proccesses the energy
-    def process_energy(self):
-        for energy in self.energy_queue:
-            particles = energy.particles / energy.ticks
-            for unit in self.units:
-                if unit == self.chosen_unit:
-                    if self.chosen_unit.element == energy.element:
-                        self.chosen_unit.live_burst_energy += particles * 3 * (1+self.chosen_unit.energy_recharge)
-                    else:
-                        self.chosen_unit.live_burst_energy += particles * 1 * (1+self.chosen_unit.energy_recharge)
-                else:
-                    if unit.element == energy.element:
-                        unit.live_burst_energy += particles * 1.8 * (1+self.chosen_unit.energy_recharge)
-                    else:
-                        unit.live_burst_energy += particles * 0.6 * (1+self.chosen_unit.energy_recharge)
-            
+        self.create_action_queue_turn(self.time_into_turn)
+        while len(self.action_queue) > 0:
+            self.sort_action_turn()
+            self.process_action()
+            self.create_action_queue_turn(self.time_into_turn)
+               
     ## Lower cooldowns based on turn time
     def reduce_cd(self):
         for unit in self.units:
             unit.live_skill_CD = max(unit.live_skill_CD - self.turn_time,0)
             unit.live_burst_CD = max(unit.live_burst_CD - self.turn_time,0)
 
+    ## Passes time
     def pass_turn_time(self):
         self.encounter_duration += self.turn_time
 
-        for dot in self.floating_actions_damage:
-            dot.time_remaining -= self.turn_time
-        self.floating_actions_damage = {x for x in self.floating_actions_damage if x.time_remaining > 0}
-
-        for energy in self.floating_actions_energy:
-            energy.time_remaining -= self.turn_time
-        self.floating_actions_energy = {x for x in self.floating_actions_energy if x.time_remaining > 0}
+        for action in self.floating_actions:
+            action.time_remaining -= self.turn_time
+        self.floating_actions = {x for x in self.floating_actions if x.time_remaining > 0}
 
         for unit in self.units:
             for _, trig_buff in unit.triggerable_buffs.items():
@@ -275,6 +348,7 @@ class Sim:
         print("#" + str(self.action_order) + " Time:" + str(round(self.encounter_duration,2)) + " " + self.chosen_unit.name + " used "
         + self.chosen_action.type)
 
+    ## Turns on the sim (lol)
     def turn_on_sim(self):
         while self.encounter_duration < self.encounter_limit:
             self.start_sim()
@@ -286,8 +360,6 @@ class Sim:
             self.check_buff("postcast",self.chosen_action)
             self.check_turn_time()
             self.process_loop()
-            self.create_energy_turn()
-            self.process_energy()
             self.reduce_cd()
             self.pass_turn_time()
             self.check_buff_end()
@@ -295,16 +367,18 @@ class Sim:
             
         print(round(self.damage /self.encounter_duration))
 
+
 PyroArtifact = artifact_substats.ArtifactStats("energy_recharge", "pyro", "crit_rate", "Perfect")
 CryoArtifact = artifact_substats.ArtifactStats("energy_recharge", "cryo", "crit_rate", "Perfect")
 ElectroArtifact = artifact_substats.ArtifactStats("energy_recharge", "electro", "crit_rate", "Perfect")
 AnemoArtifact = artifact_substats.ArtifactStats("energy_recharge", "anemo", "crit_rate", "Perfect")
+HydroArtifact = artifact_substats.ArtifactStats("atk_pct", "hydro", "crit_rate", "Perfect")
 
-Main = u.Unit("Albedo", 90, "Rust", "Wanderer's Troupe", 5, 5, 6, 6, 6, AnemoArtifact)
-Support1 = u.Unit("Amber", 6, "Skyward Harp", "Crimson Witch", 0, 1, 1, 1, 1, PyroArtifact)
-Support2 = u.Unit("Kaeya", 1, "Skyward Harp", "Wanderer's Troupe", 0, 1, 1, 1, 1, CryoArtifact)
-Support3 = u.Unit("Lisa", 1, "Prototype Crescent", "Wanderer's Troupe", 0, 1, 1, 1, 1, ElectroArtifact)
+Main = u.Unit("Tartaglia", 90, "Skyward Harp", "Heart of Depth", 6, 5, 6, 10, 6, HydroArtifact)
+Support1 = u.Unit("Amber", 1, "Skyward Harp", "Crimson Witch", 2, 1, 1, 1, 1, PyroArtifact)
+Support2 = u.Unit("Kaeya", 1, "Skyward Blade", "Wanderer's Troupe", 6, 1, 1, 1, 1, CryoArtifact)
+Support3 = u.Unit("Lisa", 1, "Skyward Atlas", "Wanderer's Troupe", 0, 1, 1, 1, 1, ElectroArtifact)
 Monster = enemy.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,100)
+Test = Sim(Main,Support1,Support2,Support3,Monster,15)
 Test.turn_on_sim()

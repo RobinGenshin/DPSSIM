@@ -7,10 +7,17 @@ class React:
     def check(self,action,enemy):
         #Anemo
         if action.element == "Anemo":
-            return "swirl"
+            if enemy.units > 0:
+                return "swirl"
+            else:
+                return "no_reaction"
         #Geo
         elif action.element == "Geo":
-            return "crystallise"
+            if enemy.units > 0:
+                return "crystallise"
+            else:
+                return "no_reaction"
+
         #Hydro
         elif action.element == "Hydro":
             if enemy.element == "None":
@@ -68,7 +75,7 @@ class React:
         enemy.units -= unit*0.5
         sim.damage += 722 * (1 + (( 4.44 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))) * (1 - enemy.live_anemo_res )
         print(action.unit.name + " proced swirl")
-        return [1, "swirl"]
+        return [1, ["swirl",enemy.element]]
 
     def overload(self,sim,action,enemy,unit):
         enemy.units -= unit
@@ -79,7 +86,7 @@ class React:
     def crystallise(self,sim,action,enemy,unit):
         enemy.units -= unit*0.5
         print(action.unit.name + " proced crystallise")
-        return [1, "crystallise"]
+        return [1, ["crystallise",enemy.element]]
 
     def superconduct(self,sim,action,enemy,unit):
         enemy.units -= unit
