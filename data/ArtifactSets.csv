@@ -1,29 +1,29 @@
-Artifact,Rarity,Base ATK,ATK%,Flat ATK,Crit Rate%,Crit Damage%,Physical%,Anemo%,Cryo%,Electro%,Geo%,Hydro%,Pyro%,Elemental DMG%,Elemental Mastery,Energy Recharge%,Base HP,HP%,Flat HP,DEF,DEF%,Flat DEF,DMG %,Defence reduce,Normal DMG%,Normal Speed,Charged DMG%,Skill DMG%,Burst DMG%,Healing Bonus%,Ele Res Reduce,Swirl Res Reduce,Phys Res Reduce
-None,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-Gladiator's Finale,5*,,18%,,,,,,,,,,,,,,,,,,,,,,35%,,,,,,,,
-Wanderer's Troupe,5*,,,,,,,,,,,,,,80,,,,,,,,,,,,35%,,,,,,
-Bloodstained Chivalry,5*,,,,,,25%,,,,,,,,,,,,,,,,,,,,40%,,,,,,
-Noblesse,5*,,,,,,,,,,,,,,,,,,,,,,,,,,,,20%,,,,
-Berserker,4*,,,,36%,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-Viridescent Venerer,5*,,,,,,,15%,,,,,,15%,,,,,,,,,,,,,,,,,,,
-Lavawalker,5*,,,,,,,,,,,,,,,,,,,,,,35%,,,,,,,,,,
-Crimson Witch,5*,,,,,,,,,,,,37.50%,37.5%,,,,,,,,,,,,,,,,,,,
-Thundering Fury,5*,,,,,,,,,15%,,,,15%,,,,,,,,,,,,,,,,,,,
-Thundersoother,5*,,,,,,,,,,,,,,,,,,,,,,35%,,,,,,,,,,
-Archaic Petra,5*,,,,,,,,,,15%,,,15%,,,,,,,,,,,,,,,,,,,
-2NO+2Anemo,,,,,,,,15%,,,,,,,,,,,,,,,,,,,,,20%,,,,
-2NO+2Cryo,,,,,,,,,15%,,,,,,,,,,,,,,,,,,,,20%,,,,
-2NO+2Electro,,,,,,,,,,15%,,,,,,,,,,,,,,,,,,,20%,,,,
-2NO+2Geo,,,,,,,,,,,15%,,,,,,,,,,,,,,,,,,20%,,,,
-2NO+2Hydro,,,,,,,,,,,,15%,,,,,,,,,,,,,,,,,20%,,,,
-2NO+2Pyro,,,,,,,,,,,,,15%,,,,,,,,,,,,,,,,20%,,,,
-2Glad+2Noblesse,5*,,18%,,,,,,,,,,,,,,,,,,,,,,,,,,20%,,,,
-2Glad+2Anemo,5*,,18%,,,,,15%,,,,,,15%,,,,,,,,,,,,,,,,,,,
-2Glad+2Cryo,5*,,18%,,,,,,15%,,,,,15%,,,,,,,,,,,,,,,,,,,
-2Glad+2Electro,5*,,18%,,,,,,,15%,,,,15%,,,,,,,,,,,,,,,,,,,
-2Glad+2Geo,5*,,18%,,,,,,,,15%,,,15%,,,,,,,,,,,,,,,,,,,
-2Glad+2Hydro,5*,,18%,,,,,,,,,15%,,15%,,,,,,,,,,,,,,,,,,,
-2Glad+2Pyro,5*,,18%,,,,,,,,,,15%,15%,,,,,,,,,,,,,,,,,,,
-2Glad+2Bloodstained,5*,,18%,,,,25%,,,,,,,,,,,,,,,,,,,,,,,,,,
-Heart of Depth,5*,,,,,,,,,,,,,15%,,,,,,,,,,,30%,,30%,,,,,,
-Blizzard Strayer,5*,,,,20%,,,,15%,,,15%,,15%,,,,,,,,,,,,,,,,,,,
+artifact,artifact_rarity,pct_atk,crit_rate,physical_dmg,anemo_dmg,cryo_dmg,electro_dmg,geo_dmg,hydro_dmg,pyro_dmg,ele_m,recharge,normal_dmg,charged_dmg,burst_dmg
+None,,,,,,,,,,,,,,,
+Gladiator's Finale,5*,18%,,,,,,,,,,,35%,,
+Wanderer's Troupe,5*,,,,,,,,,,80,,,35%,
+Bloodstained Chivalry,5*,,,25%,,,,,,,,,,40%,
+Noblesse,5*,,,,,,,,,,,,,,20%
+Berserker,4*,,36%,,,,,,,,,,,,
+Viridescent Venerer,5*,,,,15%,,,,,,,,,,
+Lavawalker,5*,,,,,,,,,,,,,,
+Crimson Witch,5*,,,,,,,,,37.50%,,,,,
+Thundering Fury,5*,,,,,,15%,,,,,,,,
+Thundersoother,5*,,,,,,,,,,,,,,
+Archaic Petra,5*,,,,,,,15%,,,,,,,
+2NO+2Anemo,,,,,15%,,,,,,,,,,20%
+2NO+2Cryo,,,,,,15%,,,,,,,,,20%
+2NO+2Electro,,,,,,,15%,,,,,,,,20%
+2NO+2Geo,,,,,,,,15%,,,,,,,20%
+2NO+2Hydro,,,,,,,,,15%,,,,,,20%
+2NO+2Pyro,,,,,,,,,,15%,,,,,20%
+2Glad+2Noblesse,5*,18%,,,,,,,,,,,,,20%
+2Glad+2Anemo,5*,18%,,,15%,,,,,,,,,,
+2Glad+2Cryo,5*,18%,,,,15%,,,,,,,,,
+2Glad+2Electro,5*,18%,,,,,15%,,,,,,,,
+2Glad+2Geo,5*,18%,,,,,,15%,,,,,,,
+2Glad+2Hydro,5*,18%,,,,,,,15%,,,,,,
+2Glad+2Pyro,5*,18%,,,,,,,,15%,,,,,
+2Glad+2Bloodstained,5*,18%,,25%,,,,,,,,,,,
+Heart of Depth,5*,,,,,,,,,,,,30%,30%,
+Blizzard Strayer,5*,,,,,15%,,,15%,,,,,,

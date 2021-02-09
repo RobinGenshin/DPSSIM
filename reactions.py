@@ -73,13 +73,13 @@ class React:
     
     def swirl(self,sim,action,enemy,unit):
         enemy.units -= unit*0.5
-        sim.damage += 722 * (1 + (( 4.44 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))) * (1 - enemy.live_anemo_res )
+        sim.damage += 722 * (1 + (( 4.44 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))) * (1 - enemy.live_anemo_res )
         print(action.unit.name + " proced swirl")
         return [1, ["swirl",enemy.element]]
 
     def overload(self,sim,action,enemy,unit):
         enemy.units -= unit
-        sim.damage += 2406 * (1 + (( 4.44 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))) * (1 - enemy.live_pyro_res )
+        sim.damage += 2406 * (1 + (( 4.44 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))) * (1 - enemy.live_pyro_res )
         print(action.unit.name + " proced overload")
         return [1, "overload"]
 
@@ -90,13 +90,13 @@ class React:
 
     def superconduct(self,sim,action,enemy,unit):
         enemy.units -= unit
-        sim.damage += 601 * (1 + (( 4.44 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))) * (1 - enemy.live_cryo_res )
+        sim.damage += 601 * (1 + (( 4.44 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))) * (1 - enemy.live_cryo_res )
         print(action.unit.name + " proced superconduct")
         return [1, "superconduct"]
 
     def electro_charged(self,sim,action,enemy,unit):
         enemy.units -= unit
-        sim.damage += 1443 * (1 + (( 4.44 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))) * (1 - enemy.live_electro_res )
+        sim.damage += 1443 * (1 + (( 4.44 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))) * (1 - enemy.live_electro_res )
         print(action.unit.name + " proced electro_charged")
         return [1, "electro_charged"]
 
@@ -107,22 +107,22 @@ class React:
     def vaporise2(self,sim,action,enemy,unit):
         enemy.units -= unit*2
         print(action.unit.name + " proc'd Vaporise for 2x damage")
-        return [2 * (1 + (( 2.78 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))), "vaporise"]
+        return [2 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), "vaporise"]
 
     def vaporise15(self,sim,action,enemy,unit):
         enemy.units -= unit*0.5
         print(action.unit.name + " proc'd Vaporise for 1.5x damage")
-        return [1.5 * (1 + (( 2.78 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))), "vaporise"]
+        return [1.5 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), "vaporise"]
 
     def melt2(self,sim,action,enemy,unit):
         enemy.units -= unit*2
         print(action.unit.name + " proc'd Melt for 2x damage")
-        return [2 * (1 + (( 2.78 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))), "melt"]
+        return [2 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), "melt"]
 
     def melt15(self,sim,action,enemy,unit):
         enemy.units -= unit*0.5
         print(action.unit.name + " proc'd Melt for 1.5x damage")
-        return [1.5 * (1 + (( 2.78 * action.unit.elemental_mastery ) / ( 1400 + action.unit.elemental_mastery ))), "melt"]
+        return [1.5 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), "melt"]
 
     def enemyelectro(self,sim,action,enemy,unit):
         enemy.element = action.element

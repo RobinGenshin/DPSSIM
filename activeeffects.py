@@ -1,47 +1,66 @@
 import read_data
-debuffdict = read_data.read_debuff_data()
-buffdict = read_data.read_buff_data()
-chardict = read_data.read_character_data()
-eleratiodict = read_data.read_ele_ratio_data()
-razorqasdict = read_data.read_razor_qas_ratio_data()
-physdict = read_data.read_phys_ratio_data()
+debuffdict = read_data.debuff_dict
+buffdict = read_data.buff_dict
+chardict = read_data.character_dict
+eleratiodict = read_data.ele_ratio_dict
+razorqasdict = read_data.razor_qas_ratio_dict
+physdict = read_data.phys_ratio_dict
 from action import Action
 from action import WeaponAction
 from action import AlbedoTrigger
-from action import BeidouQ
+from action import TartagliaC4
+from action import XinyanQ
+from action import ZhongliA4
 import copy
 import math
 
+
+## Explanation ##
+## Share-type buffs are given to all units when triggered 
+## Some share type buffs need a specific trigger and are linked to a trigger buff 
+## i.e. Wolf's Gravestone has a trigger buff which gives everyone an active buff for atk_pct
+## Active buffs are checked during the sim at different times depending on their trigger
+## Static buffs are simply applied over a duration to respective units
+
+
 class ActiveBuff:
     
+    ################
     ## Characters ##
+    ################
 
-    # Albedo
+    ############
+    ## Albedo ##
+    ############
 
-    def albedo_e(self,unit_obj,sim):
+    ## Albedo E Cast ## Instant ## Postcast ##
+    def albedo_e_cast(self,unit_obj,sim,extra):
         for unit in sim.units:
-            unit.triggerable_buffs["Albedo_E_Trigger"] = copy.deepcopy(buffdict["Albedo_E_trigger"])
+            unit.triggerable_buffs["Albedo_E_Trigger"] = copy.deepcopy(buffdict["Albedo_E_Trigger"])
             unit.triggerable_buffs["Albedo_E_Trigger"].time_remaining = 30
 
-    def albedo_e_trigger(self,unit_obj,sim):
+    ## Albedo E Trigger ## Instant ## Onhit ##
+    def albedo_e_trigger(self,unit_obj,sim,extra):
         for unit in sim.units:
             if unit.name == "Albedo":
-                action = AlbedoTrigger(unit, sim.enemy)
+                action = AlbedoTrigger(unit,sim.enemy,sim)
                 x = sim.time_into_turn
                 action.tick_times = [y+x for y in action.tick_times]
-                action.energy_times = [y+x+1.6 for y in action.energy_times]
-                sim.floating_actions.add(action)
+                action.energy_times = [y+x for y in action.energy_times]
                 energy_copy = copy.deepcopy(action)
                 energy_copy.action_type = "energy"
+                sim.floating_actions.add(action)
                 sim.floating_actions.add(energy_copy)
 
         for unit in sim.units:
             unit.triggerable_buffs["Albedo_E_Trigger"].live_cd = 2
 
+        ## Albedo C1 ##
         for unit in sim.units:
             if unit.name == "Albedo" and unit.constellation >= 1:
-                unit.live_burst_energy = max(0, unit.live_burst_energy + 1.2)
+                unit.live_burst_energy_cost = max(0, unit.live_burst_energy + 1.2)
 
+        ## Albedo C2 Stacks ##
         for unit in sim.units:
             if unit.name == "Albedo":
                 if hasattr(unit, "c2_stacks"):
@@ -49,20 +68,19 @@ class ActiveBuff:
                 else:
                     unit.c2_stacks = 1
 
-    def albedo_a4(self,unit_obj,sim):
-        unit_obj.live_elemental_mastery += 120
+    ## Albedo A4 ## Duration ## Postcast ##
+    def albedo_a4(self,unit_obj,sim,extra):
+        unit_obj.live_ele_m += 120
 
-    def albedo_c1(self,unit_obj,sim):
-        pass
-
-    def albedo_c2(self,unit_obj,sim):
+    ## Albedo C2 Proc ## Duration ## Postcast ##
+    def albedo_c2(self,unit_obj,sim,extra):
         if hasattr(unit_obj, "c2_stacks"):
             d = unit_obj.c2_stacks
         else:
             unit_obj.c2_stacks = 0
             d = unit_obj.c2_stacks
 
-        action = AlbedoTrigger(unit_obj, sim.enemy)
+        action = AlbedoTrigger(unit_obj, sim.enemy, sim)
         action.tick_times = copy.deepcopy(chardict["Albedo"].burst_tick_times)
         action.tick_damage = copy.deepcopy(chardict["Albedo"].burst_tick_damage)
         action.tick_units = copy.deepcopy(chardict["Albedo"].burst_tick_units)
@@ -71,330 +89,462 @@ class ActiveBuff:
         action.tick_times = [x+0.1 for x in action.tick_times]
         action.damage = [0.3*d for x in action.tick_times]
         action.tick_units = [0 for x in action.tick_units]
-        action.energy_times = [x+1.6 for x in action.tick_times]
+        action.energy_times = [x+2 for x in action.tick_times]
+
         sim.floating_actions.add(action)
 
-    def albedo_c4(self,unit_obj,sim):
+    ## Albedo C4 ## Duration ## Postcast
+    def albedo_c4(self,unit_obj,sim,extra):
         unit_obj.live_plunge_dmg += 0.3
 
-    def albedo_c6(self,unit_obj,sim):
+    ## Albedo C6 ## Duration ##
+    def albedo_c6(self,unit_obj,sim,extra):
         unit_obj.live_all_dmg += 0.17
 
-    ## Amber ##
 
-    def amber_a4(self,unit_obj,sim):
+    ###########
+    ## Amber ##
+    ###########
+    
+    ## Amber A4 ## Duration ## Onhit ## Charged ##
+    def amber_a4(self,unit_obj,sim,extra):
         unit_obj.live_atk_pct += 0.15
 
-    def amber_c2(self,unit_obj,sim):
+    ## Amber C2 ## Instant ## Onhit ## Charged ##
+    def amber_c2(self,unit_obj,sim,extra):
         for action in copy.deepcopy(sim.floating_actions):
             if action.unit.name == unit_obj.name and action.type == "skill" and action.action_type == "damage":
                 if action.time_remaining > sim.time_into_turn:
-                    flat_dmg = Action(unit_obj,"skill",sim.enemy)
-                    flat_dmg.tick_times[0] = sim.time_into_turn + 0.05
-                    flat_dmg.scaling = 1
-                    flat_dmg.tick_units = [0]
+                    flat_dmg = Action(unit_obj,"skill")
+
+                    flat_dmg.tick_times = [sim.time_into_turn+0.05]
                     flat_dmg.tick_damage = [2]
-                    flat_dmg.ticks = 1
+                    flat_dmg.tick_units = [0]
+                    flat_dmg.scaling = 1
+
                     flat_dmg.update_time()
                     sim.floating_actions.add(flat_dmg)
+
                     print("BOOM!")
                     for action in copy.deepcopy(sim.floating_actions):
                         if action.unit.name == unit_obj.name and action.type == "skill":
-                            if action.time_remaining > sim.time_into_turn:
-                                action.tick_times = [sim.time_into_turn + 0.05]
-                                action.energy_times = [sim.time_into_turn + 1.65]
+                            action.tick_times = [sim.time_into_turn + 0.1]
+                            action.energy_times = [sim.time_into_turn + 2.1]
         
-    def amber_c6(self,unit_obj,sim):
-        unit_obj.live_atk_pct += 0.15
+    ## Amber C6 ## Duration ## Postcast ## Burst
+    def amber_c6(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += 0.15
 
-    
+
+    #############
     ## Barbara ##
+    #############
 
-    def barbara_e(self,unit_obj,sim):
-        if unit_obj.constellation >=2:
-            for unit in sim.units:
-                unit.active_buffs["Barbara_A4_1"] = copy.deepcopy(buffdict["Barbara_A4_1"])
-
-    def barbara_a2(self,unit_obj,sim):
+    ## Barbara A2 ## Duration ## Postcast ## Skill
+    def barbara_a2(self,unit_obj,sim,extra):
         unit_obj.live_stam_save += sim.turn_time
+        
+        ## Barbara C2 ##
+        for unit in sim.units:
+            if unit.name == "Barbara" and unit.constellation >=2:
+                unit.live_hydro_dmg += 0.15
 
-    def barbara_a4_1(self,unit_obj,sim):
+    ## Barbara A4_1 ## Instant ## Postcast ## Skill
+    def barbara_a4_1(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            unit.triggerable_buffs["Barbara_A4_2"] = copy.deepcopy(buffdict["Barbara_A4_2"])
+            unit.triggerable_buffs["Barbara_A4_2"].time_remaining = 15
+
+    ## Barbara A4_2 ## Instant ## Particle ##
+    def barbara_a4_2(self,unit_obj,sim,extra):
         for unit in sim.units:
             if unit.name == "Barbara":
                 if hasattr(unit, "a4_stacks") == False:
                     unit.a4_stacks = 1
                     for unit in sim.units:
                         unit.active_buffs["Barbara_A2"].time_remaining += 1
+                        unit.triggerable_buffs["Barbara_A4_2"].time_remaining += 1
                 elif hasattr(unit, "a4_stacks") == True:
                     if unit.a4_stacks == 5:
                         pass
                     else:
                         unit.a4_stacks += 1
                         unit.active_buffs["Barbara_A2"].time_remaining += 1
+                        unit.triggerable_buffs["Barbara_A4_2"].time_remaining += 1
 
-    def barbara_c1(self,unit_obj,sim):
-        unit_obj.live_burst_energy += 1
+    ## Barbara C1 ## Instant ## Any
+    def barbara_c1(self,unit_obj,sim,extra):
+        unit_obj.live_burst_energy_cost += 1
+        unit_obj.triggerable_buffs["Barbara_C1"].live_cd = 10
 
-    def barbara_c2_2(self,unit_obj,sim):
-        unit_obj.live_hydro += 0.15
+    ## Barbara C4 ## Instant ## Onhit ## Charged
+    def barbara_c4(self,unit_obj,sim,extra):
+        unit_obj.live_burst_energy_cost += 1
 
-    def barbara_c4(self,unit_obj,sim):
-        unit_obj.live_burst_energy += 1
 
+    ############
     ## Beidou ##
+    ############
 
-    def beidou_q_cast(self,unit_obj,sim):
+    ## Beidou Q Cast ## Instant ## Postcast ## Burst
+    def beidou_q_cast(self,unit_obj,sim,extra):
         for unit in sim.units:
             unit.triggerable_buffs["Beidou_Q_Trigger"] = copy.deepcopy(buffdict["Beidou_Q_trigger"])
+            unit.triggerable_buffs["Beidou_Q_Trigger"].time_remaining = 15
     
-    def beidou_q_on_hit(self,unit_obj,sim):
+    ## Beidou Q Trigger ## Instant ## Onhit ## Normal, Charged
+    def beidou_q_trigger(self,unit_obj,sim,extra):
         for unit in sim.units:
             if unit.name == "Beidou":
-                action = BeidouQ(unit, sim.enemy)
-                x = sim.time_into_turn
-                action.tick_times = [y+x for y in action.tick_times]
-                action.energy_times = [y+x+1.6 for y in action.energy_times]
+                action = Action(unit,"burst")
+
+                action.ticks = 1
+                action.tick_times = [sim.time_into_turn+0.1]
+                action.tick_damage = [0.96]
+                action.tick_units = [1]
                 sim.floating_actions.add(action)
+                action.update_time()
+
         for unit in sim.units:
             unit.triggerable_buffs["Beidou_Q_Trigger"].live_cd = 1
 
-    def beidou_a4(self,unit_obj,sim):
+    ## Beidou A4 ## Duration ## Postcast ## Skill
+    def beidou_a4(self,unit_obj,sim,extra):
         unit_obj.live_normal_dmg += 0.15
         unit_obj.live_charged_dmg += 0.15
         unit_obj.live_normal_speed += 0.15
         unit_obj.live_charged_speed += 0.15
 
-    def beidou_c2(self,unit_obj,sim):
-        pass
-
+    ## Beidou C4 ## Duration ## Midhit ## Normal
     def beidou_c4(self,unit_obj,sim,action,tick):
-        convertedpct = Action(unit_obj,"normal",sim.enemy)
-        convertedpct.tick_times = [sim.time_into_turn + 0.1]
-        convertedpct.tick_damage = [convertedpct.tick_damage[tick]*0.2]
-        convertedpct.tick_units = [0]
+        convertedpct = Action(unit_obj,"normal")
+
         convertedpct.ticks = 1
-        convertedpct.hits = 1
+        convertedpct.tick_times = [sim.time_into_turn + 0.1]
+        convertedpct.tick_damage = [convertedpct.tick_damage[tick]]*0.2
+        convertedpct.tick_units = [0]
+
         convertedpct.element = "Electro"
         sim.floating_actions.add(convertedpct)
 
+    #############
     ## Bennett ##
+    #############
 
-    def bennett_q_1(self,unit_obj,sim):
+    ## Bennett Q Cast ## Instant ## Precast ## Burst
+    def bennett_q_cast(self,unit_obj,sim,extra):
         atk_mult = eleratiodict[unit_obj.burst_level] * 0.56
+
+        ## Bennett C1 ##
+        if unit_obj.constellation >= 1:
+            atk_mult += 0.2
+
         snapshot = atk_mult * copy.deepcopy(unit_obj.base_atk)
         unit_obj.snapshot_buff = snapshot
         for unit in sim.units:
             unit.active_buffs["Bennett_Q_2"] = copy.deepcopy(buffdict["Benntt_Q_2"])
 
-    def bennet_q_2(self,unit_obj,sim):
+    ## Bennett Q Buff ## Duration ## 
+    def bennet_q_buff(self,unit_obj,sim,extra):
         atk_buff = 0
         for unit in sim.units:
             if unit.name == "Bennett":
-                atk_buff == unit.snapshot_buff
-        if unit_obj != sim.field_unit:
+                atk_buff = unit.snapshot_buff
+        if unit_obj != sim.chosen_unit:
             atk_buff = 0
         unit_obj.live_flat_atk += atk_buff
 
-    def bennet_q_3(self,unit_obj,sim):
-        unit_obj.live_skill_CDR *= 0.5
+        if unit_obj.name == "Bennett":
+            unit_obj.live_skill_cdr *= 0.5
 
-    def bennett_c4(self,unit_obj,sim):
+    ## Bennett C4 ## 
+    def bennett_c4(self,unit_obj,sim,extra):
         pass
 
-    def bennet_c6(self,unit_obj,sim):
+    ## Bennett C6 ## Duration ## Postcast ## Burst
+    def bennet_c6(self,unit_obj,sim,extra):
         if unit_obj.weapon_type in {"Claymore", "Polearm", "Sword"}:
-            unit_obj.live_pyro += 0.15
+            unit_obj.live_pyro_dmg += 0.15
             unit_obj.live_normal_type = "Pyro"
             unit_obj.live_charged_type = "Pyro"
 
+    ##############
     ## Chongyun ##
+    ##############
 
-    def chongyun_a2(self,unit_obj,sim):
+    ## Chongyun A2 ## Duration ## Postcast ## Skill
+    def chongyun_a2(self,unit_obj,sim,extra):
         unit_obj.live_normal_speed += 0.08
 
-    def chongyun_c1(self,unit_obj,sim,action,tick):
+    ## Chongyun C1 ## Instant ## Midhit ## Normal
+    def chongyun_c1(self,unit_obj,sim,tick):
         if tick == 3:
-            proc = Action(unit_obj,"normal",sim.enemy)
+            proc = Action(unit_obj,"normal")
             proc.element = "Cryo"
-            proc.tick_times = [sim.time_into_turn + 0.1, sim.time_into_turn + 0.2, sim.time_into_turn + 0.3]
+            proc.tick_times = [sim.time_into_turn + 0.5, sim.time_into_turn + 0.6, sim.time_into_turn + 0.7]
             proc.tick_damage = [0.5,0.5,0.5]
             proc.tick_units = [1,0,0]
             proc.ticks = 3
             proc.scaling = 1
             sim.floating_actions.add(proc)
 
-    def chongyun_c2(self,unit_obj,sim):
-        unit_obj.live_skill_CDR *= 0.85
-        unit_obj.live_burst_CDR *= 0.85
+    ## Chongyun C2 ## Duration ## Postcast ## Skill
+    def chongyun_c2(self,unit_obj,sim,extra):
+        unit_obj.live_skill_cdr *= 0.85
+        unit_obj.live_burst_cdr *= 0.85
 
-    def chonyun_c4(self,unit_obj,sim):
+    ## Chongyun C4 ## Instant ## Onhit ## Any
+    def chonyun_c4(self,unit_obj,sim,extra):
         if sim.enemy.element == "Cryo":
-            unit_obj.live_burst_energy += 1
-            unit_obj.triggerable_buffs["Chongyun_C2"].live_cd = 2
+            unit_obj.live_burst_energy_cost += 1
+            unit_obj.triggerable_buffs["Chongyun_C4"].live_cd = 2
 
+    ###########
     ## Diluc ##
+    ###########
 
-    def diluc_q(self,unit_obj,sim):
+    ## Diluc Q ## Duration ## Postcast ## Burst
+    def diluc_q(self,unit_obj,sim,extra):
         unit_obj.live_normal_type = "Pyro"
         unit_obj.live_charged_type = "Pyro"
-        unit_obj.live_pyro += 0.2
+        unit_obj.live_pyro_dmg += 0.2
 
-    def diluc_c2(self,unit_obj,sim):
+    ## Diluc C2 ## Duration ## Any
+    def diluc_c2(self,unit_obj,sim,extra):
         pass
 
-    def diluc_c4(self,unit_obj,sim):
-        pass
+    ## Diluc C4 1 ## Duration ## Onhit ## Skill
+    def diluc_c4_1(self,unit_obj,sim,extra):
+        unit_obj.active_buffs["Diluc_C4_2"] = copy.deepcopy(buffdict["Diluc_C4_2"])
+        unit_obj.active_buffs["Diluc_C4_3"] = copy.deepcopy(buffdict["Diluc_C4_3"])
 
-    def diluc_c6(self,unit_obj,sim):
-        pass
+    ## Diluc C4 2 ## Duration ##
+    def diluc_c4_2(self,unit_obj,sim,extra):
+        unit_obj.live_skill_dmg -= 0.4
+                                            ## All this was done to give Diluc a skill buff but only for 2s after NOT using his skill
+    ## Diluc C4 3 ## Duration ##
+    def diluc_c4_3(self,unit_obj,sim,extra):
+        unit_obj.live_skill_dmg += 0.4
 
+    ## Diluc C6 ## Duration ## Onhit #
+    def diluc_c6(self,unit_obj,sim,extra):
+        unit_obj.live_normal_speed += 0.3
+        unit_obj.live_normal_dmg += 0.3
+
+    ###########
     ## Diona ##
+    ###########
 
-    def diona_a2(self,unit_obj,sim):
+    ## Diona A2 ## Duration ## Postcast ## Skill
+    def diona_a2(self,unit_obj,sim,extra):
         unit_obj.live_stam_save += 0.1
 
-    def diona_c1(self,unit_obj,sim):
+    ## Diona C1 ## Instant ## Postcast ## Burst
+    def diona_c1(self,unit_obj,sim,extra):
         unit_obj.live_burst_energy += 15
 
-    def diona_c4(self,unit_obj,sim):
+    ## Diona C4 ## Duration ## Postcast ## Burst
+    def diona_c4(self,unit_obj,sim,extra):
         unit_obj.live_charged_speed += 0.6
 
-    def diona_c6(self,unit_obj,sim):
-        unit_obj.live_elemental_mastery += 200
+    ## Diona C6 ## Duration ## Postcast ## Burst
+    def diona_c6(self,unit_obj,sim,extra):
+        unit_obj.live_ele_m += 200
 
+
+    ############
     ## Fischl ##
+    ############
 
-    def fischl_e(self,unit_obj,sim):
-        unit_obj.live_burst_CD = max(12,unit_obj.live_skill_CD)
+    ## Fischl E ## Instant ## Postcast ## Skill
+    def fischl_e(self,unit_obj,sim,extra):
+        unit_obj.live_burst_cd = max(12,unit_obj.live_skill_cd)
     
-    def fischl_q_1(self,unit_obj,sim):
-        unit_obj.live_skill_CD = max(12,unit_obj.live_burst_CD)
+    ## Fischl Q ## Instant ## Postcast ## Burst
+    def fischl_q_1(self,unit_obj,sim,extra):
+        unit_obj.live_skill_cd = max(12,unit_obj.live_burst_CD)
 
-    def fischl_q_2(self,unit_obj,sim):
-        action = Action(unit_obj,"skill",sim.enemy)
-        action.tick_times = [x+2 for x in action.tick_times]
-        action.energy_times = [x+3.6 for x in action.tick_times]
+    ## Fischl Q 2 ## Instant ## Postcast ## Burst
+    def fischl_q_2(self,unit_obj,sim,extra):
+        action = Action(unit_obj,"skill")
+
+        action.tick_times = [x+2 for x in action.tick_times].pop()
+        action.energy_times = [x+3.6 for x in action.tick_times].pop()
+        action.tick_damage = action.tick_damage.pop()
+        action.tick_units = action.tick_units.pop()
+        action.update_time()
+
         energy_copy = copy.deepcopy(action)
         energy_copy.action_type = "energy"
-        action.update_time()
+        energy_copy.update_time()
+
         sim.floating_actions.add(action)
         sim.floating_actions.add(energy_copy)
 
-    def fischl_c1(self,unit_obj,sim):
+    ## Fischl C1 ## Instant ## Onhit ## Normal
+    def fischl_c1(self,unit_obj,sim,extra):
         if any((x.unit.name == "Fischl" and x.type == "skill" and x.action_type == "damage") for x in sim.floating_actions) == False:
-            c1_proc = Action(unit_obj,"normal",sim.enemy)
+            c1_proc = Action(unit_obj,"normal")
+
             c1_proc.tick_times = [sim.time_into_turn+0.1]
             c1_proc.tick_damage = [0.22]
             c1_proc.tick_units = [0]
             c1_proc.element = "Electro"
-            c1_proc.hits = 0
+            c1_proc.ticks = 1
             c1_proc.scaling = 1
             c1_proc.update_time()
             sim.floating_actions.add(c1_proc)
 
-    def fischl_c2(self,unit_obj,sim):
-        flat_dmg = Action(unit_obj,"skill",sim.enemy)
-        flat_dmg.tick_times[0] = sim.time_into_turn + 0.05
-        flat_dmg.scaling = 1
-        flat_dmg.tick_units = [0]
+    ## Fischl C2 ## Instant ## Onhit ## Skill
+    def fischl_c2(self,unit_obj,sim,extra):
+        flat_dmg = Action(unit_obj,"skill")
+
+        flat_dmg.tick_times = [sim.time_into_turn + 0.05]
         flat_dmg.tick_damage = [2]
-        flat_dmg.ticks = 1
-        flat_dmg.update_time()
-
-    def fischl_c4(self,unit_obj,sim):
-        flat_dmg = Action(unit_obj,"burst",sim.enemy)
-        flat_dmg.tick_times[0] = sim.time_into_turn + 0.05
-        flat_dmg.scaling = 1
         flat_dmg.tick_units = [0]
-        flat_dmg.tick_damage = [2.22]
         flat_dmg.ticks = 1
+        flat_dmg.scaling = 1
         flat_dmg.update_time()
 
-    def fischl_c6_1(self,unit_obj,sim):
+        sim.floating_actions.add(flat_dmg)
+
+    ## Fischl C4 ## Instant ## Onhit ## Burst
+    def fischl_c4(self,unit_obj,sim,extra):
+        flat_dmg = Action(unit_obj,"burst")
+
+        flat_dmg.tick_times = [sim.time_into_turn + 0.05]
+        flat_dmg.tick_damage = [2.22]        
+        flat_dmg.tick_units = [0]
+        flat_dmg.ticks = 1
+        flat_dmg.scaling = 1
+        flat_dmg.update_time()
+
+        sim.floating_actions.add(flat_dmg)
+
+    ## Fischl C6 1 ## Instant ## Postcast ## Skill,Burst
+    def fischl_c6_1(self,unit_obj,sim,extra):
         for unit in sim.units:
             unit.triggerable_buffs["Fischl_C6_2"] = copy.deepcopy(buffdict["Fisch_C6_2"])
             unit.triggerable_buffs["Fischl_C6_2"].time_remaining = 12
 
-    def fischl_c6(self,unit_obj,sim):
+    ## Fischl C6 2 ## Instant ## Onhit ## Normal
+    def fischl_c6_2(self,unit_obj,sim,extra):
         if any((x.unit.name == "Fischl" and x.type == "skill" and x.action_type == "damage") for x in sim.floating_actions) == True:
-            c1_proc = Action(unit_obj,"normal",sim.enemy)
-            c1_proc.tick_times = [sim.time_into_turn+0.1]
-            c1_proc.tick_damage = [0.22]
-            c1_proc.tick_units = [0]
-            c1_proc.element = "Electro"
-            c1_proc.hits = 0
-            c1_proc.scaling = 1
-            c1_proc.update_time()
-            sim.floating_actions.add(c1_proc)
+            c6_proc = Action(unit_obj,"normal")
 
+            c6_proc.tick_times = [sim.time_into_turn+0.1]
+            c6_proc.tick_damage = [0.22]
+            c6_proc.tick_units = [0]
+            c6_proc.element = "Electro"
+            c6_proc.ticks = 0
+            c6_proc.scaling = 1
+            c6_proc.update_time()
+
+            sim.floating_actions.add(c6_proc)
+
+    ###########
     ## Ganyu ##
+    ###########
 
-    def ganyu_charged(self,unit_obj,sim):
-        if hasattr(unit_obj, "c6_stack") == False:
-            pass
-        else:
-            if unit_obj.c6_stack == 1:
-                unit_obj.live_charged_speed == 100
-
-    def ganyu_a2(self,unit_obj,sim):
+    ## Ganyu A2 ## Duration ## Postcast ## Charged
+    def ganyu_a2(self,unit_obj,sim,extra):
         unit_obj.live_charged_crit_rate += 0.2
 
-    def ganyu_a4(self,unit_obj,sim):
-        unit_obj.live_cryo += 0.2
+    ## Ganyu A4 ## Duration ## Postcast ## Burst
+    def ganyu_a4(self,unit_obj,sim,extra):
+        unit_obj.live_cryo_dmg += 0.2
 
-    def ganyu_c1_1(self,unit_obj,sim):
-        unit_obj.live_burst_energy += 2
+    ## Ganyu C1 1 ## Instant ## Onhit ## Charged
+    def ganyu_c1_1(self,unit_obj,sim,extra):
+        unit_obj.live_burst_energy_cost += 2
 
-    def ganyu_c4(self,unit_obj,sim):
+    ## Ganyu C4 ## Duration ## Postcast ## Burst
+    def ganyu_c4(self,unit_obj,sim,extra):
         unit_obj.live_all_dmg += 0.15
 
-    def ganyu_c6(self,unit_obj,sim):
-        unit_obj.c6_stack = 1
+    ## Ganyu C6 1 ## Instant ## Postcast ## Skill
+    def ganyu_c6(self,unit_obj,sim,extra):
+        if hasattr(unit_obj, "c6_reset_stack") == False:
+            unit_obj.c6_reset_stack = 1
+            unit_obj.active_buffs["Ganyu_C6_2"] = copy.deepcopy(buffdict["Ganyu_C6_2"])
+        else:
+            unit_obj.c6_reset_stack = 1
+            unit_obj.active_buffs["Ganyu_C6_2"] = copy.deepcopy(buffdict["Ganyu_C6_2"])
 
+    ## Ganyu C6 2 ## Duration ##     
+    def ganyu_c6_2(self,unit_obj,sim,extra):
+        if hasattr(unit_obj, "c6_reset_stack") == False:
+            print("Error")
+            pass
+        else:
+            if unit_obj.c6_reset_stack == 1:
+                unit_obj.live_charged_speed = 2
+                unit_obj.triggerable_buffs["Ganyu_C6_3"] = copy.deepcopy(buffdict["Ganyu_C6_3"])
+
+    ## Ganyu C6 3 ## Duration ##
+    def ganyu_c6_3(self,unit_obj,sim,extra):
+        unit_obj.c6_reset_stack = 0
+
+    ##########
     ## Jean ##
+    ##########
 
-    def jean_a4(self,unit_obj,sim):
-        unit_obj.live_burst_energy += 16
+    ## Jean A4 ## Instant ## Postcast ## Burst
+    def jean_a4(self,unit_obj,sim,extra):
+        unit_obj.live_burst_energy_cost += 16
 
-    def jean_c1(self,unit_obj,sim):
+    ## Jean C1 ##
+    def jean_c1(self,unit_obj,sim,extra):
         pass
 
-    def jean_c2(self,unit_obj,sim):
+    ## Jean C2 ## Instant ## Particle
+    def jean_c2(self,unit_obj,sim,extra):
         unit_obj.live_normal_speed += 0.15
 
+    ###########
     ## Kaeya ##
+    ###########
 
+    ## Kaeya A4 ## Instant ## Reaction 
     def kaeya_a4(self,unit_obj,sim,reaction):
         energy = ""
         if reaction[0] == "frozen":
-            energy == Action(unit_obj,"skill",sim.enemy)
+            energy == Action(unit_obj,"skill")
             energy.action_type = "energy"
-            energy.energy_times = [sim.time_into_turn+1.65]
+            energy.energy_times = [sim.time_into_turn+2.05]
             sim.floating_actions.add(energy)
 
-    def kaeya_c1(self,unit_obj,sim):
+    ## Kaeya C1 ## Instant ## Prehit 
+    def kaeya_c1(self,unit_obj,sim,extra):
         if sim.enemy.element == "Cryo":
             unit_obj.live_cond_norm_crit_rate += 0.15
-            unit_obj.live_cond_norm_crit_rate += 0.15
+            unit_obj.live_cond_charged_crit_rate += 0.15
 
-    def kaeya_c2(self,unit_obj,sim):
+    ## Kaeya C2 ## Instant ## Prehit 
+    def kaeya_c2(self,unit_obj,sim,extra):
         pass
 
-    def kaeya_c6_2(self,unit_obj,sim):
-        unit_obj.live_burst_energy += 15
+    ## Kaeya C6 ## Instant ## Postcast # Burst 
+    def kaeya_c6_2(self,unit_obj,sim,extra):
+        unit_obj.live_burst_energy_cost += 15
 
+    ############
     ## Keqing ##
+    ############
 
-    def keqing_a2(self,unit_obj,sim):
+    ## Keqing A2 ## Duration ## Postcast ## Skill
+    def keqing_a2(self,unit_obj,sim,extra):
         unit_obj.live_normal_type = "Electro"
         unit_obj.live_charged_type = "Electro"
 
-    def keqing_a4(self,unit_obj,sim):
+    ## Keqing A4 ## Duration ## Postcast ## Burst
+    def keqing_a4(self,unit_obj,sim,extra):
         unit_obj.live_crit_rate += 0.15
-        unit_obj.live_energy_recharge += 0.15
+        unit_obj.live_recharge += 0.15
 
-    def keqing_c1(self,unit_obj,sim):
-        c1_proc = Action(unit_obj,"skill",sim.enemy)
+    ## Keqing C1 ## Instant ## Onhit ## Skill
+    def keqing_c1(self,unit_obj,sim,extra):
+        c1_proc = Action(unit_obj,"skill")
         c1_proc.ticks = 1
         c1_proc.tick_times = [sim.time_into_turn+0.1]
         c1_proc.tick_damage = [0.5]
@@ -402,108 +552,161 @@ class ActiveBuff:
         c1_proc.tick_units = [0]
         c1_proc.update_time()
         sim.floating_actions.add(c1_proc)
+        unit_obj.triggerable_buffs["Keqing_C1"].live_cd = 5
 
-    def keqing_c2(self,unit_obj,sim,action):
+    ## Keqing C2 ## Instant ## Prehit
+    def keqing_c2(self,unit_obj,sim,extra):
         if sim.enemy.element == "Electro":
-            energy = Action(unit_obj,"skill",sim.enemy)
+            energy = Action(unit_obj,"skill")
             energy.action_type = "energy"
             energy.energy_times = [sim.time_into_turn+1.6]
             energy.particles = 1
             sim.floating_actions.add(energy)
+        unit_obj.triggerable_buffs["Keqing_C2"].live_cd = 5
 
+    ## Keqing C4 1 ## Instant ## Reaction
     def keqing_c4_1(self,unit_obj,sim,reaction):
         if reaction[0] in {"overload", "superconduct", "electro_charged"}:
             unit_obj.active_buffs["Keqing_C4_2"] = copy.deepcopy(buffdict["Keqing_C4_2"])
 
-    def keqing_c4_2(self,unit_obj,sim):
-        unit_obj.live_atk_pct += 0.25
+    ## Keqing C4 2 ## Duration ##
+    def keqing_c4_2(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += 0.25
 
-    def keqing_c6_1(self,unit_obj,sim): ## Normal
-        unit_obj.live_electro += 0.06
-    def keqing_c6_2(self,unit_obj,sim): ## Charged
-        unit_obj.live_electro += 0.06
-    def keqing_c6_3(self,unit_obj,sim): ## Skill
-        unit_obj.live_electro += 0.06
-    def keqing_c6_4(self,unit_obj,sim): ## Burst
-        unit_obj.live_electro += 0.06    
+    ## Keqing C6 ## Duration ## Onhit # Normal,Charged,Skill,Burst
+    def keqing_c6_1(self,unit_obj,sim,extra): ## Normal
+        unit_obj.live_electro_dmg += 0.06
+    def keqing_c6_2(self,unit_obj,sim,extra): ## Charged
+        unit_obj.live_electro_dmg += 0.06
+    def keqing_c6_3(self,unit_obj,sim,extra): ## Skill
+        unit_obj.live_electro_dmg += 0.06
+    def keqing_c6_4(self,unit_obj,sim,extra): ## Burst
+        unit_obj.live_electro_dmg += 0.06    
 
+    ##########
     ## Klee ##
-    
-    def klee_a2_1(self,unit_obj,sim):
+    ##########
+
+    ## Klee A2 2 ## Instant ## Onhit ## Normal, Skill
+    def klee_a2_1(self,unit_obj,sim,extra):
         unit_obj.spark = True
         unit_obj.triggerable_buffs["Klee_A2"].live_cd = 4
 
-    def klee_a2_2(self,unit_obj,sim):
+    ## Klee A2 2 ## Instant ## Prehit ## Charged
+    def klee_a2_2(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"sparks") == False:
             unit_obj.sparks = 0
         if unit_obj.sparks == True:
             unit_obj.live_charged_dmg += 0.5
             unit_obj.sparks = False
 
-    def klee_a4(self,unit_obj,sim):
-        unit_obj.live_burst_energy += 2
+    ## Klee A4 ## Instant ## Onhit ## Charged
+    def klee_a4(self,unit_obj,sim,extra):
+        unit_obj.live_burst_energy_cost += 2
 
-    def klee_c1(self,unit_obj,sim):
+    ## Klee C1 ## Instant ## Onhit ## Any
+    def klee_c1(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"c1_stack") == False:
             unit_obj.c1_stack == 1
         else:
             unit_obj.c1_stack += 1
         
         if unit_obj.c1_stack == math.fmod(0,3):
-            c1_proc = Action(unit_obj,"skill",sim.enemy)
+
+            c1_proc = Action(unit_obj,"skill")
             c1_proc.ticks = 1
             c1_proc.tick_times = [sim.time_into_turn+0.1]
             c1_proc.tick_damage = [0.464*1.2]
             c1_proc.tick_units = [0]
             c1_proc.update_time()
+
             sim.floating_actions.add(c1_proc)
 
-    def klee_c4(self,unit_obj,sim):
+    ## Klee C4 ## Instant ## Onhit ## Any
+    def klee_c4(self,unit_obj,sim,extra):
         pass
 
-    def klee_c6_1(self,unit_obj,sim):
+    ## Klee C6 1 ## Duration ##
+    def klee_c6_1(self,unit_obj,sim,extra):
         pass
 
-    def klee_c6_2(self,unit_obj,sim):
-        unit_obj.live_pyro += 0.1
+    ## Klee C6 2 ## Duration ## Postcast ## Burst
+    def klee_c6_2(self,unit_obj,sim,extra):
+        unit_obj.live_pyro_dmg += 0.1
 
+    ##########
     ## Lisa ##
+    ##########
 
-    def lisa_c1(self,unit_obj,sim):
-        unit_obj.live_burst_energy += 2
+    ## Lisa C1 ## Instant ## Onhit ## Skill
+    def lisa_c1(self,unit_obj,sim,extra):
+        unit_obj.live_burst_energy_cost += 2
 
-    def lisa_c4(self,unit_obj,sim):
+    def lisa_c6(self,unit_obj,sim,extra):
         pass
 
-    def lisa_c6(self,unit_obj,sim):
-        pass
-
+    ##########
     ## Mona ##
+    ##########
 
-    def mona_q(self,unit_obj,sim):
+    ## Mona Q Cast ## Instant ## Postcast ## Burst
+    def mona_q_cast(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            unit.triggerable_buffs["Mona_Q_Trigger"] = copy.deepcopy(buffdict["Mona_Q_Trigger"])
+            unit.triggerable_buffs["Mona_Q_Trigger"].time_remaining = 8
+            unit.active_buffs["Mona_Q_Buff_1"] = copy.deepcopy(buffdict["Mona_Q_Buff_1"])
+            unit.triggerable_buffs["Mona_Q_Buff 2"] = copy.deepcopy(buffdict["Mona_Q_Buff 2"])
+
+    ## Mona Q Trigger ## Instant ## Onhit ##
+    def mona_q_trigger(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            for action in sim.floating_actions:
+                if action.unit.name == "Mona" and action.type == "burst":
+
+                    action.tick_times[1] = [sim.time_into_turn + 0.1]
+                    action.energy_times[1] = [sim.time_into_turn + 2.1]
+                    action.update_time()
+
+                    unit.triggerable_buffs["Mona_Q_Trigger"].time_remaining = 0
+                    unit.active_buffs["Mona_Q_Buff_1"] = copy.deepcopy(buffdict["Mona_Q_Buff_1"])
+                    unit.active_buffs["Mona_Q_Buff_1"].time_remaining = 5
+                    unit.triggerable_buffs["Mona_Q_Buff 2"].time_remaining = 5
+
+    ## Mona Q Buff ## Duration ##
+    def mona_q_buff_1(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            if unit.name == "Mona":
+                unit_obj.live_cond_dmg += min( 0.6 , 0.42 + unit.burst_level * 0.02 )
+
+                ## Mona C4 ##
+                if unit.constellation >=4:
+                    unit_obj.live_cond_crit_rate += 0.15
+
+    ## Mona Q Buff 2 ## Duration ## Onhit
+    ## Mona C1 ##
+    def mona_q_buff_2(self,unit_obj,sim,extra):
+        unit_obj.live_electro_charged_dmg += 0.15
+        unit_obj.live_vaporise_dmg += 0.15
+        unit_obj.live_hydro_dmg_swirl_dmg += 0.15
+
+    ## Mona A2 ##
+    def mona_a2(self,unit_obj,sim,extra):
         pass
 
-    def mona_a2(self,unit_obj,sim):
+    ## Mona C2 ##
+    def mona_c2(self,unit_obj,sim,extra):
         pass
 
-    def mona_a4(self,unit_obj,sim):
+    ## Mona C6 ##
+    def mona_c6(self,unit_obj,sim,extra):
         pass
 
-    def mona_c1(self,unit_obj,sim):
-        pass
-
-    def mona_c2(self,unit_obj,sim):
-        pass
-
-    def mona_c4(self,unit_obj,sim):
-        pass
-
-    def mona_c6(self,unit_obj,sim):
-        pass
-
+    ###############
     ## Ningguang ##
+    ###############
 
-    def ningguang_normal(self,unit_obj,sim):
+    ## Ningguang Normal ## Instant ## Onhit ## Normal
+    def ningguang_normal(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"jade_stacks") == False:
             unit_obj.jade_stacks = 1
         else:
@@ -512,44 +715,69 @@ class ActiveBuff:
             else:
                 unit_obj.jade_stacks += 1
 
-    def ningguang_charged(self,unit_obj,sim):
+    ## Ningguang Charged ## Instant ## Onhit ## Charged
+    def ningguang_charged(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"jade_stacks") == False:
             unit_obj.jade_stacks = 0
         else:
             if unit_obj.jade_stacks > 0:
-                jade_proc = Action(unit_obj,"charged",sim.enemy)
+
+                jade_proc = Action(unit_obj,"charged")
                 jade_proc.ticks = unit_obj.jade_stacks
                 jade_proc.tick_times = []
                 jade_proc.tick_damage = []
                 jade_proc.tick_units = []
+
                 for i in range(unit_obj.jade_stacks):
-                    jade_proc.ticks.append(sim.time_into_turn + 0.1 + i*0.1)
+                    jade_proc.ticks.append(sim.time_into_turn + 0.25 + i*0.1)
                     jade_proc.ticks.append(0.496)
                     jade_proc.tick_units.append(0)
+
                 jade_proc.update_time()
+
                 sim.floating_actions.append(jade_proc)
 
-    def ningguang_a2(self,unit_obj,sim):
+    ## Ningguang A2 ## Duration ## Onhit ## Normal, Burst
+    def ningguang_a2(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"jade_stacks") == False:
             unit_obj.jade_stacks = 0
         else:
             if unit_obj.jade_stacks > 0:
                 unit_obj.live_charged_stam = 0
 
-    def ningguang_skill(self,unit_obj,sim):
+    ## Ninggaung E ## Instant ## Postcast ## Skill
+    def ningguang_e(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"jade_wall") == False:
             unit_obj.jade_wall = 1
         else:
             unit_obj.jade_wall = 1
 
-    def ningguang_burst(self,unit_obj,sim):
+        ## Ningguang A4 ##
+        for unit in sim.units:
+            unit.triggerable_buffs["Ningguang_A4_Trigger"] = copy.deepcopy(buffdict["Ningguang_A4_Trigger"])
+            unit.triggerable_buffs["Ningguang_A4_Trigger"].time_remaining = 30
+
+    ## Ningguang A4 Trigger ## Duration ## Field ## Temporary
+    def ningguang_a4_trigger(self,unit_obj,sim,extra):
+        if unit_obj == sim.chosen_unit:
+            unit_obj.active_buffs["Ningguang_A4_Buff"] = copy.deepcopy(buffdict["Ningguang_A4_Buff"])
+
+    ## Ningguang A4 Buff ## Duration
+    def ningguang_a4_buff(self,unit_obj,sim,extra):
+        unit_obj.live_geo_dmg += 0.1
+
+    ## Ningguang Q ## Instant ## Onhit ## Burst
+    def ningguang_q(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"jade_wall") == False:
             unit_obj.jade_wall = 0
         else:
             if unit_obj.jade_wall == 1:
-                if unit_obj.constellation >= 2:
-                    unit_obj.live_skill_CD = 0
-                jade_stars_burst =  Action(unit_obj,"burst",sim.enemy)
+                unit_obj.jade_wall = 0
+
+                for unit in sim.units:
+                    unit.triggerable_buffs["Ningguang_A4_Trigger"].time_remaining = 0
+            
+                jade_stars_burst =  Action(unit_obj,"burst")
                 jade_stars_burst.ticks = 6
                 jade_stars_burst.tick_times = []
                 jade_stars_burst.tick_damage = []
@@ -558,97 +786,111 @@ class ActiveBuff:
                     jade_stars_burst.ticks.append(sim.time_into_turn+ i*0.1)
                     jade_stars_burst.ticks.append(0.8696)
                     jade_stars_burst.tick_units.append(0)
+                    
                 jade_stars_burst.update_time()
                 sim.floating_actions.append(jade_stars_burst)
+
+                ## Ningguang C2 ##
+                if unit_obj.constellation >= 2:
+                    unit_obj.live_skill_cd = 0
+                
+        ## Ningguang C6 ##          
         if unit_obj.constellation >= 6:
             if hasattr(unit_obj,"jade_stacks") == False:
-                unit_obj.jade_wall = 7
+                unit_obj.jade_stacks = 7
             else:
-                unit_obj.jade_wall = 7
-            
-    def ningguang_a4(self,unit_obj,sim):
-        pass
+                unit_obj.jade_stacks = 7
+        
 
-    def ningguang_c1(self,unit_obj,sim):
-        pass
-
-    def ningguang_c2(self,unit_obj,sim):
-        pass
-
-    def ningguang_c6(self,unit_obj,sim):
-        pass
-
+    ############
     ## Noelle ##
+    ############
 
-    def noelle_q_1(self,unit_obj,sim):
+    ## Noelle Q 1 ## Instant ## Postcast ## Burst
+    def noelle_q_1(self,unit_obj,sim,extra):
         def_mult = eleratiodict[unit_obj.burst_level] * 0.4
-        def_mult += self.noelle_c6(unit_obj,sim)
-        snapshot = def_mult * ( 1 + copy.deepcopy(unit_obj.base_def) * ( 1 + copy.deepcopy(unit_obj.live_def_pct) ) + copy.deepcopy(unit_obj.live_flat_def))
+        if unit_obj.constellation >=6:
+            def_mult += 0.5
+        snapshot = def_mult * ( 1 + copy.deepcopy(unit_obj.base_def) * ( 1 + copy.deepcopy(unit_obj.live_pct_def) ) + copy.deepcopy(unit_obj.live_flat_def))
         unit_obj.snapshot_buff = snapshot
         unit_obj.active_buffs["Noelle_Q_2"] = copy.deepcopy(buffdict["Noelle_Q_2"])
 
-    def noelle_q_2(self,unit_obj,sim):
+    ### Noelle Q 2 ## Duration ##
+    def noelle_q_2(self,unit_obj,sim,extra):
         unit_obj.live_normal_type = "Geo"
         unit_obj.live_charged_type = "Geo"
         unit_obj.live_flat_atk += unit_obj.snapshot_buff
 
-    def noelle_e(self,unit_obj,sim):
-        action = AlbedoTrigger(unit_obj,sim.enemy)
-        x = sim.time_into_turn
-        action.particles = 0
-        action.tick_damage = [1.2]
-        action.tick_times = [y+x for y in action.tick_times]
-        action.energy_times = [y+x+1.6 for y in action.energy_times]
-        sim.floating_actions.add(action)
+    ## Noelle E ## Instant ## Postcast ## Skill
+    def noelle_e(self,unit_obj,sim,extra):
+        def_dmg = AlbedoTrigger(unit_obj,sim.enemy, sim)
 
-    def noelle_a4(self,unit_obj,sim):
-        unit_obj.live_skill_CD -= 0.25
+        def_dmg.particles = 0
 
-    def noelle_c1(self,unit_obj,sim):
+        def_dmg.tick_times = [0.5]
+        def_dmg.tick_damage = [1.2]
+        def_dmg.tick_units = [1]
+
+        def_dmg.energy_times = [2.5]
+
+        sim.floating_actions.add(def_dmg)
+
+        ## Noelle C4 ##
+        if unit_obj.constellation >= 4:
+            action = Action(unit_obj,"skill")
+ 
+            action.particles = 0
+            action.tick_times = [0.55]
+            action.tick_damage = [4]
+            action.tick_units = [0]
+            action.scaling = 1
+
+            action.energy_times = [2.55]
+            action.update_time()
+            sim.floating_actions.add(action)
+
+    ## Noelle A4 ## Instant ## Onhit ## Normal, Charged
+    def noelle_a4(self,unit_obj,sim,extra):
+        unit_obj.live_skill_cd -= 0.25
+
+    ## Noelle C1 ##
+    def noelle_c1(self,unit_obj,sim,extra):
         pass
-
-    def noelle_c4(self,unit_obj,sim):
-        action = Action(unit_obj,"skill",sim.enemy)
-        x = sim.time_into_turn
-        action.particles = 0
-        action.tick_damage = [4]
-        action.scaling = 1
-        action.tick_times = [y+x for y in action.tick_times]
-        action.energy_times = [y+x+1.6 for y in action.energy_times]
-        sim.floating_actions.add(action)
-
-    def noelle_c6(self,unit_obj,sim):
-        if unit_obj.constellation >= 6:
-            return 0.5
-        else:
-            return 0
     
+    ##########
     ## Qiqi ##
+    ##########
 
-    def qiqi_c1(self,unit_obj,sim):
+    ## Qiqi C1 ##
+    def qiqi_c1(self,unit_obj,sim,extra):
         pass
 
-    def qiqi_c2(self,unit_obj,sim):
+    ## Qiqi C2 ## Instant ## Prehit
+    def qiqi_c2(self,unit_obj,sim,extra):
         if sim.enemy.element == "Cryo":
             unit_obj.live_cond_norm_dmg += 0.15
             unit_obj.live_cond_charg_dmg += 0.15
 
+    ###########
     ## Razor ##
+    ###########
 
-    def razor_skill(self,unit_obj,sim):
+    ## Razor E ## Instant ## Postcast ## Skill
+    def razor_e(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"electro_sigil") == False:
             unit_obj.electro_sigil = 1
         else:
             if unit_obj.electro_sigil == 3:
                 pass
             else:
-                unit_obj.electro_sigil = 1
-        unit_obj.active_buffs["Razor Sigil"] = copy.deepcopy(buffdict["Razor Sigil"])
-
-    def razor_q_1(self,unit_obj,sim):
-
-        if "Razor Sigil" in unit_obj.active_buffs:
-            unit_obj.live_burst_energy += 5 * unit_obj.electro_sigil
+                unit_obj.electro_sigil += 1
+        
+    ## Razor Q 1 ## Instant ## Postcast ## Burst
+    def razor_q_1(self,unit_obj,sim,extra):
+        if hasattr(unit_obj,"electro_sigil") == False:
+            unit_obj.electro_sigil = 1
+        else:
+            unit_obj.live_burst_energy_cost += 5 * unit_obj.electro_sigil
             unit_obj.electro_sigil = 0
 
         as_mult = razorqasdict[unit_obj.burst_level]
@@ -657,13 +899,14 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Razor_Q_3"] = copy.deepcopy(buffdict["Razor_Q_3"])
         unit_obj.triggerable_buffs["Razor_Q_3"].time_remaining = 18
 
-    def razor_q_2(self,unit_obj,sim):
+    ## Razor Q 2 ## Duration ##
+    def razor_q_2(self,unit_obj,sim,extra):
         unit_obj.live_normal_speed += unit_obj.snapshot_buff
 
-    def razor_q_3(self,unit_obj,sim,action,tick):
+    ## Razor Q 3 ## Instant ## Midhit ## Normal
+    def razor_q_3(self,unit_obj,sim,tick):
         mult = eleratiodict[unit_obj.burstlevel] * 0.24
-
-        convertedpct = Action(unit_obj,"normal",sim.enemy)
+        convertedpct = Action(unit_obj,"combo")
         convertedpct.tick_times = [sim.time_into_turn + 0.1]
         convertedpct.tick_damage = [convertedpct.tick_damage[tick]*mult]
         convertedpct.tick_units = [0]
@@ -672,15 +915,19 @@ class ActiveBuff:
         convertedpct.element = "Electro"
         convertedpct.update_time()
         sim.floating_actions.add(convertedpct)
+        print("Hi")
 
-    def razor_a2_2(self,unit_obj,sim):
-        unit_obj.live_skill_CD = 0
+    ## Razor A2 2 ## Instant ## Postcast ## Burst
+    def razor_a2_2(self,unit_obj,sim,extra):
+        unit_obj.live_skill_cd = 0
 
-    def razor_c1(self,unit_obj,sim):
+    ## Razor C1 ## Duration ## Particle
+    def razor_c1(self,unit_obj,sim,extra):
         unit_obj.live_all_dmg += 0.1
 
-    def razor_c6(self,unit_obj,sim):
-        c6_proc = Action(unit_obj,"normal",sim.enemy)
+    ## Razor C6 ## Instant ## Onhit
+    def razor_c6(self,unit_obj,sim,extra):
+        c6_proc = Action(unit_obj,"normal")
         c6_proc.tick_times = [sim.time_into_turn + 0.1]
         c6_proc.tick_damage = [1]
         c6_proc.tick_units = [0]
@@ -691,8 +938,11 @@ class ActiveBuff:
         sim.floating_actions.add(c6_proc)
         unit_obj.triggerable_buffs["Razor C6"].live_cd = 10
 
+    #############
     ## Sucrose ##
+    #############
 
+    ## Sucrose Q ## Instant ## Reaction 
     def sucrose_q(self,unit_obj,sim,reaction):
         if reaction[0] == "swirl":
             if hasattr(reaction[2],"infused") == False:
@@ -701,46 +951,63 @@ class ActiveBuff:
                 infuse.element = reaction[1]
                 infuse.tick_damage = [0.44 for x in infuse.tick_damage]
                 sim.floating_actions.add(infuse)
-
+                
+                ## Sucrose C6 ##
                 if unit_obj.constellation >= 6:
                     for unit in sim.units:
                         unit.active_buffs["Sucrose_C6"] = copy.deepcopy(buffdict.get("Sucrose_C6_" + reaction[1].lower()))
 
+    ## Sucrose A2 1 ## Instant ## Reaction
     def sucrose_a2_1(self,unit_obj,sim,reaction):
         if reaction[0] == "swirl":
             for unit in sim.units:
                 if reaction[1] == unit.element.lower():
                     unit.active_buffs["Sucrose_A2_2"] = copy.deepcopy(buffdict["Sucrose_A2_2"])
-        
-    def sucrose_a2_2(self,unit_obj,sim,reaction):
-        unit_obj.live_elemental_mastery += 50
 
-    def sucrose_a4_1(self,unit_obj,sim):
+    ## Sucrose A2 2 ## Duration ##  
+    def sucrose_a2_2(self,unit_obj,sim,reaction):
+        unit_obj.live_ele_m += 50
+
+    ## Sucrose A4 1 ## Duration ## Postcast ## Skill, Burst
+    def sucrose_a4_1(self,unit_obj,sim,extra):
         for unit in sim.units:
             if unit.name == "Sucrose":
-                em_buff = unit.live_elemental_mastery*0.2
-        unit_obj.live_elemental_mastery += em_buff
+                em_buff = unit.live_ele_m*0.2
+        unit_obj.live_ele_m += em_buff
 
-    def sucrose_c4(self,unit_obj,sim):
-        unit_obj.live_skill_CD -= (4/7)
+    ## Sucrose C4 ## Instant ## Onhit ## Normal, Charged
+    def sucrose_c4(self,unit_obj,sim,extra):
+        unit_obj.live_skill_cd -= (4/7)
 
+    ###############
     ## Tartaglia ##
+    ###############
 
-    def tartaglia_stance_swap(self,unit_obj,sim):
+    ## Tartaglia Stance Swap ## Instant ## Postcast ## Skill
+    def tartaglia_stance_swap(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"stance") == False:
             unit_obj.stance = "melee"
+            unit_obj.active_buffs["Tartaglia_Stance"] = copy.deepcopy(buffdict["Tartaglia_Stance"])
+            unit_obj.active_buffs["Tartaglia_Stance"].time_remaining = 45
         else:
             if unit_obj.stance == "ranged":
                 unit_obj.stance = "melee"
+                unit_obj.active_buffs["Tartaglia_Stance"] = copy.deepcopy(buffdict["Tartaglia_Stance"])
+                unit_obj.active_buffs["Tartaglia_Stance"].time_remaining = 45
             elif unit_obj.stance == "melee":
-                unit_obj.stance = "ranged"
+                if hasattr(unit_obj,"c6_reset") == True:
+                    if unit_obj.c6_reset == True:
+                        unit_obj.live_skill_cd = 1
+                        unit_obj.c6_reset = False
+                else:
+                    unit_obj.stance = "ranged"
+                    unit_obj.active_buffs.pop("Tartaglia_Stance")
+                    unit_obj.live_skill_cd = (45 - copy.deepcopy(unit_obj.active_buffs["Tartaglia_Stance_Swap"].time_remaining))*2 + 6
             else:
                 print("Error")
 
-        unit_obj.active_buffs["Tartaglia Stance"] = copy.deepcopy(buffdict["Tartaglia_E_2"])
-        unit_obj.active_buffs["Tartaglia Stance"].time_remaining = 1000
-
-    def tartaglia_stance(self,unit_obj,sim):
+    ## Tartaglia Stance ## Instant ## Postcast
+    def tartaglia_stance(self,unit_obj,sim,extra):
         if unit_obj.stance == "ranged":
             pass
         elif unit_obj.stance == "melee":
@@ -760,6 +1027,7 @@ class ActiveBuff:
             unit_obj.live_charged_tick_times = [0.083,0.583,0.683]
             unit_obj.live_charged_tick_damage = [0.3887,0.602,0.7198]
             unit_obj.live_charged_tick_units = [1,0,0]
+            unit_obj.live_charged_stam = 20
 
             unit_obj.live_burst_AT = 1.717
             unit_obj.live_burst_hits = 1
@@ -767,17 +1035,20 @@ class ActiveBuff:
             unit_obj.live_burst_tick_damage = [4.64]
             unit_obj.live_burst_tick_units = [2]
 
-    def riptide_apply(self,unit_obj,sim):
+    ## Tartaglia Riptide ## Instant ## Onhit
+    def riptide_apply(self,unit_obj,sim,extra):
         sim.enemy.active_debuffs["Riptide"] = copy.deepcopy(debuffdict["Riptide_debuff"])
 
-    def tartaglia_aimed_riptide_proc(self,unit_obj,sim):
+    ## Tartaglia Aimed Passive ## Instant ## Onhit ## Charged
+    def tartaglia_aimed_riptide_proc(self,unit_obj,sim,extra):
 
         if hasattr(unit_obj,"stance") == False:
             unit_obj.stance = "ranged"
 
         if unit_obj.stance == "ranged":
             if "Riptide" in sim.enemy.active_debuffs:
-                charged_proc = Action(unit_obj,"normal",sim)
+        
+                charged_proc = Action(unit_obj,"normal")
                 charged_proc.ticks = 3
 
                 charged_proc.tick_times = [sim.time_into_turn + 0.25, sim.time_into_turn + 0.3, sim.time_into_turn + 0.3]
@@ -786,17 +1057,21 @@ class ActiveBuff:
                 charged_proc.scaling = eleratiodict[unit_obj.normal_level]
                 charged_proc.update_time()
                 sim.floating_actions.add(charged_proc)
+
                 energy_copy = copy.deepcopy(charged_proc)
+                energy_copy.action_type = "energy"
                 energy_copy.particles = 1
-                energy_copy.energy_times = [sim.time_into_turn + 0.25 + 1.6]
-        
-    def tartaglia_melee_riptide_proc(self,unit_obj,sim):
+                energy_copy.energy_times = [x+2 for x in energy_copy.tick_times]
+                sim.floating_actions.add(energy_copy)
+
+    ## Tartaglia Melee Passive ## Instant ## Onhit ## Normal, Charged
+    def tartaglia_melee_riptide_proc(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"stance") == False:
             unit_obj.stance = "ranged"
 
         if unit_obj.stance == "melee":
             if "Riptide" in sim.enemy.active_debuffs:
-                melee_proc = Action(unit_obj,"skill",sim)
+                melee_proc = Action(unit_obj,"skill")
                 melee_proc.ticks = 1
 
                 melee_proc.tick_times = [sim.time_into_turn+0.25]
@@ -808,15 +1083,36 @@ class ActiveBuff:
                 unit_obj.triggerable_buffs["Tartaglia_Melee_Proc"].live_cd = 1.5
                 energy_copy = copy.deepcopy(melee_proc)
                 energy_copy.particles = 1
-                energy_copy.energy_times = [sim.time_into_turn + 0.25 + 1.6]
+                energy_copy.energy_times = [x+2 for x in energy_copy.tick_times]
+                sim.floating_actions.add(energy_copy)
 
-    def tartaglia_burst_riptide_proc(self,unit_obj,sim):
+                ## Tartaglia C4 ##
+                if unit_obj.constellation >= 4:
+                    if any(type(x) == TartagliaC4 for x in sim.floating_actions) == True:
+                        pass
+                    else:
+                        c4_proc = TartagliaC4(unit_obj,sim.enemy,sim)
+
+                        c4_proc.tick_times = [x+sim.time_into_turn for x in c4_proc.tick_times]
+                        c4_proc.energy_times = [x+sim.time_into_turn for x in c4_proc.energy_times]
+
+                        sim.floating_actions.add(c4_proc)
+                        
+                        energy_copy = copy.deepcopy(c4_proc)
+                        energy_copy.action_type = "energy"
+
+                        sim.floating_actions.add(energy_copy)
+
+    ## Tartaglia Burst Passive ## Instant ## Onhit ## Burst                    
+    def tartaglia_burst_riptide_proc(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"stance") == False:
             unit_obj.stance = "ranged"
 
         if unit_obj.stance == "melee":
             if "Riptide" in sim.enemy.active_debuffs:
-                burst_proc = Action(unit_obj,"burst",sim)
+                sim.enemy.active_debuffs["Riptide"].time_remaining = 0
+
+                burst_proc = Action(unit_obj,"burst")
                 burst_proc.ticks = 1
 
                 burst_proc.tick_times = [sim.time_into_turn+0.25]
@@ -825,16 +1121,42 @@ class ActiveBuff:
                 burst_proc.scaling = eleratiodict[unit_obj.burst_level]
                 burst_proc.update_time()
                 sim.floating_actions.add(burst_proc)
+                unit_obj.live_burst_energy_cost += 15
 
-    def tartaglia_c4(self,unit_obj,sim):
-        pass
+    def tartaglia_c6(self,unit_obj,sim,extra):
+        if hasattr(unit_obj,"stance") == False:
+            unit_obj.stance = "ranged"
+        
+        if unit_obj.stance == "melee":
+            unit_obj.c6_reset = True
 
-    def tartaglia_c6(self,unit_obj,sim):
-        unit_obj.live_skill_CD = 0
-
-
+    ######################
     ## Traveler (Anemo) ##
+    ######################
 
+    ## Traveler (Anemo) A4 ## Instant ## Midhit ## Normal
+    def traveler_anemo_a4(self,unit_obj,sim,tick):
+        if tick == 4:
+            proc = Action(unit_obj,"normal")
+            proc.element = "Anemo"
+            proc.tick_times = [sim.time_into_turn + 0.5]
+            proc.tick_damage = [0.6]
+            proc.tick_units = [1]
+            proc.ticks = 1
+            proc.scaling = 1
+            sim.floating_actions.add(proc)
+
+    ## Traveler (Anemo) E ## Instant ## Reaction:
+    def traveler_anemo_e(self,unit_obj,sim,reaction):
+        if reaction[0] == "swirl":
+            if hasattr(reaction[2],"infused") == False:
+                reaction[2].infused = True
+                infuse = copy.deepcopy(reaction[2])
+                infuse.element = reaction[1]
+                infuse.tick_damage = [0.23*x for x in infuse.tick_damage]
+                sim.floating_actions.add(infuse)
+
+    ## Traveler (Anemo) Q ## Instant ## Reaction
     def traveler_anemo_q(self,unit_obj,sim,reaction):
         if reaction[0] == "swirl":
             if hasattr(reaction[2],"infused") == False:
@@ -844,13 +1166,56 @@ class ActiveBuff:
                 infuse.tick_damage = [0.248 for x in infuse.tick_damage]
                 sim.floating_actions.add(infuse)
 
+                ## Traveler (Anemo) C6 ##
                 if unit_obj.constellation >= 6:
-                        sim.enemy.active_debuffs["Venti_C6"] = copy.deepcopy(debuffdict.get("Venti_C6_" + reaction[1].lower()))      
+                        sim.enemy.active_debuffs["Traveler_Anemo_C6"] = copy.deepcopy(debuffdict.get("Traveler_Anemo_C6_" + reaction[1].lower()))  
 
+    ####################
     ## Traveler (Geo) ##
+    ####################
 
+    ## Traveler (Geo) A4 ## Instant ## Midhit ## Normal
+    def traveler_geo_a4(self,unit_obj,sim,tick):
+        if tick == 4:
+            proc = Action(unit_obj,"normal")
+            proc.element = "Anemo"
+            proc.tick_times = [sim.time_into_turn + 0.5]
+            proc.tick_damage = [0.6]
+            proc.tick_units = [1]
+            proc.ticks = 1
+            proc.scaling = 1
+            sim.floating_actions.add(proc)
+
+    ## Traveler (Geo) Q Cast ## Instant ## Postcast ## Burst
+    def traveler_geo_q_cast(self,unit_obj,sim,extra):
+
+        ## Traveler (Geo) C6 ##
+        if unit_obj.constellation >6:
+            time = 20
+        else:
+            time = 15
+
+        ## Traveler (Geo) C1 ##
+        if unit_obj.constellation >= 1:
+            for unit in sim.units:
+                unit.active_buffs["Traveler_Geo_Q_Buff"] = copy.deepcopy(buffdict["Traveler_Geo_Q_Buff"])
+                unit.active_buffs["Traveler_Geo_Q_Buff"].time_remaining = time
+
+    ## Traveler (Geo) C1 ##
+    ## Traveler (Geo) Q Buff ## Duration
+    def traveler_geo_q_buff(self,unit_obj,sim,extra):
+        if unit_obj == sim.chosen_unit:
+            unit_obj.live_crit_rate += 0.1
+
+    ## Traveler (Geo) C4 ## Instant ## Postcast ## Burst
+    def traveler_geo_c4(self,unit_obj,sim,extra):
+        unit_obj.live_burst_energy_cost += 5
+
+    ###########
     ## Venti ##
+    ###########
 
+    ## Venti Q ## Instant ## Reaction
     def venti_q(self,unit_obj,sim,reaction):
         if reaction[0] == "swirl":
             if hasattr(reaction[2],"infused") == False:
@@ -860,88 +1225,236 @@ class ActiveBuff:
                 infuse.tick_damage = [0.188 for x in infuse.tick_damage]
                 sim.floating_actions.add(infuse)
 
+                ## Venti A4 ##
                 for unit in sim.units:
                     if unit.element == reaction[1] or unit.name == "Venti":
-                        unit.live_burst_energy
+                        unit.live_burst_energy_cost
 
+                ## Venti C6 ##
                 if unit_obj.constellation >= 6:
                     sim.enemy.active_debuffs["Venti_C6"] = copy.deepcopy(debuffdict.get("Venti_C6_" + reaction[1].lower()))
 
-    def venti_c4(self,unit_obj,sim):
-        unit_obj.live_anemo += 0.25
+    ## Venti C4 ## Instant ## Particle
+    def venti_c4(self,unit_obj,sim,extra):
+        unit_obj.live_anemo_dmg += 0.25
 
+    ###############
     ## Xiangling ##
+    ###############
 
-    def xiangling_a4(self,unit_obj,sim):
-        pass
+    ## Xiangling A4 Cast ## Instant ## Postcast ## Skill
+    def xiangling_a4_cast(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            unit.active_buffs["Xiangling_A4_Trigger"] = copy.deepcopy(buffdict["Xiangling_A4_Trigger"])
+            unit.active_buffs["Xiangling_A4_Buff_1"] = copy.deepcopy(buffdict["Xiangling_A4_Buff_1"])
+            unit.active_buffs["Xiangling_A4_Buff_2"] = copy.deepcopy(buffdict["Xiangling_A4_Buff_2"])
 
-    def xiangling_c2(self,unit_obj,sim):
-        pass
+    ## Xianling A4 Trigger ## Duration ## Postcast
+    def xiangling_a4_trigger(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            if unit.name == "Xiangling":
+                unit.a4_pickup = sim.chosen_unit
 
-    def xiangling_c6(self,unit_obj,sim):
-        unit_obj.live_pyro += 0.15
+    ## Xiangling A4 Buff 1 ## Duration ##
+    def xiangling_a4_buff_1(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            if unit.name == "Xiangling":
+                if hasattr(unit,"a4pickup") == False:
+                    pass
+                else:
+                    for unit2 in sim.units:
+                        if unit2 == unit.a4_pickup:
+                            unit2.live_pct_atk -= 0.1
 
+    ## Xiangling A4 Buff 2 ## Duration ##
+    def xiangling_a4_buff_2(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            if unit.name == "Xiangling":
+                if hasattr(unit,"a4pickup") == False:
+                    pass
+                else:
+                    for unit2 in sim.units:
+                        if unit2 == unit.a4_pickup:
+                            unit2.live_pct_atk += 0.1
+
+    ## Xiangling C2 ## Instant ## Midhit ## Normal
+    def xiangling_c2(self,unit_obj,sim,tick):
+        if tick == 8:
+            proc = Action(unit_obj,"normal")
+            proc.element = "Pyro"
+            proc.tick_times = [sim.time_into_turn + 0.75]
+            proc.tick_damage = [0.6]
+            proc.tick_units = [1]
+            proc.ticks = 1
+            proc.scaling = 1
+            sim.floating_actions.add(proc)
+
+    ## Xiangling C6 ## Duration ## Postcast ## Burst
+    def xiangling_c6(self,unit_obj,sim,extra):
+        unit_obj.live_pyro_dmg += 0.15
+
+    ##########
     ## Xiao ##
+    ##########
 
-    def xiao_a2(self,unit_obj,sim):
-        pass
+    ## Xiao Q ## Duration ## Postcast ## Burst
+    def xiao_q(self,unit_obj,sim,extra):
+        unit_obj.live_normal_type = "Anemo"
+        unit_obj.live_charged_type = "Anemo"
 
-    def xiao_a4(self,unit_obj,sim):
+    ## Xiao A2 ## Duration ## Postcast ## Burst
+    def xiao_a2(self,unit_obj,sim,extra):
+        unit_obj.live_all_dmg += 0.15
+
+    ## Xiao A4 ## Duration ## Postcast ## Skill
+    def xiao_a4(self,unit_obj,sim,extra):
         unit_obj.live_skill_dmg += 0.15
 
-    def xiao_c2(self,unit_obj,sim):
+    ## Xiao C2 ## Duration ## Postcast ## Any
+    def xiao_c2(self,unit_obj,sim,extra):
+        if unit_obj != sim.chosen_unit:
+            unit_obj.live_recharge += 0.25
+            unit_obj.active_buffs["Xiao_C2"].time_remaining = sim.encounter_limit
+
+    ## Xiao C6 ## 
+    def xiao_c6(self,unit_obj,sim,extra):
         pass
 
-    def xiao_c6(self,unit_obj,sim):
-        pass
-
+    #############
     ## Xingqiu ##
+    #############
 
-    def xingqiu_q(self,unit_obj,sim):
-        pass
+    ## Xingqiu Q Cast ## Instant ## Postcast ## Burst
+    def xingqiu_q_cast(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            unit.triggerable_buffs["Xingqiu_Q_Trigger"] = copy.deepcopy(buffdict["Xingqiu_Q_trigger"])
+            unit.triggerable_buffs["Xingqiu_Q_Trigger"].time_remaining = 15
 
-    def xingqiu_c4(self,unit_obj,sim):
-        pass
+            ## Xingqiu C2 ##
+            if unit_obj.constellation >=2:
+                unit.triggerable_buffs["Xingqiu_Q_Trigger"].time_remaining = 18
 
-    def xingqiu_c6(self,unit_obj,sim):
-        pass
+            unit_obj.q_tick = 0
+    
+    ## Xingqiu Q Trigger ## Instant ## Onhit ## Normal, Charged
+    def xingqiu_q_trigger(self,unit_obj,sim,extra):
+        for unit in sim.units:
+            if unit.name == "Xingqiu":
 
+                ## Xingqiu C6 ##
+                if unit.constellation >=6:
+                    if unit.q_tick == math.fmod(0,3):
+                        action = Action(unit, "burst")
+                        action.ticks = 2
+                        action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15]
+                        action.tick_damage = [0.453,0.453]
+                        action.tick_units = [1,0]
+                        action.update_time()
+                        sim.floating_actions.add(action)
+
+                    elif unit.q_tick == math.fmod(1,3):
+                        action = Action(unit, "burst")
+                        action.ticks = 3
+                        action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15,sim.time_into_turn+0.2]
+                        action.tick_damage = [0.453,0.453,0.453]
+                        action.tick_units = [1,0,0]
+                        action.update_time()
+                        sim.floating_actions.add(action)
+
+                    elif unit.q_tick == math.fmod(2,3):
+                        action = Action(unit, "burst")
+                        action.ticks = 5
+                        action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15,sim.time_into_turn+0.2,sim.time_into_turn+0.25,sim.time_into_turn+0.3]
+                        action.tick_damage = [0.453,0.453,0.453,0.453,0.453]
+                        action.tick_units = [1,0,0,0,0]
+                        action.update_time()
+                        sim.floating_actions.add(action)
+                        unit.live_burst_energy_cost += 3
+
+                ## Without C6 ##        
+                else:
+                    if unit.q_tick == math.fmod(0,3):
+                        action = Action(unit, "burst")
+                        action.ticks = 2
+                        action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15]
+                        action.tick_damage = [0.453,0.453]
+                        action.tick_units = [1,0]
+                        action.update_time()
+                        sim.floating_actions.add(action)
+
+                    elif unit.q_tick == math.fmod(1,3):
+                        action = Action(unit, "burst")
+                        action.ticks = 3
+                        action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15,sim.time_into_turn+0.2]
+                        action.tick_damage = [0.453,0.453,0.453]
+                        action.tick_units = [1,0,0]
+                        action.update_time()
+                        sim.floating_actions.add(action)
+            unit.q_tick += 1
+        for unit in sim.units:
+            unit.triggerable_buffs["xingqiu_Q_Trigger"].live_cd = 1
+
+
+    ############
     ## Xinyan ##
+    ############
 
-    def xinyan_a4(self,unit_obj,sim):
-        unit_obj.live_physical += 0.15
+    ## Xinyan A4 ## Duration ## Postcast ## Skill
+    def xinyan_a4(self,unit_obj,sim,extra):
+        if unit_obj == sim.chosen_unit:
+            unit_obj.live_physical_dmg += 0.15
 
-    def xinyan_c1(self,unit_obj,sim):
+    ## Xinyan C1 ## Duration ## Onhit ## Normal, Charged
+    def xinyan_c1(self,unit_obj,sim,extra):
         unit_obj.live_normal_speed += 0.15
         unit_obj.live_charged_speed += 0.15
 
-    def xinyan_c2(self,unit_obj,sim):
+    def xinyan_c2(self,unit_obj,sim,extra):
         pass
 
+    ## Xinyan Q ## Instant ## Onhit ## Burst
+    def xinyan_q(self,unit_obj,sim,extra):
+        phys_dmg = XinyanQ(unit_obj,sim.enemy, sim)
+        sim.floating_actions.add(phys_dmg)
+
+    #############
     ## Zhongli ##
+    #############
 
-    def zhongli_e(self,unit_obj,sim):
+    ## Zhongli A4 Normal ## Instant ## Onhit ## Normal
+    def zhongli_a4_normal(self,unit_obj,sim,extra):
+        auto_dmg = ZhongliA4(unit_obj,"normal", sim.enemy,"sim")
+        sim.floating_actions.add(auto_dmg)
+
+    ## Zhongli A4 Charged ## Instant ## Onhit ## Charged
+    def zhongli_a4_charged(self,unit_obj,sim,extra):
+        charged_dmg = ZhongliA4(unit_obj,"charged", sim.enemy,"sim")
+        sim.floating_actions.add(charged_dmg)
+
+    ## Zhongli A4 Skill ## Instant ## Onhit ## Charged
+    def zhongli_a4_skill(self,unit_obj,sim,extra):
+        skill_dmg = ZhongliA4(unit_obj,"skill", sim.enemy,"sim")
+        sim.floating_actions.add(skill_dmg)
+
+    ## Zhongli A4 Burst ## Instant ## Onhit ## Charged
+    def zhongli_a4_burst(self,unit_obj,sim,extra):
+        burst_dmg = ZhongliA4(unit_obj,"burst", sim.enemy,"sim")
+        sim.floating_actions.add(burst_dmg)
+
+    ## Zhongli E ## Instant ## Postcast ## Skill
+    def zhongli_e(self,unit_obj,sim,extra):
         pass
 
-    def zhongli_q(self,unit_obj,sim):
-        pass
+    #############
+    ## Weapons ##
+    #############
 
-    def zhongli_a4_1(self,unit_obj,sim):
-        pass
+    ##########
+    ## Bows ##
+    ##########
 
-    def zhongli_a4_2(self,unit_obj,sim):
-        pass
-
-    def zhongli_c1(self,unit_obj,sim):
-        pass
-
-
-    # Weapons
-
-    # Bows
-
-    def skyward_harp2(self,unit_obj,sim):
-        skyward_harp = WeaponAction(unit_obj,sim.enemy)
+    def skyward_harp2(self,unit_obj,sim,extra):
+        skyward_harp = WeaponAction(unit_obj)
         skyward_harp.ticks = 1
         skyward_harp.tick_damage = [1.25]
         skyward_harp.tick_times = [0.5+sim.time_into_turn]
@@ -953,13 +1466,13 @@ class ActiveBuff:
         sim.floating_actions.add(skyward_harp)
         print(unit_obj.name + " proced Skyward Harp")
         
-    def compound_bow2(self,unit_obj,sim):
-        unit_obj.live_atk_pct += (0.04 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Compound Bow 2"].stacks
+    def compound_bow2(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += (0.04 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Compound Bow 2"].stacks
         unit_obj.live_normal_speed += (0.012 + (unit_obj.weapon_rank-1)*0.003) * unit_obj.active_buffs["Compound Bow 2"].stacks
         unit_obj.triggerable_buffs["Compound Bow 2"].live_cd = 0.3
 
-    def viridescent_hunt2(self,unit_obj,sim):
-        viri_hunt = WeaponAction(unit_obj,sim.enemy)
+    def viridescent_hunt2(self,unit_obj,sim,extra):
+        viri_hunt = WeaponAction(unit_obj)
         viri_hunt.ticks = 8
         t = (unit_obj.weapon_rank-1)*0.25 + 1
         s = sim.time_into_turn
@@ -973,13 +1486,13 @@ class ActiveBuff:
         sim.floating_actions.add(viri_hunt)
         print(unit_obj.name + " proced The Viridescent Hunt")
 
-    def prototype_crescent2(self,unit_obj,sim):
+    def prototype_crescent2(self,unit_obj,sim,extra):
         unit_obj.live_charged_dmg += 0.36 + (unit_obj.weapon_rank-1)*0.09
 
     # Claymores
 
-    def prototype_archaic2(self,unit_obj,sim):
-        archaic = WeaponAction(unit_obj,sim.enemy)
+    def prototype_archaic2(self,unit_obj,sim,extra):
+        archaic = WeaponAction(unit_obj)
         archaic.ticks = 1
         d = 2.4 + (unit_obj.weapon_rank-1)*0.6
         archaic.tick_damage = [d]
@@ -991,34 +1504,34 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Prototype Archaic 2"].live_cd = 15
         sim.floating_actions.add(archaic)
 
-    def wolfs_gravestone2(self,unit_obj,sim):
-        unit_obj.live_atk_pct += 0.4 + (unit_obj.weapon_rank-1)*0.1
+    def wolfs_gravestone2(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += 0.4 + (unit_obj.weapon_rank-1)*0.1
         unit_obj.triggerable_buffs["Wolf's Gravestone 2"].live_cd = 30
         print(unit_obj.name + " proced Wolf's Gravestone")
 
-    def rainslasher2(self,unit_obj,sim):
+    def rainslasher2(self,unit_obj,sim,extra):
         if sim.enemy.element == "Hydro" or sim.enemy.element == "Electro":
             unit_obj.live_cond_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
-    def whiteblind2(self,unit_obj,sim):
-        unit_obj.live_atk_pct += (0.06 + (unit_obj.weapon_rank-1)*0.015) * unit_obj.active_buffs["Whiteblind 2"].stacks
-        unit_obj.live_def_pct += (0.06 + (unit_obj.weapon_rank-1)*0.015) * unit_obj.active_buffs["Whiteblind 2"].stacks
+    def whiteblind2(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += (0.06 + (unit_obj.weapon_rank-1)*0.015) * unit_obj.active_buffs["Whiteblind 2"].stacks
+        unit_obj.live_pct_def += (0.06 + (unit_obj.weapon_rank-1)*0.015) * unit_obj.active_buffs["Whiteblind 2"].stacks
         unit_obj.triggerable_buffs["Whiteblind 2"].live_cd = 0.5
 
-    def skyrider2(self,unit_obj,sim):
-        unit_obj.live_atk_pct += (0.06 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Whiteblind 2"].stacks
+    def skyrider2(self,unit_obj,sim,extra):
+        unit_obj.livek_pct_at += (0.06 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Whiteblind 2"].stacks
         unit_obj.triggerable_buffs["Skyrider 2"].live_cd = 0.5
 
-    def serpent2(self,unit_obj,sim):
+    def serpent2(self,unit_obj,sim,extra):
         pass
 
-    def skyward_pride2(self,unit_obj,sim):
+    def skyward_pride2(self,unit_obj,sim,extra):
         unit_obj.triggerable_buffs["Skyward Pride 3"] = copy.deepcopy(buffdict["Skyward Pride 3"])
         unit_obj.triggerable_buffs["Skyward Pride 3"].time_remaining = 20
         unit_obj.triggerable_buffs["Skyward Pride 3"].stacks = 8
 
-    def skyward_pride3(self,unit_obj,sim):
-        sp = WeaponAction(unit_obj,sim.enemy)
+    def skyward_pride3(self,unit_obj,sim,extra):
+        sp = WeaponAction(unit_obj)
         sp.ticks = 6
         d = (unit_obj.weapon_rank-1)*0.2 + 0.8
         s = sim.time_into_turn
@@ -1033,11 +1546,11 @@ class ActiveBuff:
 
     #Catalysts
 
-    def lost_prayers2(self,unit_obj,sim):
-        unit_obj.live_elemental_dmg += (0.04 * round(unit_obj.field_time/4)) * ( 1 + (unit_obj.weapon_rank-1)*0.25) 
+    def lost_prayers2(self,unit_obj,sim,extra):
+        unit_obj.live_ele_dmg += (0.04 * round(unit_obj.field_time/4)) * ( 1 + (unit_obj.weapon_rank-1)*0.25) 
 
-    def skyward_atlas2(self,unit_obj,sim):
-        atlas = WeaponAction(unit_obj,sim.enemy)
+    def skyward_atlas2(self,unit_obj,sim,extra):
+        atlas = WeaponAction(unit_obj)
         atlas.ticks = 6
         d = (unit_obj.weapon_rank-1)*0.4 + 1.6
         s = sim.time_into_turn
@@ -1051,15 +1564,15 @@ class ActiveBuff:
         sim.floating_actions.add(atlas)
         print(unit_obj.name + " proced Skyward Atlas")
 
-    def solar_pearl_normal_buff2(self,unit_obj,sim):
+    def solar_pearl_normal_buff2(self,unit_obj,sim,extra):
         unit_obj.live_normal_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
-    def solar_pearl_ability_buff2(self,unit_obj,sim):
+    def solar_pearl_ability_buff2(self,unit_obj,sim,extra):
         unit_obj.live_skill_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
         unit_obj.live_burst_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
-    def eye_of_perception2(self,unit_obj,sim):
-        eop = WeaponAction(unit_obj,sim.enemy)
+    def eye_of_perception2(self,unit_obj,sim,extra):
+        eop = WeaponAction(unit_obj)
         eop.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.3 + 2.4
         s = sim.time_into_turn
@@ -1072,23 +1585,23 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Eye of Perception 2"].live_cd = 12 - (unit_obj.weapon_rank-1)
         sim.floating_actions.add(eop)
 
-    def widsith2(self,unit_obj,sim):
+    def widsith2(self,unit_obj,sim,extra):
         unit_obj.live_atk_pct += 0.2 + (unit_obj.weapon_rank-1)*0.05
-        unit_obj.live_elemental_dmg += 0.16 + (unit_obj.weapon_rank-1)*0.04
-        unit_obj.live_elemental_mastery += 80 + (unit_obj.weapon_rank-1)*20
+        unit_obj.live_ele_dmg += 0.16 + (unit_obj.weapon_rank-1)*0.04
+        unit_obj.live_ele_m += 80 + (unit_obj.weapon_rank-1)*20
 
-    def prototype_amber2(self,unit_obj,sim):
+    def prototype_amber2(self,unit_obj,sim,extra):
         energy_gain = ( 4 + (unit_obj.weapon_rank-1)*0.5 ) * 3
         for unit in sim.units:
-            unit.live_burst_energy = min(unit.burst_energy, unit.live_burst_energy + energy_gain)
+            unit.live_burst_energy_cost = min(unit.burst_energy, unit.live_burst_energy + energy_gain)
 
-    def mappa_marre2(self,unit_obj,sim):
+    def mappa_marre2(self,unit_obj,sim,extra):
         unit_obj.live_all_dmg += (0.08 + (unit_obj.weapon_rank-1)*0.02) * unit_obj.active_buffs["Mappa Marre 2"].stacks
 
     # Polearms
 
-    def skyward_spine2(self,unit_obj,sim):
-        skyward_spine = WeaponAction(unit_obj,sim.enemy)
+    def skyward_spine2(self,unit_obj,sim,extra):
+        skyward_spine = WeaponAction(unit_obj)
         skyward_spine.ticks = 1
         d = 0.4 + (unit_obj.weapon_rank-1)*0.1
         skyward_spine.tick_damage = [d]
@@ -1100,20 +1613,20 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Skyward Spine 2"].live_cd = 2
         sim.floating_actions.add(skyward_spine)
 
-    def lithic_spear2(self,unit_obj,sim):
+    def lithic_spear2(self,unit_obj,sim,extra):
         pass
 
-    def primordial_spear2(self,unit_obj,sim):
-        unit_obj.live_atk_pct += (0.032 + (unit_obj.weapon_rank-1)*0.007) * unit_obj.active_buffs["Prim Spear 2"].stacks
+    def primordial_spear2(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += (0.032 + (unit_obj.weapon_rank-1)*0.007) * unit_obj.active_buffs["Prim Spear 2"].stacks
         if unit_obj.active_buffs["Prim Spear 2"].stacks == 7:
             unit_obj.live_all_dmg += 0.24 + (unit_obj.weapon_rank-1)*0.06
         unit_obj.triggerable_buffs["Prim Spear 2"].live_cd = 0.5
 
-    def prototype_starglitter2(self,unit_obj,sim):
+    def prototype_starglitter2(self,unit_obj,sim,extra):
         unit_obj.live_normal_dmg += (0.08 + (unit_obj.weapon_rank-1)*0.02) * unit_obj.active_buffs["Prototype Starglitter 2"].stacks
 
-    def crescent_spine2(self,unit_obj,sim):
-        cres = WeaponAction(unit_obj,sim.enemy)
+    def crescent_pike2(self,unit_obj,sim,extra):
+        cres = WeaponAction(unit_obj)
         cres.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.05 + 0.2
         s = sim.time_into_turn
@@ -1127,12 +1640,12 @@ class ActiveBuff:
 
     # Swords
 
-    def lions_roar2(self,unit_obj,sim):
+    def lions_roar2(self,unit_obj,sim,extra):
         if sim.enemy.element == "Pyro" or sim.enemy.element == "Electro":
             unit_obj.live_cond_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
-    def aquila_favonia2(self,unit_obj,sim):
-        aq = WeaponAction(unit_obj,sim.enemy)
+    def aquila_favonia2(self,unit_obj,sim,extra):
+        aq = WeaponAction(unit_obj)
         aq.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.3 + 2
         s = sim.time_into_turn
@@ -1145,18 +1658,18 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Aquila Favonia 2"].live_cd = 15
         sim.floating_actions.add(aq)
 
-    def prototype_rancour2(self,unit_obj,sim):
-        unit_obj.live_atk_pct += (0.04 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Rancour 2"].stacks
-        unit_obj.live_def_pct += (0.04 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Rancour 2"].stacks
+    def prototype_rancour2(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += (0.04 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Rancour 2"].stacks
+        unit_obj.live_pct_def += (0.04 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Rancour 2"].stacks
         unit_obj.triggerable_buffs["Rancour 2"].live_cd = 0.5
 
-    def skyward_blade2(self,unit_obj,sim):
+    def skyward_blade2(self,unit_obj,sim,extra):
         unit_obj.live_normal_speed += 0.1
         unit_obj.triggerable_buffs["Skyward Blade 3"] = copy.deepcopy(buffdict["Skyward Blade 3"])
         unit_obj.triggerable_buffs["Skyward Blade 3"].time_remaining = 12
 
-    def skyward_blade3(self,unit_obj,sim):
-        sb = WeaponAction(unit_obj,sim.enemy)
+    def skyward_blade3(self,unit_obj,sim,extra):
+        sb = WeaponAction(unit_obj)
         sb.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.05 + 0.2
         s = sim.time_into_turn
@@ -1168,8 +1681,8 @@ class ActiveBuff:
         sb.time_remaining = sb.initial_time
         sim.floating_actions.add(sb)
 
-    def the_flute2(self,unit_obj,sim):
-        tf = WeaponAction(unit_obj,sim.enemy)
+    def the_flute2(self,unit_obj,sim,extra):
+        tf = WeaponAction(unit_obj)
         tf.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.05 + 0.2
         s = sim.time_into_turn
@@ -1182,30 +1695,24 @@ class ActiveBuff:
         sim.floating_actions.add(tf)
         unit_obj.triggerable_buffs["Flute 2"].live_cd = 0.5
 
-    def iron_sting2(self,unit_obj,sim):
+    def iron_sting2(self,unit_obj,sim,extra):
         unit_obj.live_all_dmg += (0.06 + (unit_obj.weapon_rank-1)*0.015) * unit_obj.active_buffs["Iron Sting 2"].stacks
 
     # Misc
 
-    def favonius(self,unit_obj,sim):
-        for unit in sim.units:
-            if unit == sim.chosen_unit:
-                unit.live_burst_energy = max( 6 * (1+unit.live_energy_recharge) + unit.live_burst_energy, unit.burst_energy)
-            else:
-                unit.live_burst_energy = max( 3.6 * (1+unit.live_energy_recharge) + unit.live_burst_energy, unit.burst_energy)
-        unit_obj.triggerable_buffs["Favonius"].live_cd = 14 - ((unit_obj.weapon_rank-1))
-        print(unit_obj.name + "proced favonius")
+    def favonius(self,unit_obj,sim,extra):
+        pass
 
-    def sacrificial(self,unit_obj,sim):
-        unit_obj.live_skill_CD = 0 
+    def sacrificial(self,unit_obj,sim,extra):
+        unit_obj.live_skill_cd = 0 
         unit_obj.triggerable_buffs["Sacrificial"].live_cd = 30 - ((unit_obj.weapon_rank-1))*4
         
-    def geo_weapons(self,unit_obj,sim):
-        unit_obj.live_atk_pct += (0.08 + (unit_obj.weapon_rank-1)*0.02) * unit_obj.active_buffs["Geo Weapon"].stacks
+    def geo_weapons(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += (0.08 + (unit_obj.weapon_rank-1)*0.02) * unit_obj.active_buffs["Geo Weapon"].stacks
         unit_obj.triggerable_buffs["Geo Weapon"].live_cd = 0.3
 
-    def dragonspine(self,unit_obj,sim):
-        dragonspine = WeaponAction(unit_obj,sim.enemy)
+    def dragonspine(self,unit_obj,sim,extra):
+        dragonspine = WeaponAction(unit_obj)
         dragonspine.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.15 + 0.8
         s = sim.time_into_turn
@@ -1224,21 +1731,21 @@ class ActiveBuff:
 
     # Artifacts
 
-    def noblesse(self,unit_obj,sim):
-        unit_obj.live_atk_pct += 0.2
+    def noblesse(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += 0.2
 
-    def crimson_witch(self,unit_obj,sim):
-        unit_obj.live_pyro += 0.075 * unit_obj.active_buffs["Crimson Witch"].stacks
+    def crimson_witch(self,unit_obj,sim,extra):
+        unit_obj.live_pyro_dmg += 0.075 * unit_obj.active_buffs["Crimson Witch"].stacks
 
-    def lavawalker(self,unit_obj,sim):
+    def lavawalker(self,unit_obj,sim,extra):
         if sim.enemy.element == "Pyro":
             unit_obj.live_cond_dmg += 0.35
 
-    def thundersoother(self,unit_obj,sim):
+    def thundersoother(self,unit_obj,sim,extra):
         if sim.enemy.element == "Electro":
             unit_obj.live_cond_dmg += 0.35
 
-    def blizzard_strayer(self,unit_obj,sim):
+    def blizzard_strayer(self,unit_obj,sim,extra):
         if sim.enemy.element == "Cryo":
             unit_obj.live_crit_rate += 0.2
         if sim.enemy.frozen == "Frozen":
@@ -1249,24 +1756,24 @@ class ActiveBuff:
             for unit in sim.units:
                 unit.active_buffs["Archaic Petra"] = copy.deepcopy(buffdict.get(reaction[1]+"_petra"))
 
-    def cryo_petra(self,unit_obj,sim):
-        unit_obj.live_cryo += 0.35
+    def cryo_petra(self,unit_obj,sim,extra):
+        unit_obj.live_cryo_dmg += 0.35
 
-    def electro_petra(self,unit_obj,sim):
-        unit_obj.live_electro += 0.35
+    def electro_petra(self,unit_obj,sim,extra):
+        unit_obj.live_electro_dmg += 0.35
 
-    def hydro_petra(self,unit_obj,sim):
-        unit_obj.live_hydro += 0.35
+    def hydro_petra(self,unit_obj,sim,extra):
+        unit_obj.live_hydro_dmg_dmg += 0.35
 
-    def pyro_petra(self,unit_obj,sim):
-        unit_obj.live_pyro += 0.35
+    def pyro_petra(self,unit_obj,sim,extra):
+        unit_obj.live_pyro_dmg_dmg += 0.35
 
-    def heart_of_depth(self,unit_obj,sim):
+    def heart_of_depth(self,unit_obj,sim,extra):
         unit_obj.live_normal_dmg += 0.3
         unit_obj.live_charged_dmg += 0.3
     
-    def thundering_fury(self,unit_obj,sim):
-        unit_obj.live_skill_CD -= max(0, unit_obj.live_skill_CD - 1)
+    def thundering_fury(self,unit_obj,sim,extra):
+        unit_obj.live_skill_cd -= max(0, unit_obj.live_skill_cd - 1)
 
     def viridescent_venerer(self,unit_obj,sim,reaction):
         if reaction[0] == "swirl":

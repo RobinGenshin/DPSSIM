@@ -21,17 +21,17 @@ class StaticBuff:
 
     def amber_c4(self,unit_obj):
         unit_obj.skill_charges += 1
-        unit_obj.skill_CDR *= 0.8
+        unit_obj.skill_cdr *= 0.8
 
     ## Barbara ##
 
     def barbara_c2_1(self,unit_obj):
-        unit_obj.skill_CDR *= 0.85
+        unit_obj.skill_cdr *= 0.85
 
     ## Bennett ##
 
     def bennett_a2(self,unit_obj):
-        unit_obj.skill_CDR *= 0.8
+        unit_obj.skill_cdr *= 0.8
 
     ## Chongyun ##
 
@@ -61,11 +61,24 @@ class StaticBuff:
         unit_obj.burst_tick_damage.extend([0.776,0.776,0.776,0.776])
         unit_obj.burst_tick_units.extend([0,1,0,1])
 
+    ## Lisa ##
+
+    def lisa_c4(self,unit_obj):
+        pass
+
+    def lisa_c5(self,unit_obj):
+        pass
+
+    ## Mona ##
+
+    def mona_a4(self,unit_obj):
+        unit_obj.hydro_dmg += unit_obj.live_recharge * 0.2
+
     ## Noelle ##
 
     def noelle_c2(self,unit_obj):
         unit_obj.charged_dmg += 0.15
-        unit_obj.charged_stamina += 0.15
+        unit_obj.charged_stam_save += 0.15
 
     def noelle_c6(self,unit_obj):
         unit_obj.triggerable_buffs["Noelle Q 2"].duration += 5
@@ -73,7 +86,7 @@ class StaticBuff:
     ## Razor ##
 
     def razor_a2_1(self,unit_obj):
-        unit_obj.skill_CD *= 0.82
+        unit_obj.skill_cd *= 0.82
     
     def razor_c2(self,unit_obj):
         unit_obj.crit_rate += 0.03
@@ -95,6 +108,12 @@ class StaticBuff:
         unit_obj.normal_level += 1
         unit_obj.charged_level += 1
 
+    def tartaglia_c1(self,unit_obj):
+        pass
+
+    def tartaglia_c4(self,unit_obj):
+        pass
+
     ## Venti ##
 
     def venti_c1(self,unit_obj):
@@ -111,17 +130,25 @@ class StaticBuff:
 
     ## Xiao ##
 
-    def xiao_c1(self,unit_obj,sim):
+    def xiao_c1(self,unit_obj):
         unit_obj.skill_charges += 1
 
     ## Xingqiu ##
 
-    def xingqiu_a4(self,unit_obj,sim):
-        unit_obj.hydro += 0.2
+    def xingqiu_a4(self,unit_obj):
+        unit_obj.hydro_dmg += 0.2
+
+    def xingqiu_c4(self,unit_obj):
+        unit_obj.skill_tick_damage = [x*1.5 for x in unit_obj.skill_tick_damage]
+
+    def xingqiu_c6(self,unit_obj):
+        pass
 
     ## Xinyan ##
+    def xinyan_c1(self,unit_obj):
+        pass
 
-    def xinyan_c6(self,unit_obj,sim):
+    def xinyan_c6(self,unit_obj):
         pass
 
     
@@ -161,12 +188,12 @@ class StaticBuff:
     # Catalyst
 
     def skyward_atlas(self,unit_obj):
-        unit_obj.elemental_dmg += 0.12 + (unit_obj.weapon_rank-1)*0.03
+        unit_obj.ele_dmg += 0.12 + (unit_obj.weapon_rank-1)*0.03
 
     # Claymore
 
     def wolfs_gravestone(self,unit_obj):
-        unit_obj.atk_pct += 0.2 + (unit_obj.weapon_rank-1)*0.05
+        unit_obj.pct_atk += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
     def skyward_pride(self,unit_obj):
         unit_obj.all_dmg += 0.8 + (unit_obj.weapon_rank-1)*0.02
@@ -174,14 +201,14 @@ class StaticBuff:
     # Polearm
 
     def prim_cutter(self,unit_obj):
-        unit_obj.hp_pct += 0.2 + (unit_obj.weapon_rank-1)*0.05
+        unit_obj.pct_hp += 0.2 + (unit_obj.weapon_rank-1)*0.05
         unit_obj.flat_atk += (0.012 + (unit_obj.weapon_rank-1)*0.003) * (unit_obj.base_hp * unit_obj.hp_pct + unit_obj.flat_hp)
 
     def skyward_spine(self,unit_obj):
         unit_obj.crit_rate += 0.8 + (unit_obj.weapon_rank-1)*0.02
 
     def deathmatch(self,unit_obj):
-        unit_obj.atk_pct += 0.24 + (unit_obj.weapon_rank-1)*0.05 
+        unit_obj.pct_atk += 0.24 + (unit_obj.weapon_rank-1)*0.05 
 
     def white_tassel(self,unit_obj):
         unit_obj.normal_dmg += 0.24 + (unit_obj.weapon_rank-1)*0.06
@@ -190,7 +217,7 @@ class StaticBuff:
     # Sword
 
     def aquila_favonia(self,unit_obj):
-        unit_obj.atk_pct += 0.2 + (unit_obj.weapon_rank-1)*0.05
+        unit_obj.pct_atk += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
     def skyward_blade(self,unit_obj):
         unit_obj.crit_rate += 0.04 + (unit_obj.weapon_rank-1)*0.01
@@ -206,4 +233,4 @@ class StaticBuff:
     # Misc
 
     def blackcliff(self,unit_obj):
-        unit_obj.atk_pct += 0.12 + (unit_obj.weapon_rank-1)*0.03
+        unit_obj.pct_atk += 0.12 + (unit_obj.weapon_rank-1)*0.03

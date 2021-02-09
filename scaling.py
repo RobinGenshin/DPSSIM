@@ -5,14 +5,14 @@ from read_data import phys_ratio_dict
 from read_data import razor_qas_ratio_dict
 
 
-def ratio_type(action):
-    if action.unit.name == "Razor" and action.type == "normal":
+def ratio_type(unit_obj,action_type):
+    if unit_obj.name == "Razor" and action_type == "normal":
         return razor_auto_ratio_dict
-    elif action.unit.name == "Zhongli" and action.type == "burst":
+    elif unit_obj.name == "Zhongli" and action_type == "burst":
         return zhongli_q_ratio_dict
-    elif action.unit.weapon_type in {"Polearm", "Claymore", "Sword"} and action.type == "normal" or action.type == "charged":
+    elif unit_obj.weapon_type in {"Polearm", "Claymore", "Sword"} and action_type == "normal" or action_type == "charged":
         return phys_ratio_dict
-    elif action.unit.weapon_type == "Bow" and action.type == "normal":
+    elif unit_obj.weapon_type == "Bow" and action_type == "normal":
         return phys_ratio_dict
     else:
         return ele_ratio_dict
