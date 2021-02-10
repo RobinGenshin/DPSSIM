@@ -10,6 +10,7 @@ from action import Combos
 from action import ComboAction
 import enemy
 import copy
+from priority_list import PriorityList
 
 # Creating a list of actions
 class Sim:
@@ -56,10 +57,10 @@ class Sim:
                     self.action_list.add(ComboAction(unit,combo))
         
     ## Checks for buffs/triggers and updates stats
-    def check_buff(self,type2,action,extra):
+    def check_buff(self,type2,action,tick,extra):
         for key, trig_buff in copy.deepcopy(action.unit.triggerable_buffs).items():
             if trig_buff.field == "Yes" and self.chosen_unit == action.unit:
-                if (action.type in trig_buff.trigger or 'any'in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type2 == type2:
+                if (action.tick_types[tick] in trig_buff.trigger or 'any'in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type2 == type2:
                     if trig_buff.duration == "Instant":
                         if trig_buff.share == "Yes":
                             for unit in self.units:
@@ -87,7 +88,7 @@ class Sim:
                 if trig_buff.field == "Yes" and self.chosen_unit != action.unit:
                     pass
                 else:
-                    if (action.type in trig_buff.trigger or 'any' in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type2 == type2:
+                    if (action.tick_types[tick] in trig_buff.trigger or 'any' in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type2 == type2:
                         if trig_buff.duration == "Instant":
                             if trig_buff.share == "Yes":
                                 for unit in self.units:
@@ -142,7 +143,7 @@ class Sim:
 
     ## Chooses the best action from the action list. Currently does so based on the highest dps
     def choose_action(self):
-        self.chosen_action = max(self.action_list, key=methodcaller('calculate_dps_snapshot',self))
+        self.chosen_action = PriorityList().prioritise(self,self.action_list)
         self.chosen_unit = self.chosen_action.unit
         if self.action_order == 1:
             self.last_unit = copy.deepcopy(self.chosen_unit)
@@ -150,7 +151,7 @@ class Sim:
 
     ## Uses the action, adds either adds damage if it's instant or adds it to the dot_actions, puts action on cd
     def use_ability(self):
-        self.check_buff("precast",self.chosen_action,None)
+        self.check_buff("precast",self.chosen_action,0,None)
 
         self.chosen_action.action_type = "damage"
         self.floating_actions.add(self.chosen_action)
@@ -170,9 +171,6 @@ class Sim:
             self.chosen_unit.current_burst_cd = self.chosen_unit.live_burst_cd
             self.chosen_unit.current_energy = 0
 
-        if self.chosen_action.type == "charged":
-            self.stamina -= self.chosen_action.stamina_cost
-
         for unit in self.units:
             if hasattr(unit, "stance") == True:
                 if unit.name == "Tartaglia" and unit.stance == "melee" and self.last_unit == unit and self.chosen_unit != unit:
@@ -184,8 +182,10 @@ class Sim:
                             unit.current_skill_cd = (45 - copy.deepcopy(unit.active_buffs["Tartaglia Stance"].time_remaining))*2 + 6
                             unit.stance = "ranged"
 
-        self.check_buff("postcast",self.chosen_action,None)
-        
+        self.check_buff("postcast",self.chosen_action,0,None)
+
+        self.floating_actions = {x for x in self.floating_actions if not ((x.unit.name == "Klee") and (x.type == "burst") and (self.chosen_unit.name != "Klee"))}
+
     ## Check how long the action took
     def check_turn_time(self):
 
@@ -272,8 +272,8 @@ class Sim:
         time_since_last_action = self.time_into_turn - self.last_action_time
         self.reduce_buff_times_cds (time_since_last_action)
 
-        self.check_buff("pre_hit",damage_action,None)
-        self.check_buff("midhit",damage_action,tick)
+        self.check_buff("pre_hit",damage_action,tick,None)
+        self.check_buff("mid_hit",damage_action,tick,tick)
 
         damage_action_element_unit = damage_action.tick_units[tick]
         multiplier = 1
@@ -281,19 +281,21 @@ class Sim:
             reaction = getattr(React(),React().check(damage_action,self.enemy))(self,damage_action,self.enemy,damage_action_element_unit)
             reaction.append(damage_action)
             multiplier = reaction[0]
-            self.check_buff("reaction",damage_action,reaction[1])
+            self.check_buff("reaction",damage_action,tick,reaction[1])
 
         self.enemy.update_units()
         instance_damage = damage_action.calculate_tick_damage(tick,self) * multiplier
         self.damage += instance_damage
-        self.check_buff("on_hit",damage_action,None)
-        self.check_debuff("on_hit", damage_action)
+        self.check_buff("on_hit",damage_action,tick,None)
+        self.check_debuff("on_hit",damage_action)
 
         self.check_buff_end()
         self.check_debuff_end()
         if damage_action.type == "combo":
             self.attack_speed(damage_action,tick)
             self.hitlag(damage_action,tick)
+
+        # print("#"+str(self.action_order) + "Time:" + str(round(self.time_into_turn+self.encounter_duration,2)), damage_action.unit.name, damage_action.tick_damage, str(tick))
 
     ## Proccesses the energy
     def process_action_energy(self,new):
@@ -319,7 +321,7 @@ class Sim:
                 else:
                     unit.current_energy += particles * 0.6 * (1+self.chosen_unit.recharge)
 
-        self.check_buff("particle",energy_action,None)
+        self.check_buff("particle",energy_action,tick,None)
         self.check_buff_end()
         self.check_debuff_end()
 
@@ -358,8 +360,12 @@ class Sim:
             stance = " (" + self.chosen_unit.stance + ")"
         else:
             stance = ""
+        if self.chosen_action.type == "combo":
+            action = self.chosen_action.combo[4]
+        else:
+            action = self.chosen_action.type
         print("#" + str(self.action_order) + " Time:" + str(round(self.encounter_duration,2)) + " " + self.chosen_unit.name + stance + " used "
-        + self.chosen_action.type)
+        + action)
 
     ## Turns on the sim (lol)
     def turn_on_sim(self):
@@ -375,6 +381,7 @@ class Sim:
             self.pass_turn_time()
             self.check_buff_end()
             self.check_debuff_end()
+            # print(Main.active_buffs)
         print(round(self.damage /self.encounter_duration),self.encounter_duration)
 
 PyroArtifact = artifact_substats.ArtifactStats("pct_atk", "pyro_dmg", "crit_rate", "Perfect")
@@ -384,11 +391,15 @@ AnemoArtifact = artifact_substats.ArtifactStats("pct_atk", "anemo_dmg", "crit_ra
 HydroArtifact = artifact_substats.ArtifactStats("pct_atk", "hydro_dmg", "crit_rate", "Perfect")
 PhysicalArtifact = artifact_substats.ArtifactStats("pct_atk", "physical_dmg", "crit_rate", "Perfect")
 
-Main = u.Unit("Razor", 90, "Prototype Archaic", "Noblesse", 6, 1, 6, 6, 6, PhysicalArtifact)
-Support1 = u.Unit("Amber", 90, "Skyward Harp", "Noblesse", 6, 1, 6, 6, 6, PyroArtifact)
-Support2 = u.Unit("Kaeya", 90, "Prototype Archaic", "Noblesse", 6, 1, 6, 6, 6, PyroArtifact)
-Support3 = u.Unit("Lisa", 90, "Skyward Atlas", "Noblesse", 6, 1, 6, 6, 6, ElectroArtifact)
+Main = u.Unit("Xiao", 90, "Skyward Harp", "Noblesse", 6, 1, 10, 6, 10, AnemoArtifact)
+Support1 = u.Unit("Amber", 1, "Skyward Harp", "Noblesse", 1, 1, 1, 1, 1, PyroArtifact)
+Support2 = u.Unit("Kaeya", 1, "Prototype Archaic", "Noblesse", 1, 1, 1, 1, 1, PyroArtifact)
+Support3 = u.Unit("Lisa", 1, "Skyward Atlas", "Noblesse", 1, 1, 1, 1, 1, ElectroArtifact)
 Monster = enemy.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,11.5)
+Test = Sim(Main,Support1,Support2,Support3,Monster,20)
 Test.turn_on_sim()
+print(Main.skill_charges)
+
+# for key,value in Combos()._list(Main).items():
+#     print(key,value)

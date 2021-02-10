@@ -53,9 +53,18 @@ class StaticBuff:
     def ganyu_c2(self,unit_obj):
         unit_obj.skill_charges += 1
 
+    ## Fischl ##
+
+    def fischl_c6_3(self,unit_obj):
+        unit_obj.skill_ticks = 12
+        unit_obj.skill_tick_times.extend([11.5,12.5])
+        unit_obj.skill_tick_damage.extend([0.88,0.88])
+        unit_obj.skill_tick_units.extend([1,0])
+
     ## Kaeya ##
 
     def kaeya_c6_1(self,unit_obj):
+        unit_obj.burst_ticks = 16
         unit_obj.burst_tick_times.extend([8.217+0.666,8.217+0.666*2,8.217+0.666*3,8.217*4])
         unit_obj.burst_tick_times = [x*(3/4) for x in unit_obj.burst_tick_times]
         unit_obj.burst_tick_damage.extend([0.776,0.776,0.776,0.776])
@@ -117,7 +126,7 @@ class StaticBuff:
     ## Venti ##
 
     def venti_c1(self,unit_obj):
-        unit_obj.charged_hits += 2
+        unit_obj.charged_ticks += 2
         unit_obj.charged_tick_times.append(unit_obj.burst_tick_times[0]+0.1)
         unit_obj.charged_tick_times.append(unit_obj.burst_tick_times[0]+0.15)
         unit_obj.charged_tick_damage.append(124/3,124/3)
@@ -129,6 +138,19 @@ class StaticBuff:
         pass
 
     ## Xiao ##
+
+    def xiao_plunge(self,unit_obj):
+        unit_obj.plunge_type = "anemo"
+        unit_obj.plunge_ticks = 1
+        unit_obj.plunge_tick_times = list([0.900])
+        unit_obj.plunge_tick_damage = list([2.0439])
+        unit_obj.plunge_tick_units = list([1])
+        unit_obj.plunge_cancel = 0.900
+        unit_obj.plunge_skill = 0.900
+        unit_obj.plunge_burst = 0.900
+        unit_obj.plunge_attack = 1.200
+        unit_obj.plunge_swap = 1.200
+        unit_obj.plunge_tick_hitlag = [0]
 
     def xiao_c1(self,unit_obj):
         unit_obj.skill_charges += 1

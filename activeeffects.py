@@ -242,10 +242,10 @@ class ActiveBuff:
         snapshot = atk_mult * copy.deepcopy(unit_obj.base_atk)
         unit_obj.snapshot_buff = snapshot
         for unit in sim.units:
-            unit.active_buffs["Bennett_Q_2"] = copy.deepcopy(buffdict["Benntt_Q_2"])
+            unit.active_buffs["Bennett_Q_Buff"] = copy.deepcopy(buffdict["Bennett_Q_Buff"])
 
     ## Bennett Q Buff ## Duration ## 
-    def bennet_q_buff(self,unit_obj,sim,extra):
+    def bennett_q_buff(self,unit_obj,sim,extra):
         atk_buff = 0
         for unit in sim.units:
             if unit.name == "Bennett":
@@ -262,7 +262,7 @@ class ActiveBuff:
         pass
 
     ## Bennett C6 ## Duration ## Postcast ## Burst
-    def bennet_c6(self,unit_obj,sim,extra):
+    def bennett_c6(self,unit_obj,sim,extra):
         if unit_obj.weapon_type in {"Claymore", "Polearm", "Sword"}:
             unit_obj.live_pyro_dmg += 0.15
             unit_obj.live_normal_type = "Pyro"
@@ -294,7 +294,7 @@ class ActiveBuff:
         unit_obj.live_burst_cdr *= 0.85
 
     ## Chongyun C4 ## Instant ## Onhit ## Any
-    def chonyun_c4(self,unit_obj,sim,extra):
+    def chongyun_c4(self,unit_obj,sim,extra):
         if sim.enemy.element == "Cryo":
             unit_obj.live_burst_energy_cost += 1
             unit_obj.triggerable_buffs["Chongyun_C4"].live_cd = 2
@@ -358,11 +358,11 @@ class ActiveBuff:
 
     ## Fischl E ## Instant ## Postcast ## Skill
     def fischl_e(self,unit_obj,sim,extra):
-        unit_obj.live_burst_cd = max(12,unit_obj.live_skill_cd)
+        unit_obj.current_burst_cd = max(12,unit_obj.live_skill_cd)
     
     ## Fischl Q ## Instant ## Postcast ## Burst
     def fischl_q_1(self,unit_obj,sim,extra):
-        unit_obj.live_skill_cd = max(12,unit_obj.live_burst_CD)
+        unit_obj.current_skill_cd = max(12,unit_obj.live_burst_CD)
 
     ## Fischl Q 2 ## Instant ## Postcast ## Burst
     def fischl_q_2(self,unit_obj,sim,extra):
@@ -424,7 +424,7 @@ class ActiveBuff:
     ## Fischl C6 1 ## Instant ## Postcast ## Skill,Burst
     def fischl_c6_1(self,unit_obj,sim,extra):
         for unit in sim.units:
-            unit.triggerable_buffs["Fischl_C6_2"] = copy.deepcopy(buffdict["Fisch_C6_2"])
+            unit.triggerable_buffs["Fischl_C6_2"] = copy.deepcopy(buffdict["Fischl_C6_2"])
             unit.triggerable_buffs["Fischl_C6_2"].time_remaining = 12
 
     ## Fischl C6 2 ## Instant ## Onhit ## Normal
@@ -467,6 +467,7 @@ class ActiveBuff:
         if hasattr(unit_obj, "c6_reset_stack") == False:
             unit_obj.c6_reset_stack = 1
             unit_obj.active_buffs["Ganyu_C6_2"] = copy.deepcopy(buffdict["Ganyu_C6_2"])
+            print("AAAAAAAAAAAAAA")
         else:
             unit_obj.c6_reset_stack = 1
             unit_obj.active_buffs["Ganyu_C6_2"] = copy.deepcopy(buffdict["Ganyu_C6_2"])
@@ -478,12 +479,21 @@ class ActiveBuff:
             pass
         else:
             if unit_obj.c6_reset_stack == 1:
-                unit_obj.live_charged_speed = 2
+                unit_obj.live_charged_tick_times = [26/60,49/60]
+                unit_obj.live_charged_cancel = 26/60
+                unit_obj.live_charged_swap = 26/60
+                unit_obj.live_charged_skill = 26/60
+                unit_obj.live_charged_attack = 26/60
                 unit_obj.triggerable_buffs["Ganyu_C6_3"] = copy.deepcopy(buffdict["Ganyu_C6_3"])
+                unit_obj.triggerable_buffs["Ganyu_C6_3"].time_remaining = 30
 
-    ## Ganyu C6 3 ## Duration ##
+    ## Ganyu C6 3 ## Instant ##
     def ganyu_c6_3(self,unit_obj,sim,extra):
-        unit_obj.c6_reset_stack = 0
+        if unit_obj.c6_reset_stack == 1:
+            unit_obj.c6_reset_stack = 0
+            print("C6 GANYU PROC")
+            unit_obj.active_buffs["Ganyu_C6_2"].time_remaining = 0
+            unit_obj.triggerable_buffs["Ganyu_C6_3"].time_remaining = 0
 
     ##########
     ## Jean ##
@@ -587,15 +597,21 @@ class ActiveBuff:
     ## Klee ##
     ##########
 
-    ## Klee A2 2 ## Instant ## Onhit ## Normal, Skill
+    ## Klee A2 1 ## Instant ## Onhit ## Normal, Skill
     def klee_a2_1(self,unit_obj,sim,extra):
-        unit_obj.spark = True
-        unit_obj.triggerable_buffs["Klee_A2"].live_cd = 4
+        if hasattr(unit_obj,"a2_stack") == False:
+            unit_obj.a2_stack = 1
+        else:
+            unit_obj.a2_stack += 1
+        
+        if  0 == math.fmod(unit_obj.a2_stack,2):
+            unit_obj.spark = True
+            unit_obj.triggerable_buffs["Klee_A2_1"].live_cd = 4
 
     ## Klee A2 2 ## Instant ## Prehit ## Charged
     def klee_a2_2(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"sparks") == False:
-            unit_obj.sparks = 0
+            unit_obj.sparks = False
         if unit_obj.sparks == True:
             unit_obj.live_charged_dmg += 0.5
             unit_obj.sparks = False
@@ -607,11 +623,12 @@ class ActiveBuff:
     ## Klee C1 ## Instant ## Onhit ## Any
     def klee_c1(self,unit_obj,sim,extra):
         if hasattr(unit_obj,"c1_stack") == False:
-            unit_obj.c1_stack == 1
+            unit_obj.c1_stack = 1
         else:
             unit_obj.c1_stack += 1
         
-        if unit_obj.c1_stack == math.fmod(0,3):
+        if  0 == math.fmod(unit_obj.c1_stack,3):
+            print("Klee C1 Proc")
 
             c1_proc = Action(unit_obj,"skill")
             c1_proc.ticks = 1
@@ -1301,8 +1318,11 @@ class ActiveBuff:
 
     ## Xiao Q ## Duration ## Postcast ## Burst
     def xiao_q(self,unit_obj,sim,extra):
+        if unit_obj != sim.chosen_unit:
+            unit_obj.active_buffs["Xiao_Q"].time_remaining = 0
         unit_obj.live_normal_type = "Anemo"
         unit_obj.live_charged_type = "Anemo"
+        unit_obj.live_combo_options.add("plunge")
 
     ## Xiao A2 ## Duration ## Postcast ## Burst
     def xiao_a2(self,unit_obj,sim,extra):
@@ -1310,7 +1330,7 @@ class ActiveBuff:
 
     ## Xiao A4 ## Duration ## Postcast ## Skill
     def xiao_a4(self,unit_obj,sim,extra):
-        unit_obj.live_skill_dmg += 0.15
+        unit_obj.live_skill_dmg += unit_obj.active_buffs["Xiao_A4"].stacks
 
     ## Xiao C2 ## Duration ## Postcast ## Any
     def xiao_c2(self,unit_obj,sim,extra):
@@ -1455,8 +1475,8 @@ class ActiveBuff:
     ## Bows ##
     ##########
 
-    def skyward_harp2(self,unit_obj,sim,extra):
-        skyward_harp = WeaponAction(unit_obj)
+    def skyward_harp_2(self,unit_obj,sim,extra):
+        skyward_harp = WeaponAction(unit_obj,1)
         skyward_harp.ticks = 1
         skyward_harp.tick_damage = [1.25]
         skyward_harp.tick_times = [0.5+sim.time_into_turn]
@@ -1468,13 +1488,13 @@ class ActiveBuff:
         sim.floating_actions.add(skyward_harp)
         print(unit_obj.name + " proced Skyward Harp")
         
-    def compound_bow2(self,unit_obj,sim,extra):
+    def compound_bow_2(self,unit_obj,sim,extra):
         unit_obj.live_pct_atk += (0.04 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Compound Bow 2"].stacks
         unit_obj.live_normal_speed += (0.012 + (unit_obj.weapon_rank-1)*0.003) * unit_obj.active_buffs["Compound Bow 2"].stacks
         unit_obj.triggerable_buffs["Compound Bow 2"].live_cd = 0.3
 
-    def viridescent_hunt2(self,unit_obj,sim,extra):
-        viri_hunt = WeaponAction(unit_obj)
+    def viridescent_hunt_2(self,unit_obj,sim,extra):
+        viri_hunt = WeaponAction(unit_obj,8)
         viri_hunt.ticks = 8
         t = (unit_obj.weapon_rank-1)*0.25 + 1
         s = sim.time_into_turn
@@ -1488,13 +1508,13 @@ class ActiveBuff:
         sim.floating_actions.add(viri_hunt)
         print(unit_obj.name + " proced The Viridescent Hunt")
 
-    def prototype_crescent2(self,unit_obj,sim,extra):
+    def prototype_crescent_2(self,unit_obj,sim,extra):
         unit_obj.live_charged_dmg += 0.36 + (unit_obj.weapon_rank-1)*0.09
 
     # Claymores
 
-    def prototype_archaic2(self,unit_obj,sim,extra):
-        archaic = WeaponAction(unit_obj)
+    def prototype_archaic_2(self,unit_obj,sim,extra):
+        archaic = WeaponAction(unit_obj,1)
         archaic.ticks = 1
         d = 2.4 + (unit_obj.weapon_rank-1)*0.6
         archaic.tick_damage = [d]
@@ -1506,34 +1526,40 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Prototype Archaic 2"].live_cd = 15
         sim.floating_actions.add(archaic)
 
-    def wolfs_gravestone2(self,unit_obj,sim,extra):
-        unit_obj.live_pct_atk += 0.4 + (unit_obj.weapon_rank-1)*0.1
-        unit_obj.triggerable_buffs["Wolf's Gravestone 2"].live_cd = 30
+    def wolfs_gravestone_2(self,unit_obj,sim,extra):
+        print(unit_obj.active_buffs)
+        for unit in sim.units:
+            unit.active_buffs["Wolf's Gravestone 3"] = copy.deepcopy(buffdict["Wolf's Gravestone 3"])
+        print(unit_obj.active_buffs)
         print(unit_obj.name + " proced Wolf's Gravestone")
+        unit_obj.triggerable_buffs["Wolf's Gravestone 2"].live_cd = 30
 
-    def rainslasher2(self,unit_obj,sim,extra):
+    def wolfs_gravestone_3(self,unit_obj,sim,extra):
+        unit_obj.live_pct_atk += 0.4 + (unit_obj.weapon_rank-1)*0.1
+
+    def rainslasher_2(self,unit_obj,sim,extra):
         if sim.enemy.element == "Hydro" or sim.enemy.element == "Electro":
             unit_obj.live_cond_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
-    def whiteblind2(self,unit_obj,sim,extra):
+    def whiteblind_2(self,unit_obj,sim,extra):
         unit_obj.live_pct_atk += (0.06 + (unit_obj.weapon_rank-1)*0.015) * unit_obj.active_buffs["Whiteblind 2"].stacks
         unit_obj.live_pct_def += (0.06 + (unit_obj.weapon_rank-1)*0.015) * unit_obj.active_buffs["Whiteblind 2"].stacks
         unit_obj.triggerable_buffs["Whiteblind 2"].live_cd = 0.5
 
-    def skyrider2(self,unit_obj,sim,extra):
+    def skyrider_2(self,unit_obj,sim,extra):
         unit_obj.livek_pct_at += (0.06 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Whiteblind 2"].stacks
         unit_obj.triggerable_buffs["Skyrider 2"].live_cd = 0.5
 
-    def serpent2(self,unit_obj,sim,extra):
+    def serpent_2(self,unit_obj,sim,extra):
         pass
 
-    def skyward_pride2(self,unit_obj,sim,extra):
+    def skyward_pride_2(self,unit_obj,sim,extra):
         unit_obj.triggerable_buffs["Skyward Pride 3"] = copy.deepcopy(buffdict["Skyward Pride 3"])
         unit_obj.triggerable_buffs["Skyward Pride 3"].time_remaining = 20
         unit_obj.triggerable_buffs["Skyward Pride 3"].stacks = 8
 
-    def skyward_pride3(self,unit_obj,sim,extra):
-        sp = WeaponAction(unit_obj)
+    def skyward_pride_3(self,unit_obj,sim,extra):
+        sp = WeaponAction(unit_obj,6)
         sp.ticks = 6
         d = (unit_obj.weapon_rank-1)*0.2 + 0.8
         s = sim.time_into_turn
@@ -1548,11 +1574,11 @@ class ActiveBuff:
 
     #Catalysts
 
-    def lost_prayers2(self,unit_obj,sim,extra):
+    def lost_prayers_2(self,unit_obj,sim,extra):
         unit_obj.live_ele_dmg += (0.04 * round(unit_obj.field_time/4)) * ( 1 + (unit_obj.weapon_rank-1)*0.25) 
 
-    def skyward_atlas2(self,unit_obj,sim,extra):
-        atlas = WeaponAction(unit_obj)
+    def skyward_atlas_2(self,unit_obj,sim,extra):
+        atlas = WeaponAction(unit_obj,6)
         atlas.ticks = 6
         d = (unit_obj.weapon_rank-1)*0.4 + 1.6
         s = sim.time_into_turn
@@ -1566,15 +1592,15 @@ class ActiveBuff:
         sim.floating_actions.add(atlas)
         print(unit_obj.name + " proced Skyward Atlas")
 
-    def solar_pearl_normal_buff2(self,unit_obj,sim,extra):
+    def solar_pearl_normal_buff_2(self,unit_obj,sim,extra):
         unit_obj.live_normal_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
-    def solar_pearl_ability_buff2(self,unit_obj,sim,extra):
+    def solar_pearl_ability_buff_2(self,unit_obj,sim,extra):
         unit_obj.live_skill_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
         unit_obj.live_burst_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
-    def eye_of_perception2(self,unit_obj,sim,extra):
-        eop = WeaponAction(unit_obj)
+    def eye_of_perception_2(self,unit_obj,sim,extra):
+        eop = WeaponAction(unit_obj,1)
         eop.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.3 + 2.4
         s = sim.time_into_turn
@@ -1587,23 +1613,23 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Eye of Perception 2"].live_cd = 12 - (unit_obj.weapon_rank-1)
         sim.floating_actions.add(eop)
 
-    def widsith2(self,unit_obj,sim,extra):
+    def widsith_2(self,unit_obj,sim,extra):
         unit_obj.live_atk_pct += 0.2 + (unit_obj.weapon_rank-1)*0.05
         unit_obj.live_ele_dmg += 0.16 + (unit_obj.weapon_rank-1)*0.04
         unit_obj.live_ele_m += 80 + (unit_obj.weapon_rank-1)*20
 
-    def prototype_amber2(self,unit_obj,sim,extra):
+    def prototype_amber_2(self,unit_obj,sim,extra):
         energy_gain = ( 4 + (unit_obj.weapon_rank-1)*0.5 ) * 3
         for unit in sim.units:
             unit.live_burst_energy_cost = min(unit.burst_energy, unit.live_burst_energy + energy_gain)
 
-    def mappa_marre2(self,unit_obj,sim,extra):
+    def mappa_marre_2(self,unit_obj,sim,extra):
         unit_obj.live_all_dmg += (0.08 + (unit_obj.weapon_rank-1)*0.02) * unit_obj.active_buffs["Mappa Marre 2"].stacks
 
     # Polearms
 
-    def skyward_spine2(self,unit_obj,sim,extra):
-        skyward_spine = WeaponAction(unit_obj)
+    def skyward_spine_2(self,unit_obj,sim,extra):
+        skyward_spine = WeaponAction(unit_obj,1)
         skyward_spine.ticks = 1
         d = 0.4 + (unit_obj.weapon_rank-1)*0.1
         skyward_spine.tick_damage = [d]
@@ -1615,20 +1641,20 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Skyward Spine 2"].live_cd = 2
         sim.floating_actions.add(skyward_spine)
 
-    def lithic_spear2(self,unit_obj,sim,extra):
+    def lithic_spear_2(self,unit_obj,sim,extra):
         pass
 
-    def primordial_spear2(self,unit_obj,sim,extra):
+    def primordial_spear_2(self,unit_obj,sim,extra):
         unit_obj.live_pct_atk += (0.032 + (unit_obj.weapon_rank-1)*0.007) * unit_obj.active_buffs["Prim Spear 2"].stacks
         if unit_obj.active_buffs["Prim Spear 2"].stacks == 7:
             unit_obj.live_all_dmg += 0.24 + (unit_obj.weapon_rank-1)*0.06
         unit_obj.triggerable_buffs["Prim Spear 2"].live_cd = 0.5
 
-    def prototype_starglitter2(self,unit_obj,sim,extra):
+    def prototype_starglitter_2(self,unit_obj,sim,extra):
         unit_obj.live_normal_dmg += (0.08 + (unit_obj.weapon_rank-1)*0.02) * unit_obj.active_buffs["Prototype Starglitter 2"].stacks
 
-    def crescent_pike2(self,unit_obj,sim,extra):
-        cres = WeaponAction(unit_obj)
+    def crescent_pike_2(self,unit_obj,sim,extra):
+        cres = WeaponAction(unit_obj,1)
         cres.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.05 + 0.2
         s = sim.time_into_turn
@@ -1642,12 +1668,12 @@ class ActiveBuff:
 
     # Swords
 
-    def lions_roar2(self,unit_obj,sim,extra):
+    def lions_roar_2(self,unit_obj,sim,extra):
         if sim.enemy.element == "Pyro" or sim.enemy.element == "Electro":
             unit_obj.live_cond_dmg += 0.2 + (unit_obj.weapon_rank-1)*0.05
 
-    def aquila_favonia2(self,unit_obj,sim,extra):
-        aq = WeaponAction(unit_obj)
+    def aquila_favonia_2(self,unit_obj,sim,extra):
+        aq = WeaponAction(unit_obj,1)
         aq.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.3 + 2
         s = sim.time_into_turn
@@ -1660,18 +1686,18 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Aquila Favonia 2"].live_cd = 15
         sim.floating_actions.add(aq)
 
-    def prototype_rancour2(self,unit_obj,sim,extra):
+    def prototype_rancour_2(self,unit_obj,sim,extra):
         unit_obj.live_pct_atk += (0.04 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Rancour 2"].stacks
         unit_obj.live_pct_def += (0.04 + (unit_obj.weapon_rank-1)*0.01) * unit_obj.active_buffs["Rancour 2"].stacks
         unit_obj.triggerable_buffs["Rancour 2"].live_cd = 0.5
 
-    def skyward_blade2(self,unit_obj,sim,extra):
+    def skyward_blade_2(self,unit_obj,sim,extra):
         unit_obj.live_normal_speed += 0.1
         unit_obj.triggerable_buffs["Skyward Blade 3"] = copy.deepcopy(buffdict["Skyward Blade 3"])
         unit_obj.triggerable_buffs["Skyward Blade 3"].time_remaining = 12
 
-    def skyward_blade3(self,unit_obj,sim,extra):
-        sb = WeaponAction(unit_obj)
+    def skyward_blade_3(self,unit_obj,sim,extra):
+        sb = WeaponAction(unit_obj,1)
         sb.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.05 + 0.2
         s = sim.time_into_turn
@@ -1683,8 +1709,8 @@ class ActiveBuff:
         sb.time_remaining = sb.initial_time
         sim.floating_actions.add(sb)
 
-    def the_flute2(self,unit_obj,sim,extra):
-        tf = WeaponAction(unit_obj)
+    def the_flute_2(self,unit_obj,sim,extra):
+        tf = WeaponAction(unit_obj,1)
         tf.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.05 + 0.2
         s = sim.time_into_turn
@@ -1697,7 +1723,7 @@ class ActiveBuff:
         sim.floating_actions.add(tf)
         unit_obj.triggerable_buffs["Flute 2"].live_cd = 0.5
 
-    def iron_sting2(self,unit_obj,sim,extra):
+    def iron_sting_2(self,unit_obj,sim,extra):
         unit_obj.live_all_dmg += (0.06 + (unit_obj.weapon_rank-1)*0.015) * unit_obj.active_buffs["Iron Sting 2"].stacks
 
     # Misc
@@ -1714,7 +1740,7 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Geo Weapon"].live_cd = 0.3
 
     def dragonspine(self,unit_obj,sim,extra):
-        dragonspine = WeaponAction(unit_obj)
+        dragonspine = WeaponAction(unit_obj,1)
         dragonspine.ticks = 1
         d = (unit_obj.weapon_rank-1)*0.15 + 0.8
         s = sim.time_into_turn
