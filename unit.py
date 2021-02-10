@@ -55,7 +55,7 @@ class Unit():
             setattr(self,"cond_" + stat, getattr(self,stat,0))    
 
         for action_type in {"normal","charged","skill","burst"}:
-            for x in {"_type","_ticks","_tick_times","_tick_damage","_tick_units","element",
+            for x in {"_type","_ticks","_tick_times","_tick_damage","_tick_units","element","_tick_hitlag",
                     "_cancel","_swap","_attack","_skill","_burst","_crit_rate",
                     "_cd","_cdr","_particles","_charges","_energy_cost","_stamina_cost","_stam_save","_ac","_at","_cond_crit_rate"}:
                 setattr(self,action_type+x,getattr(characterdict[name],action_type+x,0))
@@ -134,6 +134,7 @@ def main():
     print(Main.charged_stamina_cost)
     print(Main.live_charged_type)
     print(Main.normal_tick_units)
+    print(Main.skill_cancel)
     
 
 if __name__ == '__main__':

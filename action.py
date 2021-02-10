@@ -19,7 +19,6 @@ class Action:
 
         self.ticks = getattr(self.unit,"live_" + self.type + "_ticks")
         self.tick_times = getattr(self.unit,"live_" + self.type + "_tick_times")
-        self.energy_times = [x + 2 for x in self.tick_times]
         self.tick_damage = getattr(self.unit,"live_" + self.type + "_tick_damage")
         self.tick_units = getattr(self.unit,"live_" + self.type + "_tick_units")
 
@@ -413,6 +412,9 @@ class ComboAction:
         self.tick_units = self.unit.normal_tick_units[:combo[3][0]]
         self.tick_units.extend(self.unit.charged_tick_units[:combo[3][1]])
 
+        self.tick_hitlag = self.unit.normal_tick_hitlag[:combo[3][0]]
+        self.tick_hitlag.extend(x for x in self.unit.charged_tick_hitlag[:combo[3][1]])
+
         self.particles = 0 
         self.tick_used = ["no" for i in self.tick_times]
 
@@ -436,6 +438,14 @@ class ComboAction:
             self.time_to_swap = max(self.tick_times)
             self.time_to_cancel = max(self.tick_times)
 
+        atk_speed_0 = copy.deepcopy(self.tick_times[0]*(1-(1/(1+getattr(self.unit,"live_" + self.tick_types[0]+"_speed")))))
+        for time in self.tick_times:
+            time -= atk_speed_0
+
+        self.times = [self.time_to_cancel, self.time_to_normal_nc, self.time_to_skill, self.time_to_burst, self.time_to_swap]
+        for time in self.times:
+            time -= atk_speed_0
+
         self.minimum_time = min([self.time_to_cancel,self.time_to_normal_nc,self.time_to_skill,self.time_to_burst,self.time_to_swap])
 
         self.stamina_cost = [0 for x in self.unit.normal_tick_times[:combo[3][0]]]
@@ -451,6 +461,8 @@ class ComboAction:
                 return True
             else:
                 return False
+        else:
+            return True
 
     def calculate_tick_damage(self,tick,sim):
         tot_atk = self.unit.live_base_atk * ( 1 + self.unit.live_pct_atk ) + self.unit.live_flat_atk
@@ -459,7 +471,7 @@ class ComboAction:
         tot_dmg = self.unit.live_all_dmg + self.unit.live_cond_dmg + getattr(self.unit,"live_"+self.tick_types[tick]+"_dmg")
         tot_dmg += getattr(self.unit,"live_"+self.element[tick].lower()+"_dmg")
         scaling = self.scaling[tick]
-        tot_crit_rate = self.unit.live_crit_rate + self.unit.live_cond_crit_rate + self.unit.live_normal_crit_rate + getattr(self.unit,"live_"+self.tick_types[tick]+"_cond_crit_rate")
+        tot_crit_rate = self.unit.live_crit_rate + self.unit.live_cond_crit_rate + getattr(self.unit,"live_"+self.tick_types[tick]+"_cond_crit_rate")
         tot_crit_mult = 1 + (tot_crit_rate * self.unit.live_crit_dmg)
         res = getattr(sim.enemy, "live_" + self.element[tick].lower() + "_res")
         return tot_atk * tot_crit_mult * tot_dmg * defence * (1-res) * attack_multiplier * scaling
@@ -468,8 +480,7 @@ class ComboAction:
         total_damage = 0
         for i in range(self.ticks):
             total_damage += self.calculate_tick_damage(i,sim)
-        return total_damage / self.tick_times[self.ticks-1]
-
+        return total_damage / self.combo[2]
     
 
 

@@ -156,6 +156,7 @@ class Sim:
         self.floating_actions.add(self.chosen_action)
         energy_copy = copy.deepcopy(self.chosen_action)
         energy_copy.action_type = "energy"
+        energy_copy.tick_times = [x+2 for x in energy_copy.tick_times]
         energy_copy.initial_time += 2
         energy_copy.time_remaining += 2
         self.floating_actions.add(energy_copy)
@@ -212,6 +213,7 @@ class Sim:
                     trig_buff.time_remaining = max(0, trig_buff.time_remaining - time_interval)
             for _, buff in unit.active_buffs.items():
                 buff.time_remaining = max(0, buff.time_remaining - time_interval)
+        self.check_buff_end()
 
     ## Check which dot ticks occur in the turn time
     def create_action_queue_turn(self,time_into_turn):
@@ -239,38 +241,42 @@ class Sim:
         else:
             print("Error",new[1].unit.name)
 
-    ## Hitlag
-    def hitlag(self,unit_obj,action,tick):
-        lag = self.enemy.hitlag / 60
-        if action.hitlag == True:
-            action.tick_times = [x+lag for x in action.tick_times]
-            self.turn_time -= lag
-
     ## Attack Speed
-    def attack_speed(self,unit_obj,action,tick):
-        attack_speed = unit_obj.live_normal_speed
+    def attack_speed(self,action,tick):
+        if tick < action.ticks-1:
+            atk_speed = copy.deepcopy((action.tick_times[tick+1]-action.tick_times[tick])*(1-(1/(1+getattr(action.unit,"live_"+action.tick_types[tick+1]+"_speed")))))
+            for time in action.tick_times:
+                time -= atk_speed
+            for time in action.times:
+                time -= atk_speed
+            self.turn_time -= atk_speed
 
-        if tick == 0:
-            new_time = action.tick_times[0] / ( 1 + attack_speed )
-            time_reduced = action.tick_times[0] - new_time
-            action.tick_times = [x-time_reduced for x in action.tick_times]
-        else:
-            time_gap = action.tick_times[tick] - action.tick_times[tick-1]
-            new_time_gap = time_gap / ( 1 + attack_speed)
-            time_reduced = time_gap - new_time_gap
-            action.tick_times = [x-time_reduced for x in action.tick_times]
-            self.turn_time -= time_reduced
+    ## Hitlag
+    def hitlag(self,action,tick):
+        hitlag = action.tick_hitlag[tick]*(3/self.enemy.hitlag)*(1/60)
+        for time in action.tick_times:
+            time += hitlag
+        for time in action.times:
+            time += hitlag
+        self.turn_time += hitlag
 
     ## Processes damage actions (ticks)
     def process_action_damage(self,new):
         tick = new[0]
         damage_action = new[1]
         damage_action.tick_used[tick] = "yes"
+
+        print(damage_action.unit.name,damage_action.type,[self.time_into_turn,self.last_action_time],tick)
+        print(self.last_action_time,self.time_into_turn)
+        for key,buff in damage_action.unit.active_buffs.items():
+            print(key, buff.time_remaining)
         self.last_action_time = copy.deepcopy(self.time_into_turn)
         self.time_into_turn = new[2]
 
         time_since_last_action = self.time_into_turn - self.last_action_time
         self.reduce_buff_times_cds (time_since_last_action)
+        for key,buff in damage_action.unit.active_buffs.items():
+            print(key, buff.time_remaining)
 
         self.check_buff("pre_hit",damage_action,None)
         self.check_buff("midhit",damage_action,tick)
@@ -285,23 +291,26 @@ class Sim:
 
         self.enemy.update_units()
         instance_damage = damage_action.calculate_tick_damage(tick,self) * multiplier
+        print(damage_action.unit.name,damage_action.type,[self.time_into_turn,self.last_action_time],instance_damage,tick)
         self.damage += instance_damage
-
         self.check_buff("on_hit",damage_action,None)
         self.check_debuff("on_hit", damage_action)
 
         self.check_buff_end()
         self.check_debuff_end()
+        if damage_action.type == "combo":
+            self.attack_speed(damage_action,tick)
+            self.hitlag(damage_action,tick)
 
     ## Proccesses the energy
     def process_action_energy(self,new):
         tick = new[0]
         energy_action = new[1]
         energy_action.tick_used[tick] = "yes"
-        self.last_action_time = copy.deepcopy(self.time_into_turn)
+        self.last_energy_action_time = copy.deepcopy(self.time_into_turn)
         self.time_into_turn = new[2]
 
-        time_since_last_action = self.time_into_turn - self.last_action_time
+        time_since_last_action = self.time_into_turn - self.last_energy_action_time
         self.reduce_buff_times_cds (time_since_last_action)
         particles = energy_action.particles / energy_action.ticks
 
@@ -382,20 +391,11 @@ AnemoArtifact = artifact_substats.ArtifactStats("pct_atk", "anemo_dmg", "crit_ra
 HydroArtifact = artifact_substats.ArtifactStats("pct_atk", "hydro_dmg", "crit_rate", "Perfect")
 PhysicalArtifact = artifact_substats.ArtifactStats("pct_atk", "physical_dmg", "crit_rate", "Perfect")
 
-Main = u.Unit("Razor", 90, "Prototype Archaic", "Noblesse", 0, 1, 6, 6, 6, ElectroArtifact)
-Support1 = u.Unit("Amber", 90, "Skyward Harp", "Noblesse", 0, 1, 6, 6, 6, PyroArtifact)
-Support2 = u.Unit("Kaeya", 90, "Prototype Archaic", "Noblesse", 0, 1, 6, 6, 6, PyroArtifact)
-Support3 = u.Unit("Lisa", 90, "Skyward Atlas", "Noblesse", 0, 1, 6, 6, 6, ElectroArtifact)
+Main = u.Unit("Razor", 90, "Prototype Archaic", "Noblesse", 6, 1, 6, 6, 6, PhysicalArtifact)
+Support1 = u.Unit("Amber", 90, "Skyward Harp", "Noblesse", 6, 1, 6, 6, 6, PyroArtifact)
+Support2 = u.Unit("Kaeya", 90, "Prototype Archaic", "Noblesse", 6, 1, 6, 6, 6, PyroArtifact)
+Support3 = u.Unit("Lisa", 90, "Skyward Atlas", "Noblesse", 6, 1, 6, 6, 6, ElectroArtifact)
 Monster = enemy.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,20)
+Test = Sim(Main,Support1,Support2,Support3,Monster,11.5)
 Test.turn_on_sim()
-
-a_set = set()
-
-
-for key,combo in Combos()._list(Support2).items():
-    print(key,combo)
-# for key, x in Combos()._list(Main).items():
-#     a_set.add(ComboAction(Main,x))
-#     print(a_set)

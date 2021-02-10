@@ -334,14 +334,6 @@ zhongli_q_ratio_dict = read_zhongli_q_ratio_data()
 buff_dict = read_buff_data()
 debuff_dict = read_debuff_data()
 
-class A:
-    def __init__(self):
-        self.a = "alpha"
-        self.b = "beta" 
-        self.letters = {self.a, self.b}
-    def update(self):
-        self.letters = {self.a, self.b}
-
 def main():
     # print(character_dict)
     # print(character_dict['Amber'])

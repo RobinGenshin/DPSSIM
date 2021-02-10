@@ -189,7 +189,7 @@ class ActiveBuff:
     ## Beidou Q Cast ## Instant ## Postcast ## Burst
     def beidou_q_cast(self,unit_obj,sim,extra):
         for unit in sim.units:
-            unit.triggerable_buffs["Beidou_Q_Trigger"] = copy.deepcopy(buffdict["Beidou_Q_trigger"])
+            unit.triggerable_buffs["Beidou_Q_Trigger"] = copy.deepcopy(buffdict["Beidou_Q_Trigger"])
             unit.triggerable_buffs["Beidou_Q_Trigger"].time_remaining = 15
     
     ## Beidou Q Trigger ## Instant ## Onhit ## Normal, Charged
@@ -517,8 +517,8 @@ class ActiveBuff:
     ## Kaeya C1 ## Instant ## Prehit 
     def kaeya_c1(self,unit_obj,sim,extra):
         if sim.enemy.element == "Cryo":
-            unit_obj.live_cond_norm_crit_rate += 0.15
-            unit_obj.live_cond_charged_crit_rate += 0.15
+            unit_obj.live_normal_cond_crit_rate += 0.15
+            unit_obj.live_charged_cond_crit_rate += 0.15
 
     ## Kaeya C2 ## Instant ## Prehit 
     def kaeya_c2(self,unit_obj,sim,extra):
@@ -893,7 +893,7 @@ class ActiveBuff:
             unit_obj.live_burst_energy_cost += 5 * unit_obj.electro_sigil
             unit_obj.electro_sigil = 0
 
-        as_mult = razorqasdict[unit_obj.burst_level]
+        as_mult = razorqasdict[unit_obj.burst_level] * 0.26
         unit_obj.snapshot_buff = as_mult
         unit_obj.active_buffs["Razor_Q_2"] = copy.deepcopy(buffdict["Razor_Q_2"])
         unit_obj.triggerable_buffs["Razor_Q_3"] = copy.deepcopy(buffdict["Razor_Q_3"])
@@ -902,6 +902,8 @@ class ActiveBuff:
     ## Razor Q 2 ## Duration ##
     def razor_q_2(self,unit_obj,sim,extra):
         unit_obj.live_normal_speed += unit_obj.snapshot_buff
+        if unit_obj != sim.chosen_unit:
+            unit_obj.active_buffs["Razor_Q_2"].time_remaining = 0
 
     ## Razor Q 3 ## Instant ## Midhit ## Normal
     def razor_q_3(self,unit_obj,sim,tick):
