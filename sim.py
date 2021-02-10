@@ -266,17 +266,11 @@ class Sim:
         damage_action = new[1]
         damage_action.tick_used[tick] = "yes"
 
-        print(damage_action.unit.name,damage_action.type,[self.time_into_turn,self.last_action_time],tick)
-        print(self.last_action_time,self.time_into_turn)
-        for key,buff in damage_action.unit.active_buffs.items():
-            print(key, buff.time_remaining)
         self.last_action_time = copy.deepcopy(self.time_into_turn)
         self.time_into_turn = new[2]
 
         time_since_last_action = self.time_into_turn - self.last_action_time
         self.reduce_buff_times_cds (time_since_last_action)
-        for key,buff in damage_action.unit.active_buffs.items():
-            print(key, buff.time_remaining)
 
         self.check_buff("pre_hit",damage_action,None)
         self.check_buff("midhit",damage_action,tick)
@@ -291,7 +285,6 @@ class Sim:
 
         self.enemy.update_units()
         instance_damage = damage_action.calculate_tick_damage(tick,self) * multiplier
-        print(damage_action.unit.name,damage_action.type,[self.time_into_turn,self.last_action_time],instance_damage,tick)
         self.damage += instance_damage
         self.check_buff("on_hit",damage_action,None)
         self.check_debuff("on_hit", damage_action)
