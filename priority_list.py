@@ -10,7 +10,6 @@ class PriorityList:
         # Using bursts after skills ##
         if sim.last_action != None:
             if any((action.type == "burst" and action.unit.name == sim.last_action.unit.name) for action in action_list):
-                print("Hi")
                 return max([x for x in action_list if x.type == "burst" and x.unit.name == sim.last_action.unit.name])
 
         # Greedy DPS units ##
@@ -18,11 +17,37 @@ class PriorityList:
             if unit.name == "Xiao" and "Xiao_Q" in unit.active_buffs:
                 return max([x for x in action_list if (x.unit.name == "Xiao" and x.type == "combo")], key=methodcaller('calculate_dps_snapshot',sim))
 
+        for action in sim.floating_actions:
+            if any((action.type == "burst" and action.unit.name == "Klee" and action.action_type == "damage") for action in sim.floating_actions):
+                print("KLEE Q FIELD")
+                return max([x for x in action_list if (x.unit.name == "Klee" and (x.type == "combo" or x.type == "skill"))], key=methodcaller('calculate_dps_snapshot',sim))
+
+
+        # Picking up particles ##
+        a_dict = dict()
+        for unit in sim.units:
+            if (unit.current_energy/unit.live_burst_energy_cost) < (unit.current_burst_cd / unit.live_burst_cd):
+                a_dict[unit] = 0
+                for energy in {x for x in sim.floating_actions if x.action_type == "energy"}:
+                    if 2 > energy.time_remaining > 0.12 and energy.element == unit.element:
+                        a_dict[unit] += energy.particles * ( 1 + unit.recharge )
+
+        if any(value == 0 for value in a_dict.items()):
+            choose = max(a_dict,key=lambda x: a_dict[x])
+            unit_actions = [x for x in action_list if x.unit.name == choose.name]
+            return max(unit_actions, key=methodcaller('calculate_dps_snapshot',sim))
+
+        ## Bennett Q ##
+        for action in action_list:
+            if action.unit == "Bennet" and action.type == "burst":
+                return action
+
         # Using skills if bursts are ready ##
         if any(action.type == "skill" for action in action_list):
             skill_list = [x for x in action_list if (x.type == "skill") and any(y.type == "burst" and y.unit.name == x.unit.name for y in action_list)]
-            if skill_list != []:
-                return max(skill_list,key=methodcaller('calculate_dps_snapshot',sim))
+            pairs = [(x,y) for x in skill_list for y in action_list if y.unit.name == x.unit.name and y.type == "burst"]
+            if pairs != []:
+                return max(pairs,key=lambda x: (x[0].calculate_damage_snapshot(sim)+x[1].calculate_damage_snapshot(sim)))[0]
 
         ## Using 0 DPS Greedy unit bursts ##
         for action in action_list:
@@ -30,19 +55,7 @@ class PriorityList:
                 return action
         
         return max(action_list, key=methodcaller('calculate_dps_snapshot',sim))
-
-        # ## Bennett Q ##
-        # for unit in sim.units:
-        #     if unit.name == "Bennett" and unit.current_burst_cd == 0 and unit.current_energy == unit.live_burst_energy_cost:
-        #         # return ("Bennett","burst")
-        #         pass
-
-        # ## Floating particles ##
-        # for unit in sim.units:
-        #     for energy in {x for x in sim.floating_actions if x.action_type == "energy"}:
-        #         if 2 > energy.time_remaining > 0.12 and energy.element == unit.element:
-        #             # return("unit","element")
-        #             pass
+                
             
         # ## Viridescent Venerer ##
         # for unit in sim.units:
@@ -68,7 +81,3 @@ class PriorityList:
         #         if unit.name == sim.chosen_unit:
         #             # return 
         #             pass
-
-        
-
-                        

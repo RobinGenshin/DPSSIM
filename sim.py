@@ -278,7 +278,7 @@ class Sim:
         damage_action_element_unit = damage_action.tick_units[tick]
         multiplier = 1
         if damage_action_element_unit > 0:
-            reaction = getattr(React(),React().check(damage_action,self.enemy))(self,damage_action,self.enemy,damage_action_element_unit)
+            reaction = getattr(React(),React().check(damage_action,tick,self.enemy))(damage_action,tick,self.enemy,damage_action_element_unit,self)
             reaction.append(damage_action)
             multiplier = reaction[0]
             self.check_buff("reaction",damage_action,tick,reaction[1])
@@ -317,9 +317,9 @@ class Sim:
                     self.chosen_unit.current_energy += particles * 1 * (1+self.chosen_unit.recharge)
             else:
                 if unit.element == energy_action.unit.element:
-                    unit.current_energy += particles * 1.8 * (1+self.chosen_unit.recharge)
+                    unit.current_energy += particles * 1.8 * (1+unit.recharge)
                 else:
-                    unit.current_energy += particles * 0.6 * (1+self.chosen_unit.recharge)
+                    unit.current_energy += particles * 0.6 * (1+unit.recharge)
 
         self.check_buff("particle",energy_action,tick,None)
         self.check_buff_end()
@@ -381,25 +381,34 @@ class Sim:
             self.pass_turn_time()
             self.check_buff_end()
             self.check_debuff_end()
-            # print(Main.active_buffs)
+            # # print(Main.active_buffs)
+            # for unit in self.units:
+            #     print(unit.current_energy)
+            print(Support1.current_energy)
         print(round(self.damage /self.encounter_duration),self.encounter_duration)
 
 PyroArtifact = artifact_substats.ArtifactStats("pct_atk", "pyro_dmg", "crit_rate", "Perfect")
-CryoArtifact = artifact_substats.ArtifactStats("pct_atk", "cryo_dmg", "crit_rate", "Perfect")
+CryoArtifact = artifact_substats.ArtifactStats("pct_atk", "hydro_dmg", "crit_rate", "Perfect")
 ElectroArtifact = artifact_substats.ArtifactStats("pct_atk", "electro_dmg", "crit_rate", "Perfect")
 AnemoArtifact = artifact_substats.ArtifactStats("pct_atk", "anemo_dmg", "crit_rate", "Perfect")
 HydroArtifact = artifact_substats.ArtifactStats("pct_atk", "hydro_dmg", "crit_rate", "Perfect")
 PhysicalArtifact = artifact_substats.ArtifactStats("pct_atk", "physical_dmg", "crit_rate", "Perfect")
 
-Main = u.Unit("Xiao", 90, "Skyward Harp", "Noblesse", 6, 1, 10, 6, 10, AnemoArtifact)
-Support1 = u.Unit("Amber", 1, "Skyward Harp", "Noblesse", 1, 1, 1, 1, 1, PyroArtifact)
-Support2 = u.Unit("Kaeya", 1, "Prototype Archaic", "Noblesse", 1, 1, 1, 1, 1, PyroArtifact)
-Support3 = u.Unit("Lisa", 1, "Skyward Atlas", "Noblesse", 1, 1, 1, 1, 1, ElectroArtifact)
+Main = u.Unit("Klee", 90, "Skyward Harp", "Noblesse", 0, 1, 10, 10, 10, PyroArtifact)
+Support1 = u.Unit("Xingqiu", 90, "Sacrificial Sword", "Noblesse", 0, 1, 10, 10, 10, CryoArtifact)
+Support2 = u.Unit("Bennett", 90, "Prototype Archaic", "Noblesse", 0, 1, 10, 10, 10, PyroArtifact)
+Support3 = u.Unit("Lisa", 90, "Skyward Atlas", "Noblesse", 0, 1, 10, 10, 10, ElectroArtifact)
 Monster = enemy.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,20)
+# Main.current_energy = 0
+# Support1.current_energy = 0
+# Support2.current_energy = 0
+# Support3.current_energy = 0
+Test = Sim(Main,Support1,Support2,Support3,Monster,90)
 Test.turn_on_sim()
-print(Main.skill_charges)
+print(Support1.recharge)
+# print(Main.skill_charges)
+# print(Main.current_energy)
 
-# for key,value in Combos()._list(Main).items():
+# for key,value in Combos()._list(Support3).items():
 #     print(key,value)

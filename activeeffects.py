@@ -11,6 +11,7 @@ from action import AlbedoTrigger
 from action import TartagliaC4
 from action import XinyanQ
 from action import ZhongliA4
+from scaling import ratio_type
 import copy
 import math
 
@@ -108,7 +109,7 @@ class ActiveBuff:
     
     ## Amber A4 ## Duration ## Onhit ## Charged ##
     def amber_a4(self,unit_obj,sim,extra):
-        unit_obj.live_atk_pct += 0.15
+        unit_obj.live_pct_atk += 0.15
 
     ## Amber C2 ## Instant ## Onhit ## Charged ##
     def amber_c2(self,unit_obj,sim,extra):
@@ -120,7 +121,7 @@ class ActiveBuff:
                     flat_dmg.tick_times = [sim.time_into_turn+0.05]
                     flat_dmg.tick_damage = [2]
                     flat_dmg.tick_units = [0]
-                    flat_dmg.scaling = 1
+                    flat_dmg.scaling = [1]
 
                     flat_dmg.update_time()
                     sim.floating_actions.add(flat_dmg)
@@ -1323,6 +1324,9 @@ class ActiveBuff:
         unit_obj.live_normal_type = "Anemo"
         unit_obj.live_charged_type = "Anemo"
         unit_obj.live_combo_options.add("plunge")
+        unit_obj.live_normal_dmg += 0.55 + unit_obj.burst_level*0.035
+        unit_obj.live_charged_dmg += 0.55 + unit_obj.burst_level*0.035
+        unit_obj.live_plunge_dmg += 0.55 + unit_obj.burst_level*0.035
 
     ## Xiao A2 ## Duration ## Postcast ## Burst
     def xiao_a2(self,unit_obj,sim,extra):
@@ -1349,7 +1353,7 @@ class ActiveBuff:
     ## Xingqiu Q Cast ## Instant ## Postcast ## Burst
     def xingqiu_q_cast(self,unit_obj,sim,extra):
         for unit in sim.units:
-            unit.triggerable_buffs["Xingqiu_Q_Trigger"] = copy.deepcopy(buffdict["Xingqiu_Q_trigger"])
+            unit.triggerable_buffs["Xingqiu_Q_Trigger"] = copy.deepcopy(buffdict["Xingqiu_Q_Trigger"])
             unit.triggerable_buffs["Xingqiu_Q_Trigger"].time_remaining = 15
 
             ## Xingqiu C2 ##
@@ -1365,56 +1369,76 @@ class ActiveBuff:
 
                 ## Xingqiu C6 ##
                 if unit.constellation >=6:
-                    if unit.q_tick == math.fmod(0,3):
+                    if 0 == math.fmod(unit.q_tick,3):
                         action = Action(unit, "burst")
                         action.ticks = 2
+                        action.element = ["Hydro"]*2
+                        action.tick_types = ["burst"]*2
                         action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15]
                         action.tick_damage = [0.453,0.453]
                         action.tick_units = [1,0]
+                        action.tick_used = ["no"]*2
+                        action.scaling = [ratio_type(unit,"burst")[getattr(unit,"burst_level")]]*action.ticks
                         action.update_time()
                         sim.floating_actions.add(action)
 
-                    elif unit.q_tick == math.fmod(1,3):
+                    elif 1 == math.fmod(unit.q_tick,3):
                         action = Action(unit, "burst")
                         action.ticks = 3
+                        action.element = ["Hydro"]*3
+                        action.tick_types = ["burst"]*3
                         action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15,sim.time_into_turn+0.2]
                         action.tick_damage = [0.453,0.453,0.453]
                         action.tick_units = [1,0,0]
+                        action.tick_used = ["no"]*3
+                        action.scaling = [ratio_type(unit,"burst")[getattr(unit,"burst_level")]]*action.ticks
                         action.update_time()
                         sim.floating_actions.add(action)
 
-                    elif unit.q_tick == math.fmod(2,3):
+                    elif 2 == math.fmod(unit.q_tick,3):
                         action = Action(unit, "burst")
                         action.ticks = 5
+                        action.element = ["Hydro"]*5
+                        action.tick_types = ["burst"]*5
                         action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15,sim.time_into_turn+0.2,sim.time_into_turn+0.25,sim.time_into_turn+0.3]
                         action.tick_damage = [0.453,0.453,0.453,0.453,0.453]
                         action.tick_units = [1,0,0,0,0]
+                        action.tick_used = ["no"]*5
+                        action.scaling = [ratio_type(unit,"burst")[getattr(unit,"burst_level")]]*action.ticks
                         action.update_time()
                         sim.floating_actions.add(action)
-                        unit.live_burst_energy_cost += 3
+                        unit.current_energy_cost += 3
 
                 ## Without C6 ##        
                 else:
-                    if unit.q_tick == math.fmod(0,3):
+                    if 0 == math.fmod(unit.q_tick,2):
                         action = Action(unit, "burst")
                         action.ticks = 2
+                        action.element = ["Hydro"]*2
+                        action.tick_types = ["burst"]*2
                         action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15]
                         action.tick_damage = [0.453,0.453]
                         action.tick_units = [1,0]
+                        action.tick_used = ["no"]*2
+                        action.scaling = [ratio_type(unit,"burst")[getattr(unit,"burst_level")]]*action.ticks
                         action.update_time()
                         sim.floating_actions.add(action)
 
-                    elif unit.q_tick == math.fmod(1,3):
+                    elif 1 == math.fmod(unit.q_tick,2):
                         action = Action(unit, "burst")
                         action.ticks = 3
+                        action.element = ["Hydro"]*3
+                        action.tick_types = ["burst"]*3
                         action.tick_times = [sim.time_into_turn+0.1,sim.time_into_turn+0.15,sim.time_into_turn+0.2]
                         action.tick_damage = [0.453,0.453,0.453]
                         action.tick_units = [1,0,0]
+                        action.tick_used = ["no"]*3
+                        action.scaling = [ratio_type(unit,"burst")[getattr(unit,"burst_level")]]*action.ticks
                         action.update_time()
                         sim.floating_actions.add(action)
-            unit.q_tick += 1
+                unit.q_tick += 1
         for unit in sim.units:
-            unit.triggerable_buffs["xingqiu_Q_Trigger"].live_cd = 1
+            unit.triggerable_buffs["Xingqiu_Q_Trigger"].live_cd = 1
 
 
     ############

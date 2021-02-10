@@ -81,11 +81,14 @@ class Action:
         self.time_remaining = self.initial_time
         self.energy_times = [x+2 for x in self.tick_times]
 
-    def calculate_dps_snapshot(self,sim):
+    def calculate_damage_snapshot(self,sim):
         total_damage = 0
         for i in range(self.ticks):
             total_damage += self.calculate_tick_damage(i,sim)
-        return total_damage / self.time_to_cancel
+            return total_damage
+
+    def calculate_dps_snapshot(self,sim):
+        return self.calculate_damage_snapshot(sim) / self.time_to_cancel
 
     def calculate_tick_damage(self,tick,sim):
         if self.snapshot == True:
