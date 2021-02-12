@@ -32,9 +32,11 @@ class Sim:
         self.floating_actions= set()
         self.action_queue = []
         self.sorted_action_queue = []
+        self.a_dict = dict()
 
         self.stamina = 250
         self.stamina_timer = 0
+        self.stamina_toggle = True
 
     ### Starts the sim, adds 1 to the turn number and updates the previous unit
     def start_sim(self):
@@ -128,6 +130,7 @@ class Sim:
                             unit.current_skill_cd = 51
                         print("Tartaglia Stance Timed Out")
 
+            unit.update_stats(self)
             unit.active_buffs = {k:unit.active_buffs[k] for k in unit.active_buffs if unit.active_buffs[k].time_remaining > 0}
             unit.update_stats(self)
 
@@ -138,6 +141,7 @@ class Sim:
 
     ## Check if debuff ends for enemies. If they did, remove them
     def check_debuff_end(self):
+        self.enemy.update_stats(self)
         self.enemy.active_debuffs = {k:self.enemy.active_debuffs[k] for k in self.enemy.active_debuffs if self.enemy.active_debuffs[k].time_remaining > 0}
         self.enemy.update_stats(self)
 
@@ -148,6 +152,17 @@ class Sim:
         if self.action_order == 1:
             self.last_unit = copy.deepcopy(self.chosen_unit)
             self.last_action = copy.deepcopy(self.chosen_action)
+            for unit in self.units:
+                self.a_dict[unit] = [0,0,0]
+
+        for unit in self.units:
+            if self.chosen_action.unit == unit:
+                if self.chosen_action.type == "skill":
+                    self.a_dict[unit][0] = copy.deepcopy(self.a_dict[unit][0]+1)
+                if self.chosen_action.type == "burst":
+                    self.a_dict[unit][1] = copy.deepcopy(self.a_dict[unit][1]+1)
+                if self.chosen_action.type == "combo":
+                    self.a_dict[unit][2] = copy.deepcopy(self.a_dict[unit][2]+1)
 
     ## Uses the action, adds either adds damage if it's instant or adds it to the dot_actions, puts action on cd
     def use_ability(self):
@@ -197,13 +212,57 @@ class Sim:
                 self.turn_time += 0.12
                 self.turn_time += (self.last_action.time_to_swap - self.last_action.minimum_time)
             else:
-                if self.chosen_action == "burst":
+                if self.chosen_action.type == "burst":
                     self.turn_time += (self.last_action.time_to_burst - self.last_action.minimum_time)
-                elif self.chosen_action == "skill":
+                elif self.chosen_action.type == "skill":
                     self.turn_time += (self.last_action.time_to_skill - self.last_action.minimum_time)
-                elif self.chosen_action == "combo":
-                    self.turn_time += (self.last_action.time_to_attack - self.last_action.minimum_time)
-    
+                elif self.chosen_action.type == "combo":
+                    if self.last_action.type != "combo":
+                        self.turn_time += (self.last_action.time_to_attack - self.last_action.minimum_time)
+                    else:
+                        ## Normal String ##
+                        if self.last_action.combo[3][1] == 0 and self.last_action.combo[3][2] == 0:
+                            ## Not full string ##
+                            if self.last_action.combo[3][0] < self.chosen_unit.live_normal_ticks:
+                                self.dash_or_jump()
+                            ## Full string ##
+                            else:
+                                if (self.last_unit.live_normal_at - self.last_action.time_to_cancel) < 0.33:
+                                    self.turn_time += (self.last_unit.live_normal_at - self.last_action.time_to_cancel)
+                                else:
+                                    self.dash_or_jump()
+                        ## Charged Attack or Plunge ##
+                        else:
+                            if (self.last_action.time_to_normal_nc - self.last_action.time_to_cancel) < 0.33:
+                                self.turn_time += (self.last_action.time_to_normal_nc - self.last_action.minimum_time)
+                            else:
+                                self.dash_or_jump()
+
+    ## Check stamina ##
+    def check_stamina(self):
+        if self.stamina_toggle == True:
+            if self.stamina < 50:
+                self.stamina_toggle == False
+                return False
+            else:
+                return True
+        else:
+            if self.stamina >200:
+                self.stamina_toggle == True
+                return True       
+
+    ## Check dash/jump ##
+    def dash_or_jump(self):
+        if self.check_stamina() == True:
+            ## Dash ##
+            self.turn_time += 0.33
+            self.stamina -= 18
+            self.chosen_action.delay(0.33)
+        else:
+            ## Jump ##
+            self.turn_time += 0.52
+            self.chosen_action.delay(0.52)
+
     ## Reduce triggerable CDs by time interval
     def reduce_buff_times_cds(self,time_interval):
         for unit in self.units:
@@ -273,7 +332,7 @@ class Sim:
         self.reduce_buff_times_cds (time_since_last_action)
 
         self.check_buff("pre_hit",damage_action,tick,None)
-        self.check_buff("mid_hit",damage_action,tick,tick)
+        self.check_buff("mid_hit",damage_action,tick,[damage_action,tick])
 
         damage_action_element_unit = damage_action.tick_units[tick]
         multiplier = 1
@@ -294,8 +353,7 @@ class Sim:
         if damage_action.type == "combo":
             self.attack_speed(damage_action,tick)
             self.hitlag(damage_action,tick)
-
-        # print("#"+str(self.action_order) + "Time:" + str(round(self.time_into_turn+self.encounter_duration,2)), damage_action.unit.name, damage_action.tick_damage, str(tick))
+            self.stamina -= damage_action.stamina_cost[tick]
 
     ## Proccesses the energy
     def process_action_energy(self,new):
@@ -365,7 +423,7 @@ class Sim:
         else:
             action = self.chosen_action.type
         print("#" + str(self.action_order) + " Time:" + str(round(self.encounter_duration,2)) + " " + self.chosen_unit.name + stance + " used "
-        + action)
+        + action, "Stamina:", self.stamina)
 
     ## Turns on the sim (lol)
     def turn_on_sim(self):
@@ -381,11 +439,7 @@ class Sim:
             self.pass_turn_time()
             self.check_buff_end()
             self.check_debuff_end()
-            # # print(Main.active_buffs)
-            # for unit in self.units:
-            #     print(unit.current_energy)
-            print(Support1.current_energy)
-        print(round(self.damage /self.encounter_duration),self.encounter_duration)
+        print("Time:"+str(round(self.encounter_duration,2)),"DPS:"+str(round(self.damage /self.encounter_duration,2)))
 
 PyroArtifact = artifact_substats.ArtifactStats("pct_atk", "pyro_dmg", "crit_rate", "Perfect")
 CryoArtifact = artifact_substats.ArtifactStats("pct_atk", "hydro_dmg", "crit_rate", "Perfect")
@@ -393,22 +447,21 @@ ElectroArtifact = artifact_substats.ArtifactStats("pct_atk", "electro_dmg", "cri
 AnemoArtifact = artifact_substats.ArtifactStats("pct_atk", "anemo_dmg", "crit_rate", "Perfect")
 HydroArtifact = artifact_substats.ArtifactStats("pct_atk", "hydro_dmg", "crit_rate", "Perfect")
 PhysicalArtifact = artifact_substats.ArtifactStats("pct_atk", "physical_dmg", "crit_rate", "Perfect")
+GeoArtifact = artifact_substats.ArtifactStats("pct_def", "geo_dmg", "crit_rate", "Perfect")
 
-Main = u.Unit("Klee", 90, "Skyward Harp", "Noblesse", 0, 1, 10, 10, 10, PyroArtifact)
-Support1 = u.Unit("Xingqiu", 90, "Sacrificial Sword", "Noblesse", 0, 1, 10, 10, 10, CryoArtifact)
-Support2 = u.Unit("Bennett", 90, "Prototype Archaic", "Noblesse", 0, 1, 10, 10, 10, PyroArtifact)
-Support3 = u.Unit("Lisa", 90, "Skyward Atlas", "Noblesse", 0, 1, 10, 10, 10, ElectroArtifact)
+#Unit class arguments are (Character name, Character level, Weapon, Artifact Set, Constellation, Weapon Rank, Normal Level, Skill Level, Burst Level)
+Main = u.Unit("Zhongli", 90, "Wolf's Gravestone", "Gladiator's Finale", 6, 1, 10, 10, 10, PhysicalArtifact)
+Support1 = u.Unit("Barbara", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, CryoArtifact)
+Support2 = u.Unit("Barbara", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, PyroArtifact)
+Support3 = u.Unit("Barbara", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, PhysicalArtifact)
 Monster = enemy.Enemy("Hilichurls", 90)
 
-# Main.current_energy = 0
-# Support1.current_energy = 0
-# Support2.current_energy = 0
-# Support3.current_energy = 0
-Test = Sim(Main,Support1,Support2,Support3,Monster,90)
+Test = Sim(Main,Support1,Support2,Support3,Monster,50)
 Test.turn_on_sim()
-print(Support1.recharge)
-# print(Main.skill_charges)
-# print(Main.current_energy)
 
-# for key,value in Combos()._list(Support3).items():
+for key,value in Test.a_dict.items():
+    print(key.name,"Skills used:"+str(value[0]),"Bursts used:"+str(value[1]),"Combos used:"+str(value[2]))
+print(Monster.active_debuffs)
+
+# for key,value in Combos()._list(Main).items():
 #     print(key,value)

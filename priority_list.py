@@ -9,8 +9,8 @@ class PriorityList:
     def prioritise(self,sim,action_list):
         # Using bursts after skills ##
         if sim.last_action != None:
-            if any((action.type == "burst" and action.unit.name == sim.last_action.unit.name) for action in action_list):
-                return max([x for x in action_list if x.type == "burst" and x.unit.name == sim.last_action.unit.name])
+            if any((action.type == "burst" and (action.unit.name == sim.last_action.unit.name) and (sim.last_action.type == "skill")) for action in action_list):
+                return [x for x in action_list if x.type == "burst" and x.unit.name == sim.last_action.unit.name][0]
 
         # Greedy DPS units ##
         for unit in sim.units:
@@ -22,6 +22,9 @@ class PriorityList:
                 print("KLEE Q FIELD")
                 return max([x for x in action_list if (x.unit.name == "Klee" and (x.type == "combo" or x.type == "skill"))], key=methodcaller('calculate_dps_snapshot',sim))
 
+        for unit in sim.units:
+            if unit.name == "Razor" and "Razor_Q_2" in unit.active_buffs:
+                return max([x for x in action_list if (x.unit.name == "Razor" and x.type == "combo")], key=methodcaller('calculate_dps_snapshot',sim))
 
         # Picking up particles ##
         a_dict = dict()
@@ -53,7 +56,10 @@ class PriorityList:
         for action in action_list:
             if action.type == "burst" and action.unit.name == "Xiao":
                 return action
-        
+
+        # print("Last priority")
+        # action = max(action_list, key=methodcaller('calculate_dps_snapshot',sim))
+        # print(action.calculate_dps_snapshot(sim),action.unit.name,action.type,action.unit.active_buffs,action.tick_damage,action.unit.live_charged_crit_rate)
         return max(action_list, key=methodcaller('calculate_dps_snapshot',sim))
                 
             

@@ -57,11 +57,11 @@ class Unit():
 
         for action_type in {"normal","charged","skill","burst","plunge"}:
             for x in {"_type","_ticks","_tick_times","_tick_damage","_tick_units","element","_tick_hitlag",
-                    "_cancel","_swap","_attack","_skill","_burst","_crit_rate",
+                    "_cancel","_swap","_attack","_skill","_burst","_crit_rate","_cond_dmg",
                     "_cd","_cdr","_particles","_charges","_energy_cost","_stamina_cost","_stam_save","_ac","_at","_cond_crit_rate"}:
                 setattr(self,action_type+x,getattr(characterdict[name],action_type+x,0))
 
-        for reaction in {"overload","superconduct","electro_charged","swirl","vaporise","melt"}:
+        for reaction in {"overload","superconduct","electro_charged","swirl","vaporise","melt","hydro_swirl"}:
             setattr(self,reaction + "_dmg", getattr(artifactdict,reaction+"_dmg",0))
 
         self.static_buffs = {}
@@ -119,12 +119,12 @@ class Unit():
             setattr(self, stat, copy.deepcopy(getattr(self,stat.removeprefix("live_"))))
 
         # call method to reactivate buff
-        for _, buff in self.active_buffs.items():
-            if buff.weapon != "":
+        for _, buff in copy.deepcopy(self.active_buffs).items():
+            if buff.weapon != [""]:
                 getattr(a.ActiveBuff(),buff.method)(self,sim,"extra")
-            if buff.character != "":
+            elif buff.character != [""]:
                 getattr(a.ActiveBuff(),buff.method)(self,sim,"extra")
-            if buff.artifact != "":
+            elif buff.artifact != [""]:
                 getattr(a.ActiveBuff(),buff.method)(self,sim,"extra")
 
 def main():
@@ -138,7 +138,7 @@ def main():
     print(Main.skill_cancel)
     print(Main.live_plunge_type)
     print(Main.combo_options)
-    
+    print(buffdict["Ganyu_C4"].weapon==[""])
 
 if __name__ == '__main__':
     main()

@@ -101,7 +101,7 @@ def read_character_data():
 
             newname.charged_type = row['charged_type']
             newname.charged_ticks = str_to_int(row['charged_ticks'])
-            newname.charged_stamina_cost = [float(item) for item in row['charged_tick_times'].split(',')]
+            newname.charged_stamina_cost = [float(item) for item in row['charged_stamina_cost'].split(',')]
             newname.charged_tick_times = [float(item) for item in row['charged_tick_times'].split(',')]
             newname.charged_tick_damage = [float(item) for item in row['charged_tick_damage'].split(',')]
             newname.charged_tick_units = [float(item) for item in row['charged_tick_units'].split(',')]
@@ -162,8 +162,8 @@ def read_weapon_data():
             newweapon.physical_dmg = pctstr_to_float(row['physical_dmg'])
             newweapon.ele_m = str_to_float(row['ele_m'])
             newweapon.recharge =  pctstr_to_float(row['recharge'])
-            newweapon.hp_pct =  pctstr_to_float(row['pct_hp'])
-            newweapon.def_pct =  pctstr_to_float(row['pct_def'])
+            newweapon.pct_hp =  pctstr_to_float(row['pct_hp'])
+            newweapon.pct_def =  pctstr_to_float(row['pct_def'])
     return weapon_dict
 
 class Enemy:

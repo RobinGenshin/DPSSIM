@@ -12,12 +12,14 @@ class StaticBuff:
     # Amber
 
     def amber_a2(self,unit_obj):
-        unit_obj.skill_crit_rate += 0.1
+        unit_obj.burst_crit_rate += 0.1
 
     def amber_c1(self,unit_obj):
+        unit_obj.charged_ticks = 2
         unit_obj.charged_tick_times.append(unit_obj.charged_tick_times[0]+0.1)
         unit_obj.charged_tick_damage.append(1.24*0.2)
         unit_obj.charged_tick_units.append(1)
+        unit_obj.charged_tick_hitlag = [0,0]
 
     def amber_c4(self,unit_obj):
         unit_obj.skill_charges += 1
@@ -36,9 +38,16 @@ class StaticBuff:
     ## Chongyun ##
 
     def chongyun_c6(self,unit_obj):
-        pass
+        unit_obj.burst_ticks = 4
+        unit_obj.burst_tick_times.append(unit_obj.burst_tick_times[2]+0.05)
+        unit_obj.burst_tick_damage.append(1.424)
+        unit_obj.burst_tick_units.append(1)
+        unit_obj.burst_dmg += 0.075
 
     ## Diluc ##
+
+    def diluc_a2(self,unit_obj):
+        unit_obj.charged_stam_save += 0.3
 
     def diluc_c1(self,unit_obj):
         unit_obj.all_dmg += 0.075
@@ -81,7 +90,7 @@ class StaticBuff:
     ## Mona ##
 
     def mona_a4(self,unit_obj):
-        unit_obj.hydro_dmg += unit_obj.live_recharge * 0.2
+        unit_obj.hydro_dmg += unit_obj.recharge * 0.2
 
     ## Noelle ##
 
@@ -106,7 +115,7 @@ class StaticBuff:
         unit_obj.skill_charges += 1
 
     def sucrose_c2(self,unit_obj):
-        unit_obj.burst_hits += 1
+        unit_obj.burst_ticks += 1
         unit_obj.burst_tick_times.append(unit_obj.burst_tick_times[2]+2)
         unit_obj.burst_tick_damage.append(1.48)
         unit_obj.burst_tick_units.append(1)
@@ -123,14 +132,26 @@ class StaticBuff:
     def tartaglia_c4(self,unit_obj):
         pass
 
+    ## Traveler (Anemo) ##
+    
+    def traveler_anemo_c2(self,unit_obj):
+        unit_obj.recharge += 0.16
+
+    ## Traveler (Anemo) ##
+    
+    def traveler_geo_a2(self,unit_obj):
+        pass
+
     ## Venti ##
 
     def venti_c1(self,unit_obj):
         unit_obj.charged_ticks += 2
-        unit_obj.charged_tick_times.append(unit_obj.burst_tick_times[0]+0.1)
-        unit_obj.charged_tick_times.append(unit_obj.burst_tick_times[0]+0.15)
-        unit_obj.charged_tick_damage.append(124/3,124/3)
-        unit_obj.charged_tick_units.append(0,0)
+        unit_obj.charged_tick_times.extend([unit_obj.burst_tick_times[0]+0.1,unit_obj.burst_tick_times[0]+0.1])
+        unit_obj.charged_tick_times.extend([unit_obj.burst_tick_times[0]+0.15,unit_obj.burst_tick_times[0]+0.15])
+        unit_obj.charged_tick_damage.extend([124/300,124/300])
+        unit_obj.charged_tick_units.extend([0,0])
+        unit_obj.charged_tick_hitlag.extend([0,0])
+        unit_obj.charged_stamina_cost.extend([0,0])
 
     ## Xiangling ##
 

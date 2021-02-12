@@ -10,6 +10,7 @@ import copy
 class Action:
     def __init__ (self,unit,atype):
 
+        self.name = unit.name + " " + atype
         self.action_type = "damage"
         self.unit = unit
         self.ticks = getattr(self.unit,"live_" + atype + "_ticks")
@@ -29,7 +30,7 @@ class Action:
 
         self.infused = ""
         self.initial_time = max(self.tick_times)
-        self.time_remaining = self.initial_time
+        self.time_remaining = max(self.tick_times)
 
         self.snapshot = True
         self.snapshot_tot_atk = deepcopy(self.unit.base_atk * ( 1 + self.unit.live_pct_atk) + self.unit.flat_atk)
@@ -38,13 +39,13 @@ class Action:
         self.snapshot_dmg = deepcopy(1 + self.unit.live_all_dmg + getattr(self.unit, "live_" + atype + "_dmg") + 
                                     getattr(self.unit, "live_" + self.unit.element.lower() + "_dmg"))
         
-        self.times = set()
         self.time_to_cancel = getattr(self.unit,atype+"_cancel")
         self.time_to_attack = getattr(self.unit,atype+"_attack")
         self.time_to_swap = getattr(self.unit,atype+"_swap")
-        self.times.update([self.time_to_cancel,self.time_to_attack,self.time_to_swap])
+        self.times = {self.time_to_cancel,self.time_to_attack,self.time_to_swap}
         if self.type == "skill":
             self.time_to_burst = getattr(self.unit,atype+"_burst")
+            self.time_to_skill = getattr(self.unit,atype+"_burst")
             self.times.add(self.time_to_burst)
         if self.type == "burst":
             self.time_to_skill = getattr(self.unit,atype+"_skill")
@@ -52,7 +53,7 @@ class Action:
         self.minimum_time = min(self.times)
 
         self.loop_proc = True
-        
+        self.proc_type = "No"
 
     def available(self,sim):
         if self.type == "skill":
@@ -77,15 +78,20 @@ class Action:
             return True
 
     def update_time(self):
-        self.initial_time = max(self.tick_times)
-        self.time_remaining = self.initial_time
-        self.energy_times = [x+2 for x in self.tick_times]
+        if self.action_type == "damage":
+            self.initial_time = max(self.tick_times)
+            self.time_remaining = max(self.tick_times)
+        elif self.action_type == "energy":
+            self.energy_times = [x+2 for x in self.tick_times]
+            self.initial_time = max(self.energy_times)
+            self.time_remaining = max(self.energy_times)
+
 
     def calculate_damage_snapshot(self,sim):
         total_damage = 0
         for i in range(self.ticks):
             total_damage += self.calculate_tick_damage(i,sim)
-            return total_damage
+        return total_damage
 
     def calculate_dps_snapshot(self,sim):
         return self.calculate_damage_snapshot(sim) / self.time_to_cancel
@@ -176,6 +182,7 @@ class Combos:
 
 class ComboAction:
     def __init__(self,unit_obj,combo):
+        self.name = str(unit_obj.name) + " " + str(combo[4])
         self.action_type = "damage"
         self.unit = unit_obj
         self.combo = combo
@@ -198,9 +205,9 @@ class ComboAction:
         self.tick_times = self.unit.live_normal_tick_times[:combo[3][0]]
         if self.tick_times == []:
             self.tick_times = [0]
-        self.tick_times.extend([ x + max(copy.deepcopy(self.tick_times)) for x in self.unit.charged_tick_times[:combo[3][1]]])
+        self.tick_times.extend([ x + max(self.tick_times) for x in self.unit.charged_tick_times[:combo[3][1]]])
         if self.combo[3][2]>0:
-            self.tick_times.extend([ x + max(copy.deepcopy(self.tick_times)) for x in self.unit.plunge_tick_times[:combo[3][2]]])
+            self.tick_times.extend([ x + max(self.tick_times) for x in self.unit.plunge_tick_times[:combo[3][2]]])
 
         self.tick_damage = self.unit.live_normal_tick_damage[:combo[3][0]]
         self.tick_damage.extend(x for x in self.unit.live_charged_tick_damage[:combo[3][1]])
@@ -241,6 +248,7 @@ class ComboAction:
             self.time_to_cancel = max(self.tick_times)
 
         self.times = [self.time_to_cancel, self.time_to_normal_nc, self.time_to_skill, self.time_to_burst, self.time_to_swap]
+
         if combo[3][2] > 0:
             if combo[3][0] == 0:
                 self.time_to_normal_nc = self.unit.live_plunge_attack
@@ -249,15 +257,22 @@ class ComboAction:
                 self.time_to_swap = self.unit.live_plunge_swap
                 self.time_to_cancel = self.unit.live_plunge_cancel
             else:
-                for time in self.times:
-                    time -= (self.unit.live_charged_attack - max(self.unit.live_charged_tick_times))
-                self.time_to_normal_nc += self.unit.live_plunge_attack
-                self.time_to_skill += self.unit.live_plunge_skill
-                self.time_to_burst += self.unit.live_plunge_burst
-                self.time_to_swap += self.unit.live_plunge_swap
-                self.time_to_cancel += self.unit.live_plunge_cancel
-
-        atk_speed_0 = copy.deepcopy(self.tick_times[0]*(1-(1/(1+getattr(self.unit,"live_" + self.tick_types[0]+"_speed")))))
+                if combo[3][1] > 0:
+                    for time in self.times:
+                        time -= (self.unit.live_charged_attack - max(self.unit.live_charged_tick_times))
+                    self.time_to_normal_nc += self.unit.live_plunge_attack
+                    self.time_to_skill += self.unit.live_plunge_skill
+                    self.time_to_burst += self.unit.live_plunge_burst
+                    self.time_to_swap += self.unit.live_plunge_swap
+                    self.time_to_cancel += self.unit.live_plunge_cancel
+                else:
+                    self.time_to_normal_nc = self.unit.live_plunge_attack
+                    self.time_to_skill = self.unit.live_plunge_skill
+                    self.time_to_burst = self.unit.live_plunge_burst
+                    self.time_to_swap = self.unit.live_plunge_swap
+                    self.time_to_cancel = self.unit.live_plunge_cancel
+            
+        atk_speed_0 = self.tick_times[0]*(1-(1/(1+getattr(self.unit,"live_" + self.tick_types[0]+"_speed"))))
         for time in self.tick_times:
             time -= atk_speed_0
 
@@ -271,25 +286,36 @@ class ComboAction:
         self.total_stamina = sum(x for x in self.stamina_cost)
 
         self.initial_time = max(self.tick_times)
-        self.time_remaining = self.initial_time
+        self.time_remaining = max(self.tick_times)
+        self.proc_type = "No"
+
+    def update_time(self):
+        self.initial_time = max(self.tick_times)
+        self.time_remaining = max(self.tick_times)
 
     def available(self,sim):
         if self.combo[3][1] > 0:
-            if sim.stamina >= self.total_stamina:
+            if sim.stamina > self.total_stamina:
                 return True
             else:
                 return False
         else:
             return True
 
+    def delay(self,delay):
+        for time in self.times:
+            time += delay
+        for hit_time in self.tick_times:
+            hit_time += delay
+
     def calculate_tick_damage(self,tick,sim):
         tot_atk = self.unit.live_base_atk * ( 1 + self.unit.live_pct_atk ) + self.unit.live_flat_atk
         attack_multiplier = self.tick_damage[tick]
         defence = ( 100 + self.unit.level ) / (( 100 + self.unit.level ) + (sim.enemy.live_defence))
-        tot_dmg = self.unit.live_all_dmg + self.unit.live_cond_dmg + getattr(self.unit,"live_"+self.tick_types[tick]+"_dmg")
+        tot_dmg = 1 + self.unit.live_all_dmg + self.unit.live_cond_dmg + getattr(self.unit,"live_"+self.tick_types[tick]+"_dmg")
         tot_dmg += getattr(self.unit,"live_"+self.element[tick].lower()+"_dmg")
         scaling = self.scaling[tick]
-        tot_crit_rate = self.unit.live_crit_rate + self.unit.live_cond_crit_rate + getattr(self.unit,"live_"+self.tick_types[tick]+"_cond_crit_rate")
+        tot_crit_rate = self.unit.live_crit_rate + self.unit.live_cond_crit_rate + getattr(self.unit,"live_"+self.tick_types[tick]+"_crit_rate") + getattr(self.unit,"live_"+self.tick_types[tick]+"_cond_crit_rate")
         tot_crit_mult = 1 + (tot_crit_rate * self.unit.live_crit_dmg)
         res = getattr(sim.enemy, "live_" + self.element[tick].lower() + "_res")
         return tot_atk * tot_crit_mult * tot_dmg * defence * (1-res) * attack_multiplier * scaling
@@ -302,6 +328,8 @@ class ComboAction:
 
 class WeaponAction:
     def __init__(self,unit_obj,ticks):
+
+        self.name = "weapon"
         self.action_type = "damage"
         self.unit = unit_obj
         self.ticks = ticks
@@ -337,10 +365,13 @@ class WeaponAction:
 
 class AlbedoTrigger:
     def __init__(self,unit_obj,enemy,sim):
+
+        self.name = "Transient Blossom"
         self.action_type = "damage"
         self.unit = unit_obj
         self.type = "skill"
         self.element = "Geo"
+        self.tick_types = ["skill"]
 
         self.ticks = 1
         self.tick_times = [0.1]
@@ -357,16 +388,20 @@ class AlbedoTrigger:
         self.snapshot = False
 
     def update_time(self):
-        self.initial_time = max(self.tick_times)
-        self.time_remaining = self.initial_time
-        self.energy_times = [x+2 for x in self.tick_times]
+        if self.action_type == "damage":
+            self.initial_time = max(self.tick_times)
+            self.time_remaining = max(self.tick_times)
+        elif self.action_type == "energy":
+            self.energy_times = [x+2 for x in self.tick_times]
+            self.initial_time = max(self.energy_times)
+            self.time_remaining = max(self.energy_times)
 
     def calculate_tick_damage(self,tick,sim):
         attack_multiplier = self.tick_damage[tick]
-        tot_def = self.unit.base_def * ( 1 + self.unit.live_def_pct ) + self.unit.live_flat_def
+        tot_def = self.unit.base_def * ( 1 + self.unit.live_pct_def ) + self.unit.live_flat_def
         tot_crit_rate = self.unit.live_crit_rate + self.unit.live_cond_crit_rate
         tot_crit_mult = 1 + (tot_crit_rate * self.unit.live_crit_dmg)
-        tot_dmg = 1 + self.unit.live_all_dmg + self.unit.live_geo + self.unit.live_skill_dmg + self.unit.live_cond_dmg
+        tot_dmg = 1 + self.unit.live_all_dmg + self.unit.live_geo_dmg + self.unit.live_skill_dmg + self.unit.live_cond_dmg
         res = getattr(sim.enemy, "live_geo_res")
         defence = ( 100 + self.unit.level ) / (( 100 + self.unit.level ) + (sim.enemy.live_defence))
         damage = attack_multiplier * tot_def * tot_crit_mult * tot_dmg * ( 1 - res ) * defence * self.scaling
@@ -374,15 +409,18 @@ class AlbedoTrigger:
 
 class TartagliaC4:
     def __init__(self,unit_obj,enemy,sim):
+
+        self.name = "Tartaglia C4"
         self.action_type = "damage"
         self.unit = unit_obj
         self.type = ""
-        self.element = "Hydro"
+        self.element = ["Hydro"]*5
 
-        self.ticks = 4
+        self.ticks = 5
         self.tick_times = [0.05, 4.05, 8.05, 12.05, 16.05]
         self.energy_times = [2.05, 6.05, 10.05, 14.05, 18.05]
         self.tick_damages = [0.602, 0.602, 0.602, 0.602, 0.602]
+        self.tick_types = ["normal"]*5
         self.tick_units = [1, 1, 1, 1, 1]
         self.tick_used = ["no", "no", "no", "no", "no"]
         self.snapshot = True
@@ -392,22 +430,27 @@ class TartagliaC4:
 
         self.initial_time = 0
         self.time_remaining = 0
-        self.snapshot_totatk = deepcopy(self.unit.base_atk * ( 1 + self.unit.live_atk_pct) + self.unit.flat_atk)
+        self.snapshot_totatk = deepcopy(self.unit.base_atk * ( 1 + self.unit.live_pct_atk) + self.unit.flat_atk)
         self.snapshot_crit_rate = deepcopy(self.unit.live_crit_rate)
         self.snapshot_crit_dmg = deepcopy(self.unit.live_crit_dmg)
-        self.snapshot_dmg = 1 + deepcopy(self.unit.live_all_dmg) + deepcopy(self.unit.live_hydro) + deepcopy(self.unit.live_burst_dmg)
+        self.snapshot_dmg = 1 + deepcopy(self.unit.live_all_dmg) + deepcopy(self.unit.live_hydro_dmg) + deepcopy(self.unit.live_burst_dmg)
 
     def update_time(self):
-        self.initial_time = max(self.tick_times)
-        self.time_remaining = self.initial_time
-        self.energy_times = [x+2 for x in self.tick_times]
+        if self.action_type == "damage":
+            self.initial_time = max(self.tick_times)
+            self.time_remaining = max(self.tick_times)
+        elif self.action_type == "energy":
+            self.energy_times = [x+2 for x in self.tick_times]
+            self.initial_time = max(self.energy_times)
+            self.time_remaining = max(self.energy_times)
+
 
     def calculate_tick_damage(self,tick,sim):
-        res = getattr(sim.enemy, "live_" + self.element.lower() + "_res")
+        res = getattr(sim.enemy, "live_" + self.element[tick].lower() + "_res")
         defence = ( 100 + self.unit.level ) / (( 100 + self.unit.level ) + (sim.enemy.live_defence))
         tot_crit_rate = self.snapshot_crit_rate + self.unit.live_cond_crit_rate
         tot_crit_mult = 1 + (tot_crit_rate * self.snapshot_crit_dmg)
-        res = getattr(sim.enemy, "live_" + self.element.lower() + "_res")
+        res = getattr(sim.enemy, "live_" + self.element[tick].lower() + "_res")
         
         if self.unit.stance == "melee":
             attack_multiplier = 0.602
@@ -440,6 +483,8 @@ class TartagliaC4:
 
 class XinyanQ:
     def __init__(self,unit_obj,enemy,sim):
+
+        self.name = "Xinyan burst (physical)"
         self.action_type = "damage"
         self.unit = unit_obj
         self.type = "burst"
@@ -459,13 +504,13 @@ class XinyanQ:
         self.time_remaining = 2
 
     def update_time(self):
-        self.initial_time = max(self.tick_times)
-        self.time_remaining = self.initial_time
-        self.energy_times = [x+2 for x in self.tick_times]
+        if self.action_type == "damage":
+            self.initial_time = max(self.tick_times)
+            self.time_remaining = max(self.tick_times)
 
     def calculate_tick_damage(self,tick,sim):
         attack_multiplier = self.tick_damage[tick]
-        tot_atk = self.unit.base_atk * ( 1 + self.unit.live_atk_pct ) + self.unit.live_flat_atk
+        tot_atk = self.unit.base_atk * ( 1 + self.unit.live_pct_atk ) + self.unit.live_flat_atk
         if self.unit.constellation >= 2:
             crit_rate = 1
         else:
@@ -479,6 +524,8 @@ class XinyanQ:
 
 class ZhongliA4:
     def __init__(self,unit_obj,atype,enemy,sim):
+
+        self.name = unit_obj + atype + "A4"
         self.action_type = "damage"
         self.unit = unit_obj
         self.type = atype
@@ -501,7 +548,7 @@ class ZhongliA4:
         self.scaling = 1
 
         self.initial_time = max(self.tick_damage)
-        self.time_remaining = self.initial_time
+        self.time_remaining = max(self.tick_damage)
 
     def calculate_tick_damage(self,tick,sim):
         attack_multiplier = self.tick_damage[tick]

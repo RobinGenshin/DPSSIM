@@ -11,6 +11,7 @@ from action import AlbedoTrigger
 from action import TartagliaC4
 from action import XinyanQ
 from action import ZhongliA4
+from action import ComboAction
 from scaling import ratio_type
 import copy
 import math
@@ -19,7 +20,7 @@ import math
 ## Explanation ##
 ## Share-type buffs are given to all units when triggered 
 ## Some share type buffs need a specific trigger and are linked to a trigger buff 
-## i.e. Wolf's Gravestone has a trigger buff which gives everyone an active buff for atk_pct
+## i.e. Wolf's Gravestone has a trigger buff which gives everyone an active buff for pct_atk
 ## Active buffs are checked during the sim at different times depending on their trigger
 ## Static buffs are simply applied over a duration to respective units
 
@@ -52,6 +53,7 @@ class ActiveBuff:
                 energy_copy.action_type = "energy"
                 sim.floating_actions.add(action)
                 sim.floating_actions.add(energy_copy)
+                # print("Triggered Transient Blossom")
 
         for unit in sim.units:
             unit.triggerable_buffs["Albedo_E_Trigger"].live_cd = 2
@@ -59,13 +61,13 @@ class ActiveBuff:
         ## Albedo C1 ##
         for unit in sim.units:
             if unit.name == "Albedo" and unit.constellation >= 1:
-                unit.live_burst_energy_cost = max(0, unit.live_burst_energy + 1.2)
+                unit.current_energy += 1.2
 
         ## Albedo C2 Stacks ##
         for unit in sim.units:
             if unit.name == "Albedo":
                 if hasattr(unit, "c2_stacks"):
-                    unit.c2_stacks = max(7,unit.c2_stacks+1)
+                    unit.c2_stacks = min(4,unit.c2_stacks+1)
                 else:
                     unit.c2_stacks = 1
 
@@ -78,19 +80,22 @@ class ActiveBuff:
         if hasattr(unit_obj, "c2_stacks"):
             d = unit_obj.c2_stacks
         else:
-            unit_obj.c2_stacks = 0
-            d = unit_obj.c2_stacks
+            d = 0
 
         action = AlbedoTrigger(unit_obj, sim.enemy, sim)
+        action.name = "Albedo C2"
         action.tick_times = copy.deepcopy(chardict["Albedo"].burst_tick_times)
         action.tick_damage = copy.deepcopy(chardict["Albedo"].burst_tick_damage)
         action.tick_units = copy.deepcopy(chardict["Albedo"].burst_tick_units)
         action.scaling = 1
 
+        action.ticks = 8
+        action.tick_types = ["burst"]*8
         action.tick_times = [x+0.1 for x in action.tick_times]
-        action.damage = [0.3*d for x in action.tick_times]
+        action.tick_damage = [0.3*d for x in action.tick_damage]
         action.tick_units = [0 for x in action.tick_units]
-        action.energy_times = [x+2 for x in action.tick_times]
+        action.tick_used = ["no"]*8
+        action.update_time()
 
         sim.floating_actions.add(action)
 
@@ -118,19 +123,18 @@ class ActiveBuff:
                 if action.time_remaining > sim.time_into_turn:
                     flat_dmg = Action(unit_obj,"skill")
 
-                    flat_dmg.tick_times = [sim.time_into_turn+0.05]
+                    flat_dmg.tick_times = [sim.time_into_turn]
                     flat_dmg.tick_damage = [2]
                     flat_dmg.tick_units = [0]
                     flat_dmg.scaling = [1]
 
                     flat_dmg.update_time()
                     sim.floating_actions.add(flat_dmg)
+                    unit_obj.triggerable_buffs["Amber_C2"].live_cd = 5
 
                     print("BOOM!")
-                    for action in copy.deepcopy(sim.floating_actions):
-                        if action.unit.name == unit_obj.name and action.type == "skill":
-                            action.tick_times = [sim.time_into_turn + 0.1]
-                            action.energy_times = [sim.time_into_turn + 2.1]
+                    action.tick_times = [sim.time_into_turn]
+                    action.energy_times = [sim.time_into_turn+2]
         
     ## Amber C6 ## Duration ## Postcast ## Burst
     def amber_c6(self,unit_obj,sim,extra):
@@ -175,12 +179,12 @@ class ActiveBuff:
 
     ## Barbara C1 ## Instant ## Any
     def barbara_c1(self,unit_obj,sim,extra):
-        unit_obj.live_burst_energy_cost += 1
+        unit_obj.current_energy += 1
         unit_obj.triggerable_buffs["Barbara_C1"].live_cd = 10
 
     ## Barbara C4 ## Instant ## Onhit ## Charged
     def barbara_c4(self,unit_obj,sim,extra):
-        unit_obj.live_burst_energy_cost += 1
+        unit_obj.current_energy += 1
 
 
     ############
@@ -199,6 +203,7 @@ class ActiveBuff:
             if unit.name == "Beidou":
                 action = Action(unit,"burst")
 
+                action.name = "Beidou Q Proc"
                 action.ticks = 1
                 action.tick_times = [sim.time_into_turn+0.1]
                 action.tick_damage = [0.96]
@@ -217,16 +222,24 @@ class ActiveBuff:
         unit_obj.live_charged_speed += 0.15
 
     ## Beidou C4 ## Duration ## Midhit ## Normal
-    def beidou_c4(self,unit_obj,sim,action,tick):
-        convertedpct = Action(unit_obj,"normal")
+    def beidou_c4(self,unit_obj,sim,action):
+        if action[0].proc_type == "No":
+            convertedpct = ComboAction(unit_obj,action[0].combo)
+            convertedpct.ticks = 1
+            convertedpct.name = "Beidou C4"
+            convertedpct.element = ["Electro"]
+            convertedpct.scaling = [1]
+            convertedpct.tick_types = [convertedpct.tick_types[action[1]]]
+            convertedpct.tick_times = [sim.time_into_turn]
+            convertedpct.tick_damage = [0.2]
+            convertedpct.tick_units = [0]
+            convertedpct.tick_used = ["no"]
+            convertedpct.tick_units = [1]
+            convertedpct.proc_type = "Yes"
+            convertedpct.update_time()
 
-        convertedpct.ticks = 1
-        convertedpct.tick_times = [sim.time_into_turn + 0.1]
-        convertedpct.tick_damage = [convertedpct.tick_damage[tick]]*0.2
-        convertedpct.tick_units = [0]
-
-        convertedpct.element = "Electro"
-        sim.floating_actions.add(convertedpct)
+            sim.floating_actions.add(convertedpct)
+            print("Proced Beidou C4")
 
     #############
     ## Bennett ##
@@ -273,6 +286,11 @@ class ActiveBuff:
     ## Chongyun ##
     ##############
 
+    ## Chongyun E ##
+    def chongyun_e(self,unit_obj,sim,extra):
+        unit_obj.live_normal_type = "Cryo"
+        unit_obj.live_charged_type = "Cryo"
+
     ## Chongyun A2 ## Duration ## Postcast ## Skill
     def chongyun_a2(self,unit_obj,sim,extra):
         unit_obj.live_normal_speed += 0.08
@@ -304,6 +322,61 @@ class ActiveBuff:
     ## Diluc ##
     ###########
 
+    ## Diluc E ## Duration ## Precast
+    def diluc_e(self,unit_obj,sim,extra):
+
+        if hasattr(unit_obj,"e_stacks") == False:
+            unit_obj.e_stacks = 0
+
+        if unit_obj.e_stacks == 0:
+            unit_obj.start_time = sim.encounter_duration
+            unit_obj.e_stacks = 1
+            unit_obj.current_skill_cd = 0
+
+        if "Diluc_E_2" in unit_obj.triggerable_buffs:
+            unit_obj.live_tick_times = [0.367]
+            unit_obj.live_skill_tick_damage = [0.976]
+            unit_obj.live_skill_cancel = [0.5]
+            unit_obj.live_skill_burst = [1.2]
+            unit_obj.live_skill_swap = [0.617]
+            unit_obj.live_skill_attack = [0.633]
+            unit_obj.current_skill_cd = 0
+
+        elif "Diluc_E_3" in unit_obj.triggerable_buffs:
+            unit_obj.live_tick_times = [0.383]
+            unit_obj.live_skill_tick_damage = [1.288]
+            unit_obj.live_skill_cancel = [0.7]
+            unit_obj.live_skill_burst = [1.067]
+            unit_obj.live_skill_swap = [1.100]
+            unit_obj.live_skill_attack = [0.833]
+            unit_obj.current_skill_cd = 0
+        else:
+            if unit_obj.e_stacks != 1:
+                unit_obj.current_skill_cd = unit_obj.live_skill_cd - (sim.encounter_duration - unit_obj.start_time)
+                unit_obj.active_buffs.pop("Diluc_E")
+
+    def diluc_e_1(self,unit_obj,sim,extra):
+        if unit_obj.e_stacks == 1:
+            unit_obj.triggerable_buffs["Diluc_E_2"] = copy.deepcopy(buffdict["Diluc_E_2"])
+            unit_obj.triggerable_buffs["Diluc_E_2"].time_remaining = 3
+            unit_obj.triggerable_buffs["Diluc_E_1"].live_cd = unit_obj.live_skill_cd
+            unit_obj.e_stacks = 2
+
+    def diluc_e_2(self,unit_obj,sim,extra):
+        if unit_obj.e_stacks == 2:
+            unit_obj.triggerable_buffs["Diluc_E_3"] = copy.deepcopy(buffdict["Diluc_E_3"])
+            unit_obj.triggerable_buffs["Diluc_E_3"].time_remaining = 3
+            unit_obj.triggerable_buffs.pop("Diluc_E_2")
+            unit_obj.e_stacks = 3
+
+    def diluc_e_3(self,unit_obj,sim,extra):
+        if unit_obj.e_stacks == 3:
+            unit_obj.e_stacks = 0
+            unit_obj.triggerable_buffs.pop("Diluc_E_3")
+            unit_obj.current_skill_cd = unit_obj.live_skill_cd - (sim.encounter_duration - unit_obj.start_time)
+            unit_obj.active_buffs.pop("Diluc_E")
+
+
     ## Diluc Q ## Duration ## Postcast ## Burst
     def diluc_q(self,unit_obj,sim,extra):
         unit_obj.live_normal_type = "Pyro"
@@ -327,10 +400,26 @@ class ActiveBuff:
     def diluc_c4_3(self,unit_obj,sim,extra):
         unit_obj.live_skill_dmg += 0.4
 
-    ## Diluc C6 ## Duration ## Onhit #
-    def diluc_c6(self,unit_obj,sim,extra):
-        unit_obj.live_normal_speed += 0.3
-        unit_obj.live_normal_dmg += 0.3
+    ## Diluc C6 ## Duration ## Postcast # Burst
+    def diluc_c6_1(self,unit_obj,sim,extra):
+        unit_obj.triggerable_buffs["Diluc_C6_2"] = copy.deepcopy(buffdict["Diluc_C6_2"])
+        unit_obj.triggerable_buffs["Diluc_C6_2"].time_remaining = 6
+
+        if hasattr(unit_obj,"c6_stacks") == False:
+            unit_obj.stacks = 2
+        else:
+            unit_obj.c6_stacks = 2
+
+        if unit_obj.stacks > 0:
+            unit_obj.live_normal_speed += 0.3
+            unit_obj.live_normal_dmg += 0.3
+
+    def diluc_c6_2(self,unit_obj,sim,extra):
+        unit_obj.c6_stacks -= 1
+        if unit_obj.c6_stacks <= 0:
+            unit_obj.active_buffs.pop("Diluc_C6_1")
+            unit_obj.triggerable_buffs.pop("Diluc_C6_2")
+
 
     ###########
     ## Diona ##
@@ -342,7 +431,7 @@ class ActiveBuff:
 
     ## Diona C1 ## Instant ## Postcast ## Burst
     def diona_c1(self,unit_obj,sim,extra):
-        unit_obj.live_burst_energy += 15
+        unit_obj.current_energy += 15
 
     ## Diona C4 ## Duration ## Postcast ## Burst
     def diona_c4(self,unit_obj,sim,extra):
@@ -383,18 +472,25 @@ class ActiveBuff:
         sim.floating_actions.add(energy_copy)
 
     ## Fischl C1 ## Instant ## Onhit ## Normal
-    def fischl_c1(self,unit_obj,sim,extra):
+    def fischl_c1(self,unit_obj,sim,action):
         if any((x.unit.name == "Fischl" and x.type == "skill" and x.action_type == "damage") for x in sim.floating_actions) == False:
-            c1_proc = Action(unit_obj,"normal")
+            if action[0].proc_type == "No":
+                convertedpct = ComboAction(unit_obj,action[0].combo)
+                convertedpct.ticks = 1
+                convertedpct.name = "Fischl C1"
+                convertedpct.element = ["Electro"]
+                convertedpct.scaling = [1]
+                convertedpct.tick_types = ["normal"]
+                convertedpct.tick_times = [sim.time_into_turn]
+                convertedpct.tick_damage = [0.22]
+                convertedpct.tick_units = [0]
+                convertedpct.tick_used = ["no"]
+                convertedpct.tick_units = [1]
+                convertedpct.proc_type = "Yes"
+                convertedpct.update_time()
 
-            c1_proc.tick_times = [sim.time_into_turn+0.1]
-            c1_proc.tick_damage = [0.22]
-            c1_proc.tick_units = [0]
-            c1_proc.element = "Electro"
-            c1_proc.ticks = 1
-            c1_proc.scaling = 1
-            c1_proc.update_time()
-            sim.floating_actions.add(c1_proc)
+                sim.floating_actions.add(convertedpct)
+                print("Proced Fischl C1")
 
     ## Fischl C2 ## Instant ## Onhit ## Skill
     def fischl_c2(self,unit_obj,sim,extra):
@@ -404,10 +500,12 @@ class ActiveBuff:
         flat_dmg.tick_damage = [2]
         flat_dmg.tick_units = [0]
         flat_dmg.ticks = 1
-        flat_dmg.scaling = 1
+        flat_dmg.scaling = [1]
         flat_dmg.update_time()
 
         sim.floating_actions.add(flat_dmg)
+        unit_obj.triggerable_buffs["Fischl_C2"].live_cd = unit_obj.current_skill_cd-1
+
 
     ## Fischl C4 ## Instant ## Onhit ## Burst
     def fischl_c4(self,unit_obj,sim,extra):
@@ -417,10 +515,11 @@ class ActiveBuff:
         flat_dmg.tick_damage = [2.22]        
         flat_dmg.tick_units = [0]
         flat_dmg.ticks = 1
-        flat_dmg.scaling = 1
+        flat_dmg.scaling = [1]
         flat_dmg.update_time()
 
         sim.floating_actions.add(flat_dmg)
+        unit_obj.triggerable_buffs["Fischl_C2"].live_cd = unit_obj.current_burst_cd-1
 
     ## Fischl C6 1 ## Instant ## Postcast ## Skill,Burst
     def fischl_c6_1(self,unit_obj,sim,extra):
@@ -428,20 +527,28 @@ class ActiveBuff:
             unit.triggerable_buffs["Fischl_C6_2"] = copy.deepcopy(buffdict["Fischl_C6_2"])
             unit.triggerable_buffs["Fischl_C6_2"].time_remaining = 12
 
-    ## Fischl C6 2 ## Instant ## Onhit ## Normal
-    def fischl_c6_2(self,unit_obj,sim,extra):
+    ## Fischl C6 2 ## Instant ## Midhit ## Normal
+    def fischl_c6_2(self,unit_obj,sim,action):
         if any((x.unit.name == "Fischl" and x.type == "skill" and x.action_type == "damage") for x in sim.floating_actions) == True:
-            c6_proc = Action(unit_obj,"normal")
+            if action[0].proc_type == "No":
+                convertedpct = ComboAction(unit_obj,action[0].combo)
+                convertedpct.ticks = 1
+                convertedpct.name = "Fischl C6"
+                convertedpct.element = ["Electro"]
+                convertedpct.scaling = [1]
+                convertedpct.tick_types = ["normal"]
+                convertedpct.tick_times = [sim.time_into_turn]
+                convertedpct.tick_damage = [0.3]
+                convertedpct.tick_units = [0]
+                convertedpct.tick_used = ["no"]
+                convertedpct.tick_units = [1]
+                convertedpct.proc_type = "Yes"
+                convertedpct.update_time()
 
-            c6_proc.tick_times = [sim.time_into_turn+0.1]
-            c6_proc.tick_damage = [0.22]
-            c6_proc.tick_units = [0]
-            c6_proc.element = "Electro"
-            c6_proc.ticks = 0
-            c6_proc.scaling = 1
-            c6_proc.update_time()
+                sim.floating_actions.add(convertedpct)
+                print("Proced Fischl C6")
 
-            sim.floating_actions.add(c6_proc)
+
 
     ###########
     ## Ganyu ##
@@ -468,7 +575,6 @@ class ActiveBuff:
         if hasattr(unit_obj, "c6_reset_stack") == False:
             unit_obj.c6_reset_stack = 1
             unit_obj.active_buffs["Ganyu_C6_2"] = copy.deepcopy(buffdict["Ganyu_C6_2"])
-            print("AAAAAAAAAAAAAA")
         else:
             unit_obj.c6_reset_stack = 1
             unit_obj.active_buffs["Ganyu_C6_2"] = copy.deepcopy(buffdict["Ganyu_C6_2"])
@@ -522,7 +628,7 @@ class ActiveBuff:
         if reaction[0] == "frozen":
             energy == Action(unit_obj,"skill")
             energy.action_type = "energy"
-            energy.energy_times = [sim.time_into_turn+2.05]
+            energy.energy_times = [sim.time_into_turn+2]
             sim.floating_actions.add(energy)
 
     ## Kaeya C1 ## Instant ## Prehit 
@@ -537,7 +643,7 @@ class ActiveBuff:
 
     ## Kaeya C6 ## Instant ## Postcast # Burst 
     def kaeya_c6_2(self,unit_obj,sim,extra):
-        unit_obj.live_burst_energy_cost += 15
+        unit_obj.current_energy += 15
 
     ############
     ## Keqing ##
@@ -553,17 +659,61 @@ class ActiveBuff:
         unit_obj.live_crit_rate += 0.15
         unit_obj.live_recharge += 0.15
 
+    ## Diluc E ## Duration ## Precast
+    def keqing_e(self,unit_obj,sim,extra):
+        if hasattr(unit_obj,"e_stacks") == False:
+            unit_obj.e_stacks = 0
+
+        if unit_obj.e_stacks == 0:
+            unit_obj.start_time = sim.encounter_duration
+            unit_obj.e_stacks = 1
+            unit_obj.current_skill_cd = 0
+
+        if "Keqing_E_2" in unit_obj.triggerable_buffs:
+            unit_obj.live_tick_times = [0.467]
+            unit_obj.live_skill_tick_damage = [1.68]
+            unit_obj.live_skill_cancel = [0.283]
+            unit_obj.live_skill_burst = [0.700]
+            unit_obj.live_skill_swap = [0.867]
+            unit_obj.live_skill_attack = [0.717]
+            unit_obj.current_skill_cd = 0
+        else:
+            if unit_obj.e_stacks != 1:
+                unit_obj.current_skill_cd = unit_obj.live_skill_cd - (sim.encounter_duration - unit_obj.start_time)
+                unit_obj.active_buffs.pop("Keqing_E")
+
+    def keqing_e_1(self,unit_obj,sim,extra):
+        if unit_obj.e_stacks == 1:
+            unit_obj.triggerable_buffs["Keqing_E_2"] = copy.deepcopy(buffdict["Keqing_E_2"])
+            unit_obj.triggerable_buffs["Keqing_E_2"].time_remaining = 5
+            unit_obj.triggerable_buffs["Keqing_E_1"].live_cd = unit_obj.live_skill_cd
+            unit_obj.e_stacks = 2
+
+    def keqing_e_2(self,unit_obj,sim,extra):
+        if unit_obj.e_stacks == 2:
+            unit_obj.e_stacks = 0
+            unit_obj.triggerable_buffs.pop("Keqing_E_2")
+            unit_obj.current_skill_cd = unit_obj.live_skill_cd - (sim.encounter_duration - unit_obj.start_time)
+            unit_obj.active_buffs.pop("Keqing_E")
+
     ## Keqing C1 ## Instant ## Onhit ## Skill
-    def keqing_c1(self,unit_obj,sim,extra):
-        c1_proc = Action(unit_obj,"skill")
-        c1_proc.ticks = 1
-        c1_proc.tick_times = [sim.time_into_turn+0.1]
-        c1_proc.tick_damage = [0.5]
-        c1_proc.scaling = 1
-        c1_proc.tick_units = [0]
-        c1_proc.update_time()
-        sim.floating_actions.add(c1_proc)
-        unit_obj.triggerable_buffs["Keqing_C1"].live_cd = 5
+    def keqing_c1(self,unit_obj,sim,action):
+        if action[0].proc_type == "No" and action[0].tick_damage == [1.68]:
+            convertedpct = Action(unit_obj,"skill")
+            convertedpct.ticks = 2
+            convertedpct.name = "Keqing C1"
+            convertedpct.element = ["Electro","Electro"]
+            convertedpct.scaling = [1,1]
+            convertedpct.tick_types = ["skill","skill"]
+            convertedpct.tick_times = [sim.time_into_turn,sim.time_into_turn]
+            convertedpct.tick_damage = [0.5,0.5]
+            convertedpct.tick_units = [1,0]
+            convertedpct.tick_used = ["no","no"]
+            convertedpct.proc_type = "Yes"
+            convertedpct.update_time()
+
+            sim.floating_actions.add(convertedpct)
+            print("Proced Keqing C1")
 
     ## Keqing C2 ## Instant ## Prehit
     def keqing_c2(self,unit_obj,sim,extra):
@@ -629,14 +779,17 @@ class ActiveBuff:
             unit_obj.c1_stack += 1
         
         if  0 == math.fmod(unit_obj.c1_stack,3):
-            print("Klee C1 Proc")
+            # print("Klee C1 Proc")
 
             c1_proc = Action(unit_obj,"skill")
+            c1_proc.name = "Klee C1"
             c1_proc.ticks = 1
             c1_proc.tick_times = [sim.time_into_turn+0.1]
             c1_proc.tick_damage = [0.464*1.2]
             c1_proc.tick_units = [0]
             c1_proc.update_time()
+            # print("DAMAGE: " + str(c1_proc.calculate_damage_snapshot(sim)))
+            # print(c1_proc.tick_damage)
 
             sim.floating_actions.add(c1_proc)
 
@@ -673,7 +826,7 @@ class ActiveBuff:
             unit.triggerable_buffs["Mona_Q_Trigger"] = copy.deepcopy(buffdict["Mona_Q_Trigger"])
             unit.triggerable_buffs["Mona_Q_Trigger"].time_remaining = 8
             unit.active_buffs["Mona_Q_Buff_1"] = copy.deepcopy(buffdict["Mona_Q_Buff_1"])
-            unit.triggerable_buffs["Mona_Q_Buff 2"] = copy.deepcopy(buffdict["Mona_Q_Buff 2"])
+            unit.triggerable_buffs["Mona_Q_Buff_2"] = copy.deepcopy(buffdict["Mona_Q_Buff_2"])
 
     ## Mona Q Trigger ## Instant ## Onhit ##
     def mona_q_trigger(self,unit_obj,sim,extra):
@@ -681,14 +834,13 @@ class ActiveBuff:
             for action in sim.floating_actions:
                 if action.unit.name == "Mona" and action.type == "burst":
 
-                    action.tick_times[1] = [sim.time_into_turn + 0.1]
-                    action.energy_times[1] = [sim.time_into_turn + 2.1]
+                    action.tick_times[1] = sim.time_into_turn + 0.1
                     action.update_time()
 
                     unit.triggerable_buffs["Mona_Q_Trigger"].time_remaining = 0
                     unit.active_buffs["Mona_Q_Buff_1"] = copy.deepcopy(buffdict["Mona_Q_Buff_1"])
                     unit.active_buffs["Mona_Q_Buff_1"].time_remaining = 5
-                    unit.triggerable_buffs["Mona_Q_Buff 2"].time_remaining = 5
+                    unit.triggerable_buffs["Mona_Q_Buff_2"].time_remaining = 5
 
     ## Mona Q Buff ## Duration ##
     def mona_q_buff_1(self,unit_obj,sim,extra):
@@ -705,7 +857,7 @@ class ActiveBuff:
     def mona_q_buff_2(self,unit_obj,sim,extra):
         unit_obj.live_electro_charged_dmg += 0.15
         unit_obj.live_vaporise_dmg += 0.15
-        unit_obj.live_hydro_dmg_swirl_dmg += 0.15
+        unit_obj.live_hydro_swirl_dmg += 0.15
 
     ## Mona A2 ##
     def mona_a2(self,unit_obj,sim,extra):
@@ -742,18 +894,27 @@ class ActiveBuff:
 
                 jade_proc = Action(unit_obj,"charged")
                 jade_proc.ticks = unit_obj.jade_stacks
-                jade_proc.tick_times = []
-                jade_proc.tick_damage = []
-                jade_proc.tick_units = []
+                jade_proc.tick_times = list()
+                jade_proc.tick_damage = list()
+                jade_proc.tick_units = list()
+                jade_proc.scaling = list()
+                jade_proc.tick_used = list()
+                jade_proc.scaling = list()
+                jade_proc.element = list()
 
                 for i in range(unit_obj.jade_stacks):
-                    jade_proc.ticks.append(sim.time_into_turn + 0.25 + i*0.1)
-                    jade_proc.ticks.append(0.496)
+                    jade_proc.tick_times.append(sim.time_into_turn + 0.25 + i*0.1)
+                    jade_proc.tick_types.append("charged")
+                    jade_proc.scaling.append(ratio_type(unit_obj,"charged")[unit_obj.normal_level])
+                    jade_proc.tick_damage.append(0.496)
                     jade_proc.tick_units.append(0)
+                    jade_proc.tick_used.append("no")
+                    jade_proc.element.append("Geo")
 
                 jade_proc.update_time()
 
-                sim.floating_actions.append(jade_proc)
+                sim.floating_actions.add(jade_proc)
+                unit_obj.jade_stacks = 0
 
     ## Ningguang A2 ## Duration ## Onhit ## Normal, Burst
     def ningguang_a2(self,unit_obj,sim,extra):
@@ -761,7 +922,7 @@ class ActiveBuff:
             unit_obj.jade_stacks = 0
         else:
             if unit_obj.jade_stacks > 0:
-                unit_obj.live_charged_stam = 0
+                unit_obj.live_charged_stamina_cost = [0]
 
     ## Ninggaung E ## Instant ## Postcast ## Skill
     def ningguang_e(self,unit_obj,sim,extra):
@@ -843,8 +1004,9 @@ class ActiveBuff:
     def noelle_e(self,unit_obj,sim,extra):
         def_dmg = AlbedoTrigger(unit_obj,sim.enemy, sim)
 
+        def_dmg.name = "Noelle E"
+        def_dmg.ticks = 1
         def_dmg.particles = 0
-
         def_dmg.tick_times = [0.5]
         def_dmg.tick_damage = [1.2]
         def_dmg.tick_units = [1]
@@ -861,7 +1023,7 @@ class ActiveBuff:
             action.tick_times = [0.55]
             action.tick_damage = [4]
             action.tick_units = [0]
-            action.scaling = 1
+            action.scaling = [1]
 
             action.energy_times = [2.55]
             action.update_time()
@@ -886,8 +1048,8 @@ class ActiveBuff:
     ## Qiqi C2 ## Instant ## Prehit
     def qiqi_c2(self,unit_obj,sim,extra):
         if sim.enemy.element == "Cryo":
-            unit_obj.live_cond_norm_dmg += 0.15
-            unit_obj.live_cond_charg_dmg += 0.15
+            unit_obj.live_normal_cond_dmg += 0.15
+            unit_obj.live_charged_cond_dmg += 0.15
 
     ###########
     ## Razor ##
@@ -924,18 +1086,22 @@ class ActiveBuff:
             unit_obj.active_buffs["Razor_Q_2"].time_remaining = 0
 
     ## Razor Q 3 ## Instant ## Midhit ## Normal
-    def razor_q_3(self,unit_obj,sim,tick):
-        mult = eleratiodict[unit_obj.burstlevel] * 0.24
-        convertedpct = Action(unit_obj,"combo")
-        convertedpct.tick_times = [sim.time_into_turn + 0.1]
-        convertedpct.tick_damage = [convertedpct.tick_damage[tick]*mult]
-        convertedpct.tick_units = [0]
-        convertedpct.ticks = 1
-        convertedpct.hits = 1
-        convertedpct.element = "Electro"
-        convertedpct.update_time()
-        sim.floating_actions.add(convertedpct)
-        print("Hi")
+    def razor_q_3(self,unit_obj,sim,action):
+        if action[0].proc_type == "No":
+            convertedpct = ComboAction(unit_obj,action[0].combo)
+            convertedpct.ticks = 1
+            convertedpct.name = "Razor Q"
+            convertedpct.element = ["Electro"]
+            convertedpct.scaling = [ratio_type(unit_obj,"burst")[unit_obj.burst_level]]
+            convertedpct.tick_types = ["normal"]
+            convertedpct.tick_times = [sim.time_into_turn]
+            convertedpct.tick_damage = [action[0].tick_damage[action[1]]*0.24]
+            convertedpct.tick_used = ["no"]
+            convertedpct.tick_units = [1]
+            convertedpct.proc_type = "Yes"
+            convertedpct.update_time()
+            sim.floating_actions.add(convertedpct)
+            print("Proced Razor Q")
 
     ## Razor A2 2 ## Instant ## Postcast ## Burst
     def razor_a2_2(self,unit_obj,sim,extra):
@@ -946,17 +1112,22 @@ class ActiveBuff:
         unit_obj.live_all_dmg += 0.1
 
     ## Razor C6 ## Instant ## Onhit
-    def razor_c6(self,unit_obj,sim,extra):
-        c6_proc = Action(unit_obj,"normal")
-        c6_proc.tick_times = [sim.time_into_turn + 0.1]
-        c6_proc.tick_damage = [1]
-        c6_proc.tick_units = [0]
-        c6_proc.ticks = 1
-        c6_proc.hits = 1
-        c6_proc.element = "Electro"
-        c6_proc.update_time()
-        sim.floating_actions.add(c6_proc)
-        unit_obj.triggerable_buffs["Razor C6"].live_cd = 10
+    def razor_c6(self,unit_obj,sim,action):
+        convertedpct = ComboAction(unit_obj,action[0].combo)
+        convertedpct.ticks = 1
+        convertedpct.name = "Razor Q"
+        convertedpct.element = ["Electro"]
+        convertedpct.scaling = [ratio_type(unit_obj,"burst")[unit_obj.burst_level]]
+        convertedpct.tick_types = ["normal"]
+        convertedpct.tick_times = [sim.time_into_turn]
+        convertedpct.tick_damage = [action[0].tick_damage[action[1]]*0.24]
+        convertedpct.tick_used = ["no"]
+        convertedpct.tick_units = [1]
+        convertedpct.proc_type = "Yes"
+        convertedpct.update_time()
+        sim.floating_actions.add(convertedpct)
+        print("Proced Razor C6")
+        unit_obj.triggerable_buffs["Razor_C6"].live_cd = 10
 
     #############
     ## Sucrose ##
@@ -1155,17 +1326,20 @@ class ActiveBuff:
     ######################
 
     ## Traveler (Anemo) A4 ## Instant ## Midhit ## Normal
-    def traveler_anemo_a4(self,unit_obj,sim,tick):
-        if tick == 4:
-            proc = Action(unit_obj,"normal")
-            proc.element = "Anemo"
+    def traveler_anemo_a2(self,unit_obj,sim,action):
+        if action[1] == 4 and action[0].proc_type == "No":
+            proc = ComboAction(unit_obj,action[0].combo)
+            proc.name = "Traveler (Anemo) A2"
+            proc.element = ["Anemo"]
             proc.tick_times = [sim.time_into_turn + 0.5]
             proc.tick_damage = [0.6]
             proc.tick_units = [1]
+            proc.tick_types = ["normal"]
             proc.ticks = 1
-            proc.scaling = 1
+            proc.scaling = [1]
             sim.floating_actions.add(proc)
-
+            proc.proc_type == "Yes"
+            
     ## Traveler (Anemo) E ## Instant ## Reaction:
     def traveler_anemo_e(self,unit_obj,sim,reaction):
         if reaction[0] == "swirl":
@@ -1188,23 +1362,30 @@ class ActiveBuff:
 
                 ## Traveler (Anemo) C6 ##
                 if unit_obj.constellation >= 6:
-                        sim.enemy.active_debuffs["Traveler_Anemo_C6"] = copy.deepcopy(debuffdict.get("Traveler_Anemo_C6_" + reaction[1].lower()))  
+                    sim.enemy.active_debuffs["Traveler_Anemo_C6"] = copy.deepcopy(debuffdict.get("Traveler_Anemo_C6_anemo"))  
+                    sim.enemy.active_debuffs["Traveler_Anemo_C6"] = copy.deepcopy(debuffdict.get("Traveler_Anemo_C6_" + reaction[1].lower()))
+
+    def traveler_anemo_c6(self,unit_obj,sim,reaction):
+        pass
 
     ####################
     ## Traveler (Geo) ##
     ####################
 
     ## Traveler (Geo) A4 ## Instant ## Midhit ## Normal
-    def traveler_geo_a4(self,unit_obj,sim,tick):
-        if tick == 4:
-            proc = Action(unit_obj,"normal")
-            proc.element = "Anemo"
+    def traveler_geo_a4(self,unit_obj,sim,action):
+        if action[1] == 4 and action[0].proc_type == "No":
+            proc = ComboAction(unit_obj,action[0].combo)
+            proc.name = "Traveler (Geo) A4"
+            proc.element = ["Geo"]
             proc.tick_times = [sim.time_into_turn + 0.5]
             proc.tick_damage = [0.6]
             proc.tick_units = [1]
+            proc.tick_types = ["normal"]
             proc.ticks = 1
-            proc.scaling = 1
+            proc.scaling = [1]
             sim.floating_actions.add(proc)
+            proc.proc_type == "Yes"
 
     ## Traveler (Geo) Q Cast ## Instant ## Postcast ## Burst
     def traveler_geo_q_cast(self,unit_obj,sim,extra):
@@ -1218,8 +1399,8 @@ class ActiveBuff:
         ## Traveler (Geo) C1 ##
         if unit_obj.constellation >= 1:
             for unit in sim.units:
-                unit.active_buffs["Traveler_Geo_Q_Buff"] = copy.deepcopy(buffdict["Traveler_Geo_Q_Buff"])
-                unit.active_buffs["Traveler_Geo_Q_Buff"].time_remaining = time
+                unit.active_buffs["Traveler_(Geo)_Q_Buff"] = copy.deepcopy(buffdict["Traveler_(Geo)_Q_Buff"])
+                unit.active_buffs["Traveler_(Geo)_Q_Buff"].time_remaining = time
 
     ## Traveler (Geo) C1 ##
     ## Traveler (Geo) Q Buff ## Duration
@@ -1407,7 +1588,7 @@ class ActiveBuff:
                         action.scaling = [ratio_type(unit,"burst")[getattr(unit,"burst_level")]]*action.ticks
                         action.update_time()
                         sim.floating_actions.add(action)
-                        unit.current_energy_cost += 3
+                        unit.current_energy += 3
 
                 ## Without C6 ##        
                 else:
@@ -1507,7 +1688,7 @@ class ActiveBuff:
         skyward_harp.tick_units = [0]
         skyward_harp.tick_used = ["no"]
         skyward_harp.initial_time = max(skyward_harp.tick_times)
-        skyward_harp.time_remaining = skyward_harp.initial_time
+        skyward_harp.time_remaining = max(skyward_harp.tick_times)
         unit_obj.triggerable_buffs["Skyward Harp 2"].live_cd = 4 - ((unit_obj.weapon_rank-1)*0.5)
         sim.floating_actions.add(skyward_harp)
         print(unit_obj.name + " proced Skyward Harp")
@@ -1527,7 +1708,7 @@ class ActiveBuff:
         viri_hunt.tick_units = [0,0,0,0,0,0,0,0]
         viri_hunt.tick_used = ["no","no","no","no","no","no","no","no"]
         viri_hunt.initial_time = max(viri_hunt.tick_times)
-        viri_hunt.time_remaining = viri_hunt.initial_time
+        viri_hunt.time_remaining = max(viri_hunt.tick_times)
         unit_obj.triggerable_buffs["The Viridescent Hunt 2"].live_cd = 14 - ((unit_obj.weapon_rank-1))
         sim.floating_actions.add(viri_hunt)
         print(unit_obj.name + " proced The Viridescent Hunt")
@@ -1546,15 +1727,13 @@ class ActiveBuff:
         archaic.tick_units = [0]
         archaic.tick_used = ["no"]
         archaic.initial_time = max(archaic.tick_times)
-        archaic.time_remaining = archaic.initial_time
+        archaic.time_remaining = max(archaic.tick_times)
         unit_obj.triggerable_buffs["Prototype Archaic 2"].live_cd = 15
         sim.floating_actions.add(archaic)
 
     def wolfs_gravestone_2(self,unit_obj,sim,extra):
-        print(unit_obj.active_buffs)
         for unit in sim.units:
             unit.active_buffs["Wolf's Gravestone 3"] = copy.deepcopy(buffdict["Wolf's Gravestone 3"])
-        print(unit_obj.active_buffs)
         print(unit_obj.name + " proced Wolf's Gravestone")
         unit_obj.triggerable_buffs["Wolf's Gravestone 2"].live_cd = 30
 
@@ -1592,7 +1771,7 @@ class ActiveBuff:
         sp.tick_units = [0]
         sp.tick_used = ["no"]
         sp.initial_time = max(sp.tick_times)
-        sp.time_remaining = sp.initial_time
+        sp.time_remaining = max(sp.tick_times)
         sim.floating_actions.add(sp)
         unit_obj.triggerable_buffs["Skyward Pride 3"].stacks -= 1
 
@@ -1611,7 +1790,7 @@ class ActiveBuff:
         atlas.tick_units = [0,0,0,0,0,0]
         atlas.tick_used = ["no","no","no","no","no","no"]
         atlas.initial_time = max(atlas.tick_times)
-        atlas.time_remaining = atlas.initial_time
+        atlas.time_remaining = max(atlas.tick_times)
         unit_obj.triggerable_buffs["Skyward Atlas 2"].live_cd = 30
         sim.floating_actions.add(atlas)
         print(unit_obj.name + " proced Skyward Atlas")
@@ -1633,12 +1812,12 @@ class ActiveBuff:
         eop.tick_units = [0]
         eop.tick_used = ["no"]
         eop.initial_time = max(eop.tick_times)
-        eop.time_remaining = eop.initial_time
+        eop.time_remaining = max(eop.tick_times)
         unit_obj.triggerable_buffs["Eye of Perception 2"].live_cd = 12 - (unit_obj.weapon_rank-1)
         sim.floating_actions.add(eop)
 
     def widsith_2(self,unit_obj,sim,extra):
-        unit_obj.live_atk_pct += 0.2 + (unit_obj.weapon_rank-1)*0.05
+        unit_obj.live_pct_atk += 0.2 + (unit_obj.weapon_rank-1)*0.05
         unit_obj.live_ele_dmg += 0.16 + (unit_obj.weapon_rank-1)*0.04
         unit_obj.live_ele_m += 80 + (unit_obj.weapon_rank-1)*20
 
@@ -1661,7 +1840,7 @@ class ActiveBuff:
         skyward_spine.tick_units = [0]
         skyward_spine.tick_used = ["no"]
         skyward_spine.initial_time = max(skyward_spine.tick_times)
-        skyward_spine.time_remaining = skyward_spine.initial_time
+        skyward_spine.time_remaining = max(skyward_spine.tick_times)
         unit_obj.triggerable_buffs["Skyward Spine 2"].live_cd = 2
         sim.floating_actions.add(skyward_spine)
 
@@ -1687,7 +1866,7 @@ class ActiveBuff:
         cres.tick_units = [0]
         cres.tick_used = ["no"]
         cres.initial_time = max(cres.tick_times)
-        cres.time_remaining = cres.initial_time
+        cres.time_remaining = max(cres.tick_times)
         sim.floating_actions.add(cres)
 
     # Swords
@@ -1706,7 +1885,7 @@ class ActiveBuff:
         aq.tick_units = [0]
         aq.tick_used = ["no"]
         aq.initial_time = max(aq.tick_times)
-        aq.time_remaining = aq.initial_time
+        aq.time_remaining = max(aq.tick_times)
         unit_obj.triggerable_buffs["Aquila Favonia 2"].live_cd = 15
         sim.floating_actions.add(aq)
 
@@ -1730,7 +1909,7 @@ class ActiveBuff:
         sb.tick_units = [0]
         sb.tick_used = ["no"]
         sb.initial_time = max(sb.tick_times)
-        sb.time_remaining = sb.initial_time
+        sb.time_remaining = max(sb.tick_times)
         sim.floating_actions.add(sb)
 
     def the_flute_2(self,unit_obj,sim,extra):
@@ -1743,7 +1922,7 @@ class ActiveBuff:
         tf.tick_units = [0]
         tf.tick_used = ["no"]
         tf.initial_time = max(tf.tick_times)
-        tf.time_remaining = tf.initial_time
+        tf.time_remaining = max(tf.tick_times)
         sim.floating_actions.add(tf)
         unit_obj.triggerable_buffs["Flute 2"].live_cd = 0.5
 
@@ -1774,8 +1953,8 @@ class ActiveBuff:
         dragonspine.tick_times = [0.1+s]
         dragonspine.tick_units = [0]
         dragonspine.tick_used = ["no"]
-        dragonspine.initial_time = 0.5+s
-        dragonspine.time_remaining = dragonspine.initial_time
+        dragonspine.initial_time = max(dragonspine.tick_times)
+        dragonspine.time_remaining = max(dragonspine.tick_times)
         unit_obj.triggerable_buffs["Dragonspine"].live_cd = 10
         sim.floating_actions.add(dragonspine)
         print("Dragonspine effect")
@@ -1889,8 +2068,14 @@ class ActiveDebuff:
     def venti_c6(self,unit_obj,sim):
         pass
 
+    ## Xinyan ##
+
     def xinyan_c4(self,unit_obj,sim):
         sim.enemy.physical_res_debuff += 0.15
+
+    ## Xingqiu ##
+    def xingqiu_c2(self,unit_obj,sim):
+        sim.enemy.hydro_res_debuff += 0.15
 
     def vv_cryo(self,unit_obj,sim):
         sim.enemy.cryo_res_debuff += 0.4
@@ -1903,3 +2088,18 @@ class ActiveDebuff:
 
     def vv_electro(self,unit_obj,sim):
         sim.enemy.electro_res_debuff += 0.4
+
+    def traveler_anemo_anemo(self,unit_obj,sim):
+        sim.enemy.anemo_res_debuff += 0.2
+
+    def traveler_anemo_hydro(self,unit_obj,sim):
+        sim.enemy.hydro_res_debuff += 0.2
+
+    def traveler_anemo_pyro(self,unit_obj,sim):
+        sim.enemy.pyro_res_debuff += 0.2
+
+    def traveler_anemo_electro(self,unit_obj,sim):
+        sim.enemy.electro_res_debuff += 0.2
+
+    def traveler_anemo_cryo(self,unit_obj,sim):
+        sim.enemy.cryo_res_debuff += 0.2
