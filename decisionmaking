@@ -1,13 +1,3 @@
-
-
-How to get the sim to choose the right rotation:
-
-1. Tell sim exactly what to do
-
-At every step, sim gives you available options.
-You pick an option, sim processes, gives you next options
-
-
 ###################
 ## High Priority ##
 ###################
@@ -44,14 +34,5 @@ Specific combos, i.e. ning/klee normal before charged
 #####################
 
 Highest DPS
-
-
-
-#### Action combinations ##
-
-
-Combo > Skill 
-Combo > Burst 
-Combo > Combo 
 
 

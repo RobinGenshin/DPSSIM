@@ -19,7 +19,6 @@ class PriorityList:
 
         for action in sim.floating_actions:
             if any((action.type == "burst" and action.unit.name == "Klee" and action.action_type == "damage") for action in sim.floating_actions):
-                print("KLEE Q FIELD")
                 return max([x for x in action_list if (x.unit.name == "Klee" and (x.type == "combo" or x.type == "skill"))], key=methodcaller('calculate_dps_snapshot',sim))
 
         for unit in sim.units:
@@ -45,12 +44,12 @@ class PriorityList:
             if action.unit == "Bennet" and action.type == "burst":
                 return action
 
-        # Using skills if bursts are ready ##
-        if any(action.type == "skill" for action in action_list):
-            skill_list = [x for x in action_list if (x.type == "skill") and any(y.type == "burst" and y.unit.name == x.unit.name for y in action_list)]
-            pairs = [(x,y) for x in skill_list for y in action_list if y.unit.name == x.unit.name and y.type == "burst"]
-            if pairs != []:
-                return max(pairs,key=lambda x: (x[0].calculate_damage_snapshot(sim)+x[1].calculate_damage_snapshot(sim)))[0]
+        # # Using skills if bursts are ready ##
+        # if any(action.type == "skill" for action in action_list):
+        #     skill_list = [x for x in action_list if (x.type == "skill") and any(y.type == "burst" and y.unit.name == x.unit.name for y in action_list)]
+        #     pairs = [(x,y) for x in skill_list for y in action_list if y.unit.name == x.unit.name and y.type == "burst"]
+        #     if pairs != []:
+        #         return max(pairs,key=lambda x: (x[0].calculate_damage_snapshot(sim)+x[1].calculate_damage_snapshot(sim)))[0]
 
         ## Using 0 DPS Greedy unit bursts ##
         for action in action_list:

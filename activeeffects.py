@@ -2068,6 +2068,9 @@ class ActiveDebuff:
     def venti_c6(self,unit_obj,sim):
         pass
 
+    def xiangling_c1(self,unit_obj,sim):
+        sim.enemy.pyro_res_debuff += 0.15
+
     ## Xinyan ##
 
     def xinyan_c4(self,unit_obj,sim):

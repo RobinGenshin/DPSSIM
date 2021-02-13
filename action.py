@@ -137,12 +137,12 @@ class Combos:
                 AC = min(21/60,unit_obj.live_normal_at - max(unit_obj.live_normal_tick_times))
             time = unit_obj.live_normal_tick_times[i] + AC
             dps = normal_damage / time
-            combo_dict["N"+str(i+1)] = copy.deepcopy([dps,normal_damage,time,[i+1,0,0],"N"+str(i+1)])
+            combo_dict["N"+str(i+1)] = [dps,normal_damage,time,[i+1,0,0],"N"+str(i+1)]
             if "plunge" in unit_obj.live_combo_options:
                 normal_damage += unit_obj.live_plunge_tick_damage[0]
                 time = unit_obj.live_normal_cancel[i] + min(unit_obj.live_plunge_attack,unit_obj.live_plunge_tick_times[0]+0.33)
                 dps = normal_damage/time
-                combo_dict["N"+str(i+1)+"JP"] = copy.deepcopy([dps,normal_damage,time,[i+1,0,unit_obj.live_plunge_ticks],"N"+str(i+1)+"JP"])
+                combo_dict["N"+str(i+1)+"JP"] = [dps,normal_damage,time,[i+1,0,unit_obj.live_plunge_ticks],"N"+str(i+1)+"JP"]
 
         ## Charged ##
         if len(unit_obj.normal_attack) == 0:
@@ -151,7 +151,7 @@ class Combos:
                 charged_damage += unit_obj.live_charged_tick_damage[k]
             time = min(unit_obj.live_charged_attack,max(unit_obj.live_charged_tick_times)+0.33)
             dps = charged_damage/time
-            combo_dict["C"] = copy.deepcopy([dps,charged_damage,time,[0,unit_obj.live_charged_ticks,0],"C"])
+            combo_dict["C"] = [dps,charged_damage,time,[0,unit_obj.live_charged_ticks,0],"C"]
 
         ## Charged Combos ##
         for l in range(len(unit_obj.live_normal_attack)):
@@ -164,20 +164,20 @@ class Combos:
             time = unit_obj.live_normal_attack[l] + min(unit_obj.live_charged_attack,max(unit_obj.live_charged_tick_times)+0.33)
             damage = normal_damage + charged_damage
             dps = damage/time
-            combo_dict["N"+str(l+1)+"C"] = copy.deepcopy([dps,damage,time,[l+1,unit_obj.live_charged_ticks,0],"N"+str(l+1)+"C"])
+            combo_dict["N"+str(l+1)+"C"] = [dps,damage,time,[l+1,unit_obj.live_charged_ticks,0],"N"+str(l+1)+"C"]
 
             if "plunge" in unit_obj.live_combo_options:
                 damage += unit_obj.live_plunge_tick_damage[0]
                 time = unit_obj.live_normal_attack[l] + unit_obj.live_charged_cancel + min(unit_obj.live_plunge_attack,unit_obj.live_plunge_tick_times[0]+0.33)
                 dps = damage/time
-                combo_dict["N"+str(l+1)+"C"+"JP"] = copy.deepcopy([dps,damage,time,[l+1,unit_obj.live_charged_ticks,unit_obj.live_plunge_ticks,0],"N"+str(l+1)+"C"+"JP"])
+                combo_dict["N"+str(l+1)+"C"+"JP"] = [dps,damage,time,[l+1,unit_obj.live_charged_ticks,unit_obj.live_plunge_ticks,0],"N"+str(l+1)+"C"+"JP"]
 
         ## Plunge Spam ##
         if "plunge" in unit_obj.live_combo_options:
             damage = unit_obj.live_plunge_tick_damage[0]
             time = min(unit_obj.live_plunge_attack,unit_obj.live_plunge_tick_times[0]+0.33)
             dps = damage/time
-            combo_dict["JP"] = copy.deepcopy([dps,damage,time,[0,0,unit_obj.live_plunge_ticks],"JP"])
+            combo_dict["JP"] = [dps,damage,time,[0,0,unit_obj.live_plunge_ticks],"JP"]
         return combo_dict
 
 class ComboAction:
@@ -282,7 +282,9 @@ class ComboAction:
         self.minimum_time = min([self.time_to_cancel,self.time_to_normal_nc,self.time_to_skill,self.time_to_burst,self.time_to_swap])
 
         self.stamina_cost = [0 for x in self.unit.live_normal_tick_times[:combo[3][0]]]
-        self.stamina_cost.extend(self.unit.live_charged_stamina_cost)
+        self.stamina_cost.extend(x for x in self.unit.live_charged_stamina_cost[:combo[3][1]])
+        if "plunge" in self.unit.live_combo_options:
+            self.stamina_cost.extend(x for x in self.unit.live_plunge_stamina_cost[:combo[3][2]])
         self.total_stamina = sum(x for x in self.stamina_cost)
 
         self.initial_time = max(self.tick_times)

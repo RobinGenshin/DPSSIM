@@ -12,6 +12,8 @@ import enemy
 import copy
 from priority_list import PriorityList
 
+import cProfile
+
 # Creating a list of actions
 class Sim:
     def __init__ (self, main,sup1,sup2,sup3,enemy,time):
@@ -47,97 +49,79 @@ class Sim:
 
     ## Creates a new list of actions for the sim to base its choice off
     def update_action_list(self):
-        self.action_list = set()
-        types = {"skill", "burst"}
-        for unit in self.units:
-            for k in types:
-                if Action(unit,k).available(self) == True:
-                    self.action_list.add(Action(unit,k))
-        for unit in self.units:
-            for _,combo in Combos()._list(unit).items():
-                if ComboAction(unit,combo).available(self) == True:
-                    self.action_list.add(ComboAction(unit,combo))
-        
+
+        self.action_list = { Action(unit,k) for unit in self.units for k in {"skill", "burst"} if Action(unit,k).available(self) == True }
+        self.action_list.update( ComboAction(unit,combo) for unit in self.units for combo in Combos()._list(unit).values() if ComboAction(unit,combo).available(self) == True)
+
     ## Checks for buffs/triggers and updates stats
     def check_buff(self,type2,action,tick,extra):
-        for key, trig_buff in copy.deepcopy(action.unit.triggerable_buffs).items():
-            if trig_buff.field == "Yes" and self.chosen_unit == action.unit:
-                if (action.tick_types[tick] in trig_buff.trigger or 'any'in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type2 == type2:
-                    if trig_buff.duration == "Instant":
-                        if trig_buff.share == "Yes":
-                            for unit in self.units:
-                                getattr(a.ActiveBuff(),trig_buff.method)(unit,self,extra)
-                        else:
-                            getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self,extra)
+        for key, buff in copy.deepcopy(action.unit.triggerable_buffs).items():
+            if buff.field == "Yes" and self.chosen_unit == action.unit and (action.tick_types[tick] in buff.trigger or 'any'in buff.trigger) and buff.live_cd == 0 and buff.type2 == type2:
+                if buff.duration == "Instant":
+                    if buff.share == "Yes":
+                        for unit in self.units:
+                            getattr(a.ActiveBuff(),buff.method)(unit,self,extra)
                     else:
-                        if trig_buff.share == "Yes":
-                            for unit in self.units:
-                                unit.active_buffs[key] = copy.deepcopy(trig_buff)
-                                unit.update_stats(self)
-                        else:
-                            if key in self.chosen_unit.active_buffs and trig_buff.max_stacks > 0 and self.chosen_unit.active_buffs[key].stacks > 0:
-                                self.chosen_unit.active_buffs[key].stacks = min(self.chosen_unit.active_buffs[key].max_stacks,self.chosen_unit.active_buffs[key].stacks + 1)
-                                self.chosen_unit.active_buffs[key].time_remaining = self.chosen_unit.active_buffs[key].duration
-                            else:
-                                if trig_buff.max_stacks > 0:
-                                    self.chosen_unit.active_buffs[key] = copy.deepcopy(self.chosen_unit.triggerable_buffs[key])
-                                    self.chosen_unit.active_buffs[key].stacks += 1
-                                    self.chosen_unit.update_stats(self)
-                                else:
-                                    self.chosen_unit.active_buffs[key] = copy.deepcopy(trig_buff)
-                                    self.chosen_unit.update_stats(self)
-            else:
-                if trig_buff.field == "Yes" and self.chosen_unit != action.unit:
-                    pass
+                        getattr(a.ActiveBuff(),buff.method)(action.unit,self,extra)
                 else:
-                    if (action.tick_types[tick] in trig_buff.trigger or 'any' in trig_buff.trigger) and trig_buff.live_cd == 0 and trig_buff.type2 == type2:
-                        if trig_buff.duration == "Instant":
-                            if trig_buff.share == "Yes":
-                                for unit in self.units:
-                                    getattr(a.ActiveBuff(),trig_buff.method)(unit,self,extra)
-                            else:
-                                getattr(a.ActiveBuff(),trig_buff.method)(action.unit,self,extra)
+                    if buff.share == "Yes":
+                        for unit in self.units:
+                            unit.active_buffs[key] = copy.deepcopy(buff)
+                    else:
+                        if key in self.chosen_unit.active_buffs and buff.max_stacks > 0 and self.chosen_unit.active_buffs[key].stacks > 0:
+                            self.chosen_unit.active_buffs[key].stacks = min(self.chosen_unit.active_buffs[key].max_stacks,self.chosen_unit.active_buffs[key].stacks + 1)
+                            self.chosen_unit.active_buffs[key].time_remaining = self.chosen_unit.active_buffs[key].duration
                         else:
-                            if trig_buff.share == "Yes":
-                                for unit in self.units:
-                                        unit.active_buffs[key] = copy.deepcopy(trig_buff)
-                                        unit.update_stats(self)
+                            if buff.max_stacks > 0:
+                                self.chosen_unit.active_buffs[key] = copy.deepcopy(self.chosen_unit.triggerable_buffs[key])
+                                self.chosen_unit.active_buffs[key].stacks += 1
                             else:
-                                self.chosen_unit.active_buffs[key] = copy.deepcopy(trig_buff)
-                                self.chosen_unit.update_stats(self)
+                                self.chosen_unit.active_buffs[key] = copy.deepcopy(buff)
+            else:
+                if (action.tick_types[tick] in buff.trigger or 'any' in buff.trigger) and buff.live_cd == 0 and buff.type2 == type2:
+                    if buff.duration == "Instant":
+                        if buff.share == "Yes":
+                            for unit in self.units:
+                                getattr(a.ActiveBuff(),buff.method)(unit,self,extra)
+                        else:
+                            getattr(a.ActiveBuff(),buff.method)(action.unit,self,extra)
+                    else:
+                        if buff.share == "Yes":
+                            for unit in self.units:
+                                    unit.active_buffs[key] = copy.deepcopy(buff)
+                        else:
+                            self.chosen_unit.active_buffs[key] = copy.deepcopy(buff)
 
     ## Checks for debuffs/triggers and updates stats
-    def check_debuff(self,type2,action):
-        for key, trig_debuff in self.chosen_unit.triggerable_debuffs.items():
-            if trig_debuff.trigger == self.chosen_action.type or trig_debuff.trigger == "any":
-                if trig_debuff.type2 == type2:
-                    self.enemy.active_debuffs[key] = trig_debuff
+    def check_debuff(self,type2,action,tick):
+        for key, debuff in action.unit.triggerable_debuffs.items():
+            if (action.tick_types[tick] in debuff.trigger or 'any'in debuff.trigger) and debuff.type2 == type2:
+                self.enemy.active_debuffs[key] = debuff
         self.enemy.update_stats
 
     ## Check if buffs ended for units. If they did, remove them
     def check_buff_end(self):
         for unit in self.units:
+
             ## Tartaglia Stance Check ##
-            if unit.name == "Tartaglia":
-                if "Tartaglia_Stance" in unit.active_buffs:
-                    if unit.active_buffs["Tartaglia_Stance"].time_remaining <= 0:
-                        unit.stance = "ranged"
-                        if hasattr(unit,"c6_reset") == True:
-                            if unit.c6_reset == True:
-                                unit.current_skill_cd = 1
-                                unit.c6_reset = False
-                        else:
-                            unit.current_skill_cd = 51
-                        print("Tartaglia Stance Timed Out")
+            if unit.name == "Tartaglia" and "Tartaglia_Stance" in unit.active_buffs:
+                if unit.active_buffs["Tartaglia_Stance"].time_remaining <= 0:
+                    unit.stance = "ranged"
+                    if hasattr(unit,"c6_reset") == True:
+                        if unit.c6_reset == True:
+                            unit.current_skill_cd = 1
+                            unit.c6_reset = False
+                    else:
+                        unit.current_skill_cd = 51
+                    print("Tartaglia Stance Timed Out")
 
             unit.update_stats(self)
             unit.active_buffs = {k:unit.active_buffs[k] for k in unit.active_buffs if unit.active_buffs[k].time_remaining > 0}
             unit.update_stats(self)
 
             for buff in copy.deepcopy(unit.triggerable_buffs):
-                if unit.triggerable_buffs[buff].temporary == "Yes":
-                    if unit.triggerable_buffs[buff].time_remaining == 0:
-                        del unit.triggerable_buffs[buff]
+                if unit.triggerable_buffs[buff].temporary == "Yes" and unit.triggerable_buffs[buff].time_remaining == 0:
+                    del unit.triggerable_buffs[buff]
 
     ## Check if debuff ends for enemies. If they did, remove them
     def check_debuff_end(self):
@@ -150,19 +134,19 @@ class Sim:
         self.chosen_action = PriorityList().prioritise(self,self.action_list)
         self.chosen_unit = self.chosen_action.unit
         if self.action_order == 1:
-            self.last_unit = copy.deepcopy(self.chosen_unit)
-            self.last_action = copy.deepcopy(self.chosen_action)
+            self.last_unit = self.chosen_unit
+            self.last_action = self.chosen_action
             for unit in self.units:
                 self.a_dict[unit] = [0,0,0]
 
         for unit in self.units:
             if self.chosen_action.unit == unit:
                 if self.chosen_action.type == "skill":
-                    self.a_dict[unit][0] = copy.deepcopy(self.a_dict[unit][0]+1)
+                    self.a_dict[unit][0] += 1
                 if self.chosen_action.type == "burst":
-                    self.a_dict[unit][1] = copy.deepcopy(self.a_dict[unit][1]+1)
+                    self.a_dict[unit][1] = 1
                 if self.chosen_action.type == "combo":
-                    self.a_dict[unit][2] = copy.deepcopy(self.a_dict[unit][2]+1)
+                    self.a_dict[unit][2] = 1
 
     ## Uses the action, adds either adds damage if it's instant or adds it to the dot_actions, puts action on cd
     def use_ability(self):
@@ -303,7 +287,7 @@ class Sim:
     ## Attack Speed
     def attack_speed(self,action,tick):
         if tick < action.ticks-1:
-            atk_speed = copy.deepcopy((action.tick_times[tick+1]-action.tick_times[tick])*(1-(1/(1+getattr(action.unit,"live_"+action.tick_types[tick+1]+"_speed")))))
+            atk_speed = (action.tick_times[tick+1]-action.tick_times[tick])*(1-(1/(1+getattr(action.unit,"live_"+action.tick_types[tick+1]+"_speed"))))
             for time in action.tick_times:
                 time -= atk_speed
             for time in action.times:
@@ -338,7 +322,7 @@ class Sim:
         multiplier = 1
         if damage_action_element_unit > 0:
             reaction = getattr(React(),React().check(damage_action,tick,self.enemy))(damage_action,tick,self.enemy,damage_action_element_unit,self)
-            reaction.append(damage_action)
+            reaction[1].append(damage_action)
             multiplier = reaction[0]
             self.check_buff("reaction",damage_action,tick,reaction[1])
 
@@ -346,7 +330,7 @@ class Sim:
         instance_damage = damage_action.calculate_tick_damage(tick,self) * multiplier
         self.damage += instance_damage
         self.check_buff("on_hit",damage_action,tick,None)
-        self.check_debuff("on_hit",damage_action)
+        self.check_debuff("on_hit",damage_action,tick)
 
         self.check_buff_end()
         self.check_debuff_end()
@@ -450,18 +434,17 @@ PhysicalArtifact = artifact_substats.ArtifactStats("pct_atk", "physical_dmg", "c
 GeoArtifact = artifact_substats.ArtifactStats("pct_def", "geo_dmg", "crit_rate", "Perfect")
 
 #Unit class arguments are (Character name, Character level, Weapon, Artifact Set, Constellation, Weapon Rank, Normal Level, Skill Level, Burst Level)
-Main = u.Unit("Zhongli", 90, "Wolf's Gravestone", "Gladiator's Finale", 6, 1, 10, 10, 10, PhysicalArtifact)
-Support1 = u.Unit("Barbara", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, CryoArtifact)
+Main = u.Unit("Klee", 90, "Skyward Atlas", "Crimson Witch", 6, 1, 10, 10, 10, PyroArtifact)
+Support1 = u.Unit("Sucrose", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, CryoArtifact)
 Support2 = u.Unit("Barbara", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, PyroArtifact)
 Support3 = u.Unit("Barbara", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, PhysicalArtifact)
 Monster = enemy.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,50)
+Test = Sim(Main,Support1,Support2,Support3,Monster,15)
 Test.turn_on_sim()
 
-for key,value in Test.a_dict.items():
-    print(key.name,"Skills used:"+str(value[0]),"Bursts used:"+str(value[1]),"Combos used:"+str(value[2]))
-print(Monster.active_debuffs)
+# for key,value in Test.a_dict.items():
+#     print(key.name,"Skills used:"+str(value[0]),"Bursts used:"+str(value[1]),"Combos used:"+str(value[2]))
 
 # for key,value in Combos()._list(Main).items():
 #     print(key,value)

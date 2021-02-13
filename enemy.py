@@ -1,5 +1,6 @@
 import read_data as rd
 import activeeffects as a
+import copy
 
 #Enemy with stats
 class Enemy:
@@ -36,15 +37,18 @@ class Enemy:
         self.active_debuffs = {}
         self.hitlag = enemydict[enemy].hitlag
         self.stats = {"defence", "anemo_res", "cryo_res", "geo_res", "electro_res", "hydro_res", "pyro_res"}
-        self.debuffs = {"defence_debuff", "anemo_res_debuff", "cryo_res_debuff", "geo_res_debuff", "electro_res_debuff", "hydro_res_debuff", "pyro_res"}
+        self.debuffs = {"defence_debuff", "anemo_res_debuff", "cryo_res_debuff", "geo_res_debuff", "electro_res_debuff", "hydro_res_debuff", "pyro_res_debuff"}
     
     def update_stats(self,sim):
         # resets live stats
+
         for stat in self.stats:
-            setattr(self, "live_" + stat, getattr(self,stat))
+            setattr(self, "live_" + stat, copy.deepcopy(getattr(self,stat)))
         # clears stat debuffs
+
         for debuff in self.debuffs:
             setattr(self, debuff, 0)
+
         # adds up stat debuff
         for _, debuff in self.active_debuffs.items():
             getattr(a.ActiveDebuff(),debuff.method)(self,sim)

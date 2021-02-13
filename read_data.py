@@ -343,8 +343,9 @@ def main():
     # print(phys_ratio_dict)
     # print(razor_auto_ratio_dict)
     # print(razor_qas_ratio_dict)
-    print(buff_dict["Skyward Blade 3"].type2)
-    print(len(character_dict["Xinyan"].normal_attack))
+    # print(buff_dict["Skyward Blade 3"].type2)
+    # print(len(character_dict["Xinyan"].normal_attack))
+    print(enemy_dict["Hilichurls"].pyro_res)
     
 if __name__ == '__main__':
     main()

@@ -161,7 +161,7 @@ class StaticBuff:
     ## Xiao ##
 
     def xiao_plunge(self,unit_obj):
-        unit_obj.plunge_type = "anemo"
+        unit_obj.plunge_type = "Anemo"
         unit_obj.plunge_ticks = 1
         unit_obj.plunge_tick_times = list([0.900])
         unit_obj.plunge_tick_damage = list([2.0439])
@@ -172,6 +172,7 @@ class StaticBuff:
         unit_obj.plunge_attack = 1.200
         unit_obj.plunge_swap = 1.200
         unit_obj.plunge_tick_hitlag = [0]
+        unit_obj.plunge_stamina_cost = [0]
 
     def xiao_c1(self,unit_obj):
         unit_obj.skill_charges += 1

@@ -92,61 +92,61 @@ class React:
         enemy.units -= unit
         sim.damage += 601 * (1 + (( 4.44 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))) * (1 - enemy.live_cryo_res )
         print(action.unit.name + " proced superconduct")
-        return [1, "superconduct"]
+        return [1, ["superconduct"]]
 
     def electro_charged(self,action,tick,enemy,unit,sim):
         enemy.units -= unit
         sim.damage += 1443 * (1 + (( 4.44 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))) * (1 - enemy.live_electro_res )
         print(action.unit.name + " proced electro_charged")
-        return [1, "electro_charged"]
+        return [1, ["electro_charged"]]
 
     def frozen(self,action,tick,enemy,unit,sim):
         print(action.unit.name + " proced frozen")
-        return [1, "frozen"]
+        return [1, ["frozen"]]
 
     def vaporise2(self,action,tick,enemy,unit,sim):
         enemy.units -= unit*2
         print(action.unit.name + " proc'd Vaporise for 2x damage")
-        return [2 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), "vaporise"]
+        return [2 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), ["vaporise"]]
 
     def vaporise15(self,action,tick,enemy,unit,sim):
         enemy.units -= unit*0.5
         print(action.unit.name + " proc'd Vaporise for 1.5x damage")
-        return [1.5 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), "vaporise"]
+        return [1.5 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), ["vaporise"]]
 
     def melt2(self,action,tick,enemy,unit,sim):
         enemy.units -= unit*2
         print(action.unit.name + " proc'd Melt for 2x damage")
-        return [2 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), "melt"]
+        return [2 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), ["melt"]]
 
     def melt15(self,action,tick,enemy,unit,sim):
         enemy.units -= unit*0.5
         print(action.unit.name + " proc'd Melt for 1.5x damage")
-        return [1.5 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), "melt"]
+        return [1.5 * (1 + (( 2.78 * action.unit.ele_m ) / ( 1400 + action.unit.ele_m ))), ["melt"]]
 
     def enemyelectro(self,action,tick,enemy,unit,sim):
         enemy.element = action.element[tick]
         enemy.units += unit*0.8
         print(action.unit.name + " applied electro")
-        return [1, "none"]
+        return [1, ["none"]]
     
     def enemypyro(self,action,tick,enemy,unit,sim):
         enemy.element = action.element[tick]
         enemy.units += unit*0.8
         print(action.unit.name + " applied pyro")
-        return [1, "none"]
+        return [1, ["none"]]
 
     def enemycryo(self,action,tick,enemy,unit,sim):
         enemy.element = action.element[tick]
         enemy.units += unit*0.8
         print(action.unit.name + " applied cryo")
-        return [1, "none"]
+        return [1, ["none"]]
 
     def enemyhydro(self,action,tick,enemy,unit,sim):
         enemy.element = action.element[tick]
         enemy.units += unit*0.8
         print(action.unit.name + " applied hydro")
-        return [1, "none"]
+        return [1, ["none"]]
 
     def no_reaction(self,action,tick,enemy,unit,sim):
-        return [1, "none"]
+        return [1, ["none"]]

@@ -56,7 +56,7 @@ class Unit():
             setattr(self,"cond_" + stat, getattr(self,stat,0))    
 
         for action_type in {"normal","charged","skill","burst","plunge"}:
-            for x in {"_type","_ticks","_tick_times","_tick_damage","_tick_units","element","_tick_hitlag",
+            for x in {"_type","_ticks","_tick_times","_tick_damage","_tick_units","_element","_tick_hitlag",
                     "_cancel","_swap","_attack","_skill","_burst","_crit_rate","_cond_dmg",
                     "_cd","_cdr","_particles","_charges","_energy_cost","_stamina_cost","_stam_save","_ac","_at","_cond_crit_rate"}:
                 setattr(self,action_type+x,getattr(characterdict[name],action_type+x,0))
@@ -99,12 +99,14 @@ class Unit():
             if debuff.artifact == self.artifact:
                     self.triggerable_debuffs[key] = debuff
 
-        self.base_stats = copy.deepcopy(self.__dict__)
+        base_stats = copy.deepcopy(self.__dict__)
         
-        for x in self.base_stats:
-            setattr(self, "live_" + x , getattr(self,x))
+        for x in base_stats:
+            setattr(self, "live_" + x , copy.deepcopy(getattr(self,x)))
 
-        self.live_stats = copy.deepcopy({ k:self.__dict__[k] for k in set(self.__dict__) - set(self.base_stats)})
+        total_stats = copy.deepcopy(self.__dict__)
+
+        self.live_stats = copy.deepcopy({ k:total_stats[k] for k in set(total_stats) - set(base_stats)})
 
         self.current_skill_cd = 0
         self.current_burst_cd = 0
@@ -116,7 +118,7 @@ class Unit():
         # clears active buffs
         
         for stat in self.live_stats:
-            setattr(self, stat, copy.deepcopy(getattr(self,stat.removeprefix("live_"))))
+            setattr(self,stat,copy.deepcopy(getattr(self,stat.removeprefix("live_"))))
 
         # call method to reactivate buff
         for _, buff in copy.deepcopy(self.active_buffs).items():
@@ -130,15 +132,18 @@ class Unit():
 def main():
     AnemoArtifact = artifact_substats.ArtifactStats("recharge", "anemo_dmg", "crit_rate", "Perfect")
     Main = Unit("Xiao", 90, "Skyward Atlas", "Thundersoother", 0, 5, 6, 6, 6, AnemoArtifact)
-    print(Main.name)
-    print(Main.skill_cd)
-    print(Main.charged_stamina_cost)
-    print(Main.live_charged_type)
-    print(Main.normal_tick_units)
-    print(Main.skill_cancel)
-    print(Main.live_plunge_type)
-    print(Main.combo_options)
-    print(buffdict["Ganyu_C4"].weapon==[""])
+    # print(Main.name)
+    # print(Main.skill_cd)
+    # print(Main.charged_stamina_cost)
+    # print(Main.live_charged_type)
+    # print(Main.normal_tick_units)
+    # print(Main.skill_cancel)
+    # print(Main.live_plunge_type)
+    # print(Main.combo_options)
+    # print(buffdict["Ganyu_C4"].weapon==[""])
+    # print(Main.live_charged_stamina_cost)
+    # print(set(Main.total_stats) - set(Main.base_stats))
+    print(Main.live_stats)
 
 if __name__ == '__main__':
     main()
