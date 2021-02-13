@@ -123,18 +123,20 @@ class Action:
 class Combos:
     def __init__(self):
         pass
-    def _list(self,unit_obj):
+    def _list(self,unit_obj,sim):
         combo_dict = dict()
+        if sim.stamina_toggle == True:
+            AC = (21/60)
+        else:
+            AC = (31/60)
 
         ## Normal Combos ##
         for i in range(unit_obj.live_normal_ticks):
             normal_damage = 0
             for j in range(i+1):
                 normal_damage += unit_obj.live_normal_tick_damage[j]
-            if i < (unit_obj.normal_ticks - 1):
-                AC = (21/60)
-            else:
-                AC = min(21/60,unit_obj.live_normal_at - max(unit_obj.live_normal_tick_times))
+            if i == (unit_obj.normal_ticks - 1):
+                AC = min(AC,unit_obj.live_normal_at - max(unit_obj.live_normal_tick_times))
             time = unit_obj.live_normal_tick_times[i] + AC
             dps = normal_damage / time
             combo_dict["N"+str(i+1)] = [dps,normal_damage,time,[i+1,0,0],"N"+str(i+1)]

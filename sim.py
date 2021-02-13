@@ -51,7 +51,7 @@ class Sim:
     def update_action_list(self):
 
         self.action_list = { Action(unit,k) for unit in self.units for k in {"skill", "burst"} if Action(unit,k).available(self) == True }
-        self.action_list.update( ComboAction(unit,combo) for unit in self.units for combo in Combos()._list(unit).values() if ComboAction(unit,combo).available(self) == True)
+        self.action_list.update( ComboAction(unit,combo) for unit in self.units for combo in Combos()._list(unit,self).values() if ComboAction(unit,combo).available(self) == True)
 
     ## Checks for buffs/triggers and updates stats
     def check_buff(self,type2,action,tick,extra):
@@ -241,6 +241,7 @@ class Sim:
             ## Dash ##
             self.turn_time += 0.33
             self.stamina -= 18
+            self.stamina_timer = -1.5
             self.chosen_action.delay(0.33)
         else:
             ## Jump ##
