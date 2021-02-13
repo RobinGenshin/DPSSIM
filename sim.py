@@ -151,7 +151,7 @@ class Sim:
     ## Uses the action, adds either adds damage if it's instant or adds it to the dot_actions, puts action on cd
     def use_ability(self):
         self.check_buff("precast",self.chosen_action,0,None)
-
+        self.chosen_action.unit.update_stats(self)
         self.chosen_action.action_type = "damage"
         self.floating_actions.add(self.chosen_action)
         energy_copy = copy.deepcopy(self.chosen_action)
@@ -256,6 +256,14 @@ class Sim:
                     trig_buff.time_remaining = max(0, trig_buff.time_remaining - time_interval)
             for _, buff in unit.active_buffs.items():
                 buff.time_remaining = max(0, buff.time_remaining - time_interval)
+
+        ## Stamina regen ##
+        ## if 0.5 left on stamina timer, timer + interval, if timer = 0, interval + stamina timer * 25 
+        initial_timer = copy.copy(self.stamina_timer)
+        self.stamina_timer = min(0,time_interval+self.stamina_timer)
+        if self.stamina_timer == 0:
+            self.stamina = min(250,self.stamina+(time_interval + initial_timer) * 25)
+
         self.check_buff_end()
 
     ## Check which dot ticks occur in the turn time
@@ -338,6 +346,8 @@ class Sim:
             self.attack_speed(damage_action,tick)
             self.hitlag(damage_action,tick)
             self.stamina -= damage_action.stamina_cost[tick]
+            if damage_action.stamina_cost[tick] > 0:
+                self.stamina_timer = -1.5
 
     ## Proccesses the energy
     def process_action_energy(self,new):
@@ -396,6 +406,11 @@ class Sim:
             for _, buff in unit.active_buffs.items():
                 buff.time_remaining = max(0, buff.time_remaining - (self.turn_time-self.time_into_turn))
 
+        initial_timer = copy.copy(self.stamina_timer)
+        self.stamina_timer = min(0,(self.turn_time-self.time_into_turn)+self.stamina_timer)
+        if self.stamina_timer == 0:
+            self.stamina = min(250,self.stamina+((self.turn_time-self.time_into_turn) + initial_timer) * 25)
+
     ## Print status
     def status(self):
         if hasattr(self.chosen_unit,"stance") == True:
@@ -428,19 +443,19 @@ class Sim:
 PyroArtifact = artifact_substats.ArtifactStats("pct_atk", "pyro_dmg", "crit_rate", "Perfect")
 CryoArtifact = artifact_substats.ArtifactStats("pct_atk", "hydro_dmg", "crit_rate", "Perfect")
 ElectroArtifact = artifact_substats.ArtifactStats("pct_atk", "electro_dmg", "crit_rate", "Perfect")
-AnemoArtifact = artifact_substats.ArtifactStats("pct_atk", "anemo_dmg", "crit_rate", "Perfect")
-HydroArtifact = artifact_substats.ArtifactStats("pct_atk", "hydro_dmg", "crit_rate", "Perfect")
+AnemoArtifact = artifact_substats.ArtifactStats("recharge", "anemo_dmg", "crit_rate", "Perfect")
+HydroArtifact = artifact_substats.ArtifactStats("recharge", "hydro_dmg", "crit_rate", "Perfect")
 PhysicalArtifact = artifact_substats.ArtifactStats("pct_atk", "physical_dmg", "crit_rate", "Perfect")
 GeoArtifact = artifact_substats.ArtifactStats("pct_def", "geo_dmg", "crit_rate", "Perfect")
 
 #Unit class arguments are (Character name, Character level, Weapon, Artifact Set, Constellation, Weapon Rank, Normal Level, Skill Level, Burst Level)
-Main = u.Unit("Klee", 90, "Skyward Atlas", "Crimson Witch", 6, 1, 10, 10, 10, PyroArtifact)
-Support1 = u.Unit("Sucrose", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, CryoArtifact)
-Support2 = u.Unit("Barbara", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, PyroArtifact)
+Main = u.Unit("Klee", 90, "Wolf's Gravestone", "Crimson Witch", 6, 5, 10, 10, 10, PyroArtifact)
+Support1 = u.Unit("Xingqiu", 90, "Sacrificial Sword", "Noblesse", 6, 5, 10, 10, 10, HydroArtifact)
+Support2 = u.Unit("Venti", 90, "The Stringless", "Viridescent Venerer", 0, 1, 1, 1, 1, AnemoArtifact)
 Support3 = u.Unit("Barbara", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, PhysicalArtifact)
 Monster = enemy.Enemy("Hilichurls", 90)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,15)
+Test = Sim(Main,Support1,Support2,Support3,Monster,40)
 Test.turn_on_sim()
 
 # for key,value in Test.a_dict.items():

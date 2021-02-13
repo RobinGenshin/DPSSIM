@@ -106,7 +106,7 @@ class Unit():
 
         total_stats = copy.deepcopy(self.__dict__)
 
-        self.live_stats = copy.deepcopy({ k:total_stats[k] for k in set(total_stats) - set(base_stats)})
+        self.live_stats = copy.copy({ k:total_stats[k] for k in set(total_stats) - set(base_stats)})
 
         self.current_skill_cd = 0
         self.current_burst_cd = 0
@@ -118,10 +118,10 @@ class Unit():
         # clears active buffs
         
         for stat in self.live_stats:
-            setattr(self,stat,copy.deepcopy(getattr(self,stat.removeprefix("live_"))))
+            setattr(self,stat,copy.copy(getattr(self,stat.removeprefix("live_"))))
 
         # call method to reactivate buff
-        for _, buff in copy.deepcopy(self.active_buffs).items():
+        for _, buff in copy.copy(self.active_buffs).items():
             if buff.weapon != [""]:
                 getattr(a.ActiveBuff(),buff.method)(self,sim,"extra")
             elif buff.character != [""]:

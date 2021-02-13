@@ -324,7 +324,6 @@ class ActiveBuff:
 
     ## Diluc E ## Duration ## Precast
     def diluc_e(self,unit_obj,sim,extra):
-
         if hasattr(unit_obj,"e_stacks") == False:
             unit_obj.e_stacks = 0
 

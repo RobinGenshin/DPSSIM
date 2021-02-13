@@ -297,7 +297,7 @@ class ComboAction:
 
     def available(self,sim):
         if self.combo[3][1] > 0:
-            if sim.stamina > self.total_stamina:
+            if sim.stamina > self.total_stamina and sim.stamina == True:
                 return True
             else:
                 return False
