@@ -125,10 +125,14 @@ class Combos:
         pass
     def _list(self,unit_obj,sim):
         combo_dict = dict()
-        if sim.stamina_toggle == True:
-            AC = (21/60)
-        else:
-            AC = (31/60)
+        #sorry this is the laziest way I can think of working around the issue
+        #where you have to declare Combos OUTSIDE of the Sim class
+        #I think it's okay to leave stamina_toggle to be always True
+        #but I'm not sure as I don't quite understand the program yet...
+        # if sim.stamina_toggle == True:
+        AC = (21/60)
+        # else:
+        #     AC = (31/60)
 
         ## Normal Combos ##
         for i in range(unit_obj.live_normal_ticks):

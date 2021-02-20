@@ -12,11 +12,13 @@ import enemy
 import copy
 from priority_list import PriorityList
 
+from collections import deque # import for action overriding
+
 import cProfile
 
 # Creating a list of actions
 class Sim:
-    def __init__ (self, main,sup1,sup2,sup3,enemy,time):
+    def __init__ (self, main,sup1,sup2,sup3,enemy,time,action_override): # lazy addition of new param for action override
         self.units = {main,sup1,sup2,sup3}
         self.enemy = enemy
         self.encounter_limit = time
@@ -40,6 +42,8 @@ class Sim:
         self.stamina_timer = 0
         self.stamina_toggle = True
 
+        self.override_actions = action_override # deque for overriding actions taken
+
     ### Starts the sim, adds 1 to the turn number and updates the previous unit
     def start_sim(self):
         self.action_order += 1
@@ -49,7 +53,6 @@ class Sim:
 
     ## Creates a new list of actions for the sim to base its choice off
     def update_action_list(self):
-
         self.action_list = { Action(unit,k) for unit in self.units for k in {"skill", "burst"} if Action(unit,k).available(self) == True }
         self.action_list.update( ComboAction(unit,combo) for unit in self.units for combo in Combos()._list(unit,self).values() if ComboAction(unit,combo).available(self) == True)
 
@@ -131,7 +134,13 @@ class Sim:
 
     ## Chooses the best action from the action list. Currently does so based on the highest dps
     def choose_action(self):
-        self.chosen_action = PriorityList().prioritise(self,self.action_list)
+        ## Implement action override edit START ##
+        if self.override_actions:
+            self.chosen_action = self.override_actions.popleft()
+        else:
+        ## Implement action override edit END ##
+            self.chosen_action = PriorityList().prioritise(self,self.action_list)
+
         self.chosen_unit = self.chosen_action.unit
         if self.action_order == 1:
             self.last_unit = self.chosen_unit
@@ -427,18 +436,33 @@ class Sim:
 
     ## Turns on the sim (lol)
     def turn_on_sim(self):
-        while self.encounter_duration < self.encounter_limit:
-            self.start_sim()
-            self.update_action_list()
-            self.choose_action()
-            self.use_ability()
-            self.status()
-            self.check_turn_time()
-            self.process_loop()
-            self.reduce_cd()
-            self.pass_turn_time()
-            self.check_buff_end()
-            self.check_debuff_end()
+        ## Implement action override edit START
+        if self.override_actions != None: # if user wants to simulate actions
+           while self.override_actions: # loop as long as there are actions to simulate
+                self.start_sim()
+                self.choose_action() # update_action_list not needed as we use our own inputs
+                self.use_ability()
+                self.status()
+                self.check_turn_time()
+                self.process_loop()
+                self.reduce_cd()
+                self.pass_turn_time()
+                self.check_buff_end()
+                self.check_debuff_end()
+        else:
+        ## Implement action override edit END
+            while self.encounter_duration < self.encounter_limit:
+                self.start_sim()
+                self.update_action_list()
+                self.choose_action()
+                self.use_ability()
+                self.status()
+                self.check_turn_time()
+                self.process_loop()
+                self.reduce_cd()
+                self.pass_turn_time()
+                self.check_buff_end()
+                self.check_debuff_end()
         print("Time:"+str(round(self.encounter_duration,2)),"DPS:"+str(round(self.damage /self.encounter_duration,2)))
 
 PyroArtifact = artifact_substats.ArtifactStats("pct_atk", "pyro_dmg", "crit_rate", "Perfect")
@@ -450,13 +474,28 @@ PhysicalArtifact = artifact_substats.ArtifactStats("pct_atk", "physical_dmg", "c
 GeoArtifact = artifact_substats.ArtifactStats("pct_def", "geo_dmg", "crit_rate", "Perfect")
 
 #Unit class arguments are (Character name, Character level, Weapon, Artifact Set, Constellation, Weapon Rank, Normal Level, Skill Level, Burst Level)
-Main = u.Unit("Klee", 90, "Wolf's Gravestone", "Crimson Witch", 6, 5, 10, 10, 10, PyroArtifact)
-Support1 = u.Unit("Xingqiu", 90, "Sacrificial Sword", "Noblesse", 6, 5, 10, 10, 10, HydroArtifact)
-Support2 = u.Unit("Venti", 90, "The Stringless", "Viridescent Venerer", 0, 1, 1, 1, 1, AnemoArtifact)
-Support3 = u.Unit("Barbara", 1, "Rust", "Noblesse", 0, 1, 1, 1, 1, PhysicalArtifact)
-Monster = enemy.Enemy("Hilichurls", 90)
+Main = u.Unit("Diluc", 90, "Wolf's Gravestone", "Crimson Witch", 0, 80, 6, 6, 6, PyroArtifact)
+Support1 = u.Unit("Xingqiu", 90, "Sacrificial Sword", "Noblesse", 6, 80, 6, 6, 6, HydroArtifact)
+Support2 = u.Unit("Venti", 1, "The Stringless", "Viridescent Venerer", 0, 1, 1, 1, 1, AnemoArtifact)
+Support3 = u.Unit("Bennett", 90, "Aquila Favonia", "Noblesse", 6, 80, 6, 6, 6, PyroArtifact)
+Monster = enemy.Enemy("Fatui Pyro Agent", 100)
 
-Test = Sim(Main,Support1,Support2,Support3,Monster,40)
+#Instantiate unit combos
+DilucCombos = Combos()._list(Main,None)
+
+#Define actions to simulate
+ActionsToSim = deque()
+ActionsToSim.append(Action(Support1,"skill"))
+ActionsToSim.append(Action(Support1,"skill"))
+ActionsToSim.append(Action(Support1,"burst"))
+ActionsToSim.append(Action(Main,"burst"))
+ActionsToSim.append(Action(Main,"skill"))
+ActionsToSim.append(ComboAction(Main,DilucCombos["N2"]))
+ActionsToSim.append(Action(Main,"skill"))
+ActionsToSim.append(ComboAction(Main,DilucCombos["N2"]))
+ActionsToSim.append(Action(Main,"skill"))
+
+Test = Sim(Main,Support1,Support2,Support3,Monster,9,ActionsToSim) #set last param to 'None' if you want normal sim
 Test.turn_on_sim()
 
 # for key,value in Test.a_dict.items():
