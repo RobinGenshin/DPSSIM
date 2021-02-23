@@ -1,5 +1,6 @@
 from core.unit import Char
 from core.read_data import debuff_dict
+from core.artifact import Artifact
 import copy
 
 
@@ -27,8 +28,9 @@ class Venti(Char):
             infuse.add_to_damage_queue(sim)
 
             for unit in sim.units:
-                if unit.element == reaction[1] or unit.name == "Venti":
+                if unit.element == reaction[1]:
                     unit.current_energy += 15
+            self.current_energy += 15
 
             if self.constellation >= 6:
                 sim.enemy.active_debuffs["Venti_C6"] = copy.deepcopy(debuff_dict.get("Venti_C6_" + reaction[1].lower()))
@@ -37,12 +39,13 @@ class Venti(Char):
         self.live_anemo_dmg += 0.25
 
 
-VentiTest = Venti(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+VentiArtifact = Artifact("Viridescent Venerer", "pct_atk", "anemo_dmg", "crit_rate", 30)
+VentiF2P = Venti(90, 0, "The Stringless", 1, VentiArtifact, [6, 6, 6])
 
 
 def main():
-    print(VentiTest.live_base_atk)
-    print(VentiTest.static_buffs)
+    print(VentiF2P.live_base_atk)
+    print(VentiF2P.static_buffs)
 
 
 if __name__ == '__main__':

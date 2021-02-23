@@ -2,14 +2,34 @@ from core.unit import Char
 from core.action import Ability
 from math import fmod
 from core.scaling import ratio_type
-
+from core.artifact import Artifact
+from core.read_data import buff_dict
+import copy
 
 class Klee(Char):
     def __init__(self, level, constellation, weapon, weapon_rank, artifact, talent_levels):
         super().__init__("Klee", level, constellation, weapon, weapon_rank, artifact, talent_levels)
         self.a2_stack = 0
+        self.greedy = True
         self.spark = False
         self.c1_stack = 0
+        self.selfish_mode = False
+
+    def klee_q(self, _, sim):
+        self.active_buffs["Klee_Q"].time_remaining = sim.encounter_limit
+        if "Klee_Q_2" not in self.active_buffs:
+            self.selfish_mode = False
+
+    def klee_q_1(self, _, __, ___):
+        self.active_buffs["Klee_Q_2"] = copy.copy(buff_dict["Klee_Q_2"])
+        self.active_buffs["Klee_Q_2"].source = self
+        self.selfish_mode = True
+
+    def klee_q_2(self, _, sim):
+        if self != sim.chosen_unit:
+            self.selfish_mode = False
+            del self.active_buffs["Klee_Q_2"]
+        self.selfish_mode = True
 
     def klee_a2_1(self, _, __, ___):
         self.a2_stack += 1
@@ -62,12 +82,13 @@ class KleeC1(Ability):
         self.tick_units = [0]
 
 
-KleeTest = Klee(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+KleeArtifact = Artifact("Crimson Witch", "pct_atk", "pyro_dmg", "crit_rate", 30)
+KleeF2P = Klee(90, 0, "Solar Pearl", 1, KleeArtifact, [6, 6, 6])
 
 
 def main():
-    print(KleeTest.live_base_atk)
-    print(KleeTest.static_buffs)
+    print(KleeF2P.live_base_atk)
+    print(KleeF2P.static_buffs)
 
 
 if __name__ == '__main__':

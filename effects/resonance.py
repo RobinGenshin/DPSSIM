@@ -29,5 +29,4 @@ class Resonance:
 
     @staticmethod
     def geo_resonance(_, sim, action):
-        if action[0].element == "Geo":
-            sim.enemy.active_debuffs["Geo_Resonance"] = copy.copy(debuff_dict["Geo_Resonance"])
+        sim.enemy.active_debuffs["Geo_Resonance"] = copy.copy(debuff_dict["Geo_Resonance"])

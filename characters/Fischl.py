@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.action import Ability, Combo, Action
 from core.read_data import buff_dict
+from core.artifact import Artifact
 import copy
 
 class Fischl(Char):
@@ -127,7 +128,9 @@ class FischlC6(Ability):
         self.loop = False
 
 
-FischlTest = Fischl(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+FischlArtifact = Artifact("Thundering Fury", "pct_atk", "electro_dmg", "crit_rate", 30)
+
+FischlF2P = Fischl(90, 0, "The Stringless", 1, FischlArtifact, [6, 6, 6])
 
 
 def main():

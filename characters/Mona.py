@@ -1,5 +1,6 @@
 from core.unit import Char
 from core.read_data import buff_dict
+from core.artifact import Artifact
 import copy
 
 
@@ -58,12 +59,13 @@ class Mona(Char):
         pass
 
 
-MonaTest = Mona(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+MonaArtifact = Artifact("Noblesse", "recharge", "hydro_dmg", "crit_rate", 30)
+MonaF2P = Mona(90, 0, "Sacrificial Fragments", 1, MonaArtifact, [6, 6, 6])
 
 
 def main():
-    print(MonaTest.live_base_atk)
-    print(MonaTest.static_buffs)
+    print(MonaF2P.live_base_atk)
+    print(MonaF2P.static_buffs)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 from core.unit import Char
 from core.read_data import buff_dict, ele_ratio_dict
+from core.artifact import Artifact
 import copy
 
 
@@ -41,7 +42,9 @@ class Bennett(Char):
             unit.live_charged_type = "Pyro"
 
 
-BennettTest = Bennett(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+BennettArtifact = Artifact("Noblesse", "recharge", "pyro_dmg", "crit_rate", 30)
+
+BennettF2P = Bennett(90, 0, "Festering Desire", 5, BennettArtifact, [6, 6, 6])
 
 
 def main():

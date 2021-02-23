@@ -1,7 +1,10 @@
 from core.unit import Char
 from core.read_data import buff_dict
 from core.action import Ability
+from core.artifact import Artifact
+from core.sim import Sim, Monster
 from math import fmod
+from characters.Diluc import DilucF2P
 import copy
 
 
@@ -73,13 +76,16 @@ class XingqiuQTick(Ability):
         self.tick_used = ["no"] * ticks
 
 
-XingqiuTest = Xingqiu(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+XingqiuArtifact = Artifact("Noblesse", "recharge", "hydro_dmg", "crit_rate", 30)
+XingqiuF2P = Xingqiu(90, 0, "Sacrificial Sword", 5, XingqiuArtifact, [6, 6, 6])
 
 
 def main():
-    print(XingqiuTest.live_base_atk)
-    print(XingqiuTest.static_buffs)
-
+    Test = Sim({XingqiuF2P, DilucF2P}, Monster, 60)
+    Test.turn_on_sim()
+    # print(Test.brute_force_weapon(XingqiuF2P, XingqiuArtifact))
+    # print(XingqiuF2P.pct_atk, XingqiuF2P.crit_rate, XingqiuF2P.crit_dmg)
+    # print(Test.brute_force_recharge(XingqiuF2P, XingqiuArtifact, DilucF2P))
 
 if __name__ == '__main__':
     main()

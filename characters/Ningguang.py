@@ -2,6 +2,7 @@ from core.unit import Char
 from core.action import Action, Ability
 from core.scaling import ratio_type
 from core.read_data import buff_dict
+from core.artifact import Artifact
 import copy
 
 
@@ -77,7 +78,9 @@ class JadeStar(Action):
         self.tick_used = ["no"] * jade_stacks
 
 
-NingguangTest = Ningguang(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+NingguangArtifact = Artifact("Archaic Petra", "pct_atk", "geo_dmg", "crit_rate", 30)
+
+NingguangF2P = Ningguang(90, 0, "Mappa Marre", 1, NingguangArtifact, [6, 6, 6])
 
 
 def main():

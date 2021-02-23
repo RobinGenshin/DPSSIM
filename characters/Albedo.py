@@ -2,6 +2,7 @@ from core.unit import Char
 from core.read_data import buff_dict
 from core.action import Action, Ability
 from core.scaling import ratio_type
+from core.artifact import Artifact
 import copy
 
 
@@ -123,7 +124,9 @@ class AlbedoC2(Ability):
         return damage
 
 
-AlbedoTest = Albedo(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+AlbedoArtifact = Artifact("Archaic Petra", "pct_def", "geo_dmg", "crit_rate", 30)
+
+AlbedoF2P = Albedo(90, 0, "Harbinger of Dawn", 1, AlbedoArtifact, [6, 6, 6])
 
 
 def main():

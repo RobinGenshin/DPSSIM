@@ -83,6 +83,10 @@ class StaticBuff:
         unit.skill_crit_rate += 0.06 + (unit.weapon_rank - 1) * 0.015
         unit.skill_dmg += 0.16 + (unit.weapon_rank - 1) * 0.04
 
+    @staticmethod
+    def harbinger_of_dawn(unit):
+        unit.crit_rate += 0.014 + (unit.weapon_rank - 1) * 0.035
+
     # Misc
     @staticmethod
     def blackcliff(unit):
@@ -198,11 +202,11 @@ class ActiveBuff:
         print(unit_obj.character + " proced Skyward Atlas")
 
     @staticmethod
-    def solar_pearl_normal_buff_2(unit_obj, _, __):
+    def solar_pearl_normal_buff_2(unit_obj, _):
         unit_obj.live_normal_dmg += 0.2 + (unit_obj.weapon_rank - 1) * 0.05
 
     @staticmethod
-    def solar_pearl_ability_buff_2(unit_obj, _, __):
+    def solar_pearl_ability_buff_2(unit_obj, _):
         unit_obj.live_skill_dmg += 0.2 + (unit_obj.weapon_rank - 1) * 0.05
         unit_obj.live_burst_dmg += 0.2 + (unit_obj.weapon_rank - 1) * 0.05
 
@@ -252,10 +256,9 @@ class ActiveBuff:
         unit.live_pct_atk += (0.032 + (unit.weapon_rank - 1) * 0.007) * unit.active_buffs["Prim Spear 2"].stacks
         if unit.active_buffs["Prim Spear 2"].stacks == 7:
             unit.live_all_dmg += 0.24 + (unit.weapon_rank - 1) * 0.06
-        unit.triggerable_buffs["Prim Spear 2"].live_cd = 0.5
 
     @staticmethod
-    def prototype_starglitter_2(unit, _, __):
+    def prototype_starglitter_2(unit, _):
         unit.live_normal_dmg += (0.08 + (unit.weapon_rank - 1) * 0.02) * unit.active_buffs["Prototype Starglitter 2"].stacks
 
     @staticmethod
@@ -332,7 +335,6 @@ class ActiveBuff:
     @staticmethod
     def geo_weapons(unit_obj, _):
         unit_obj.live_pct_atk += (0.08 + (unit_obj.weapon_rank - 1) * 0.02) * unit_obj.active_buffs["Geo Weapon"].stacks
-        unit_obj.triggerable_buffs["Geo Weapon"].live_cd = 0.3
 
     @staticmethod
     def dragonspine(unit_obj, sim, _):

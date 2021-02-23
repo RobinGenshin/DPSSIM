@@ -107,7 +107,7 @@ class Action:
         self.minimum_time = float()
 
         self.loop = True
-        self.proc_type = "No"
+        self.greedy = False
 
         self.snapshot = True
         self.snapshot_tot_atk = float()
@@ -189,14 +189,14 @@ class Action:
     def add_to_damage_queue(self, sim):
         self.tick_times = [x + sim.time_into_turn for x in self.tick_times]
         self.update_time()
-        sim.floating_actions.add(self)
+        sim.floating_actions.append(self)
 
     def add_to_energy_queue(self, sim):
-        energy = copy(self)
+        energy = deepcopy(self)
         energy.action_type = "energy"
-        self.energy_times = [x + sim.time_into_turn for x in self.tick_times]
-        self.update_time()
-        sim.floating_actions.add(self)
+        energy.energy_times = [x + sim.time_into_turn for x in self.tick_times]
+        energy.update_time()
+        sim.floating_actions.append(energy)
 
 
 class Ability(Action):

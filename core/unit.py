@@ -75,6 +75,8 @@ class Char:
         self.add_effects()
         self.add_substats()
 
+        self.greedy = False
+
     def add_effects(self):
         for key, buff in buff_dict.items():
 
@@ -128,10 +130,10 @@ class Char:
         # clears active buffs
         for stat in self.live_stats:
             setattr(self, stat, copy.copy(getattr(self, stat.removeprefix("live_"))))
-
         # call method to reactivate buff
         for _, buff in copy.copy(self.active_buffs).items():
             getattr(buff.source, buff.method)(self, sim)
+
 
     def skill_level_plus_3(self):
         self.skill_level += 3

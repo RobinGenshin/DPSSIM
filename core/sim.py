@@ -6,7 +6,7 @@ from core.action import ComboList, Ability, Combo
 from effects.resonance import Resonance
 import copy
 from core.priority_list import PriorityList
-from core.read_data import buff_dict
+from core.read_data import buff_dict, weapon_dict
 import cProfile
 
 
@@ -27,7 +27,7 @@ class Sim:
         self.chosen_action = None
         self.last_action = None
         self.action_list = set()
-        self.floating_actions = set()
+        self.floating_actions = []
         self.action_queue = []
         self.sorted_action_queue = []
         self.a_dict = dict()
@@ -52,7 +52,7 @@ class Sim:
         if sum(1 for unit in self.units if unit.element == "Geo") >= 2:
             for unit in self.units:
                 unit.triggerable_buffs["Geo_Resonance"] = copy.copy(buff_dict["Geo_Resonance"])
-
+                unit.triggerable_buffs["Geo_Resonance"].source = Resonance()
         if sum(1 for unit in self.units if unit.element == "Electro") >= 2:
             for unit in self.units:
                 unit.triggerable_buffs["Electro_Resonance"] = copy.copy(buff_dict["Electro_Resonance"])
@@ -188,8 +188,7 @@ class Sim:
     def use_ability(self):
         self.check_buff("precast", self.chosen_action, 0, None)
         self.chosen_action.unit.update_stats(self)
-        self.chosen_action.action_type = "damage"
-        self.floating_actions.add(self.chosen_action)
+        self.chosen_action.add_to_damage_queue(self)
 
         if self.chosen_action.particles > 0:
             self.chosen_action.add_to_energy_queue(self)
@@ -217,8 +216,8 @@ class Sim:
 
         self.check_buff("postcast", self.chosen_action, 0, None)
 
-        self.floating_actions = {x for x in self.floating_actions if not (
-                (x.unit.character == "Klee") and (x.talent == "burst") and (self.chosen_unit.character != "Klee"))}
+        self.floating_actions = [x for x in self.floating_actions if not (
+                (x.unit.character == "Klee") and (x.talent == "burst") and (self.chosen_unit.character != "Klee"))]
 
     ## Check how long the action took
     def check_turn_time(self):
@@ -353,6 +352,7 @@ class Sim:
     def process_action_damage(self, new):
         tick = new[0]
         damage_action = new[1]
+
         damage_action.tick_used[tick] = "yes"
 
         self.last_action_time = copy.copy(self.time_into_turn)
@@ -377,6 +377,7 @@ class Sim:
         self.enemy.update_units()
         instance_damage = damage_action.calculate_tick_damage(tick, self) * multiplier
         self.damage += instance_damage
+        print(round(instance_damage), damage_action.name, tick)
 
         for unit in self.units:
             if damage_action.unit == unit:
@@ -422,7 +423,7 @@ class Sim:
         self.check_buff_end()
         self.check_debuff_end()
 
-    ## Loops damage queue processing
+    # Loops damage queue processing
     def process_loop(self):
         self.create_action_queue_turn(self.time_into_turn)
         while len(self.action_queue) > 0:
@@ -441,7 +442,8 @@ class Sim:
         self.encounter_duration += self.turn_time
         for action in self.floating_actions:
             action.time_remaining -= self.turn_time
-        self.floating_actions = {x for x in self.floating_actions if x.time_remaining > 0}
+
+        self.floating_actions = [x for x in self.floating_actions if x.time_remaining > 0]
 
         for unit in self.units:
             for _, trig_buff in unit.triggerable_buffs.items():
@@ -470,7 +472,7 @@ class Sim:
             round(self.encounter_duration, 2)) + " " + self.chosen_unit.character + stance + " used "
               + action, "Stamina:", self.stamina)
 
-    ## Turns on the sim (lol)
+    # Turns on the sim
     def turn_on_sim(self):
         self.resonance()
         while self.encounter_duration < self.encounter_limit:
@@ -486,26 +488,58 @@ class Sim:
             self.check_buff_end()
             self.check_debuff_end()
         print("Time:" + str(round(self.encounter_duration, 2)),
-              "DPS:" + str(round(self.damage / self.encounter_duration, 2)))
+                  "DPS:" + str(round(self.damage / self.encounter_duration, 2)))
+
+    @classmethod
+    def brute_force_weapon(cls, unit_obj, unit_artifact):
+        def check_weapon(unit_obj, weapon):
+            unit_obj = unit_obj.__class__(90, unit_obj.constellation, weapon, unit_obj.weapon_rank, copy.copy(unit_artifact), [6, 6, 6])
+            sim = Sim({unit_obj}, Monster, 60)
+            sim.turn_on_sim()
+            return [sim.damage / sim.encounter_duration, weapon, unit_obj.pct_atk]
+
+        a = max(check_weapon(copy.deepcopy(unit_obj), weapon) for weapon in weapon_dict)
+        return str(unit_obj.__class__.__name__) + "'s best weapon was " + a[1] + " at " + str(round(a[0])) + str(a[2])
+
+    @classmethod
+    def brute_force_recharge(cls, unit_obj, unit_artifact, *args):
+        def check_recharge(unit, i):
+            check = unit.__class__(90, 6, unit.weapon, 5, unit_artifact, [6, 6, 6])
+            check.crit_rate -= 0.0165 * i
+            check.crit_dmg -= 0.033 * i
+            check.recharge += 0.0583 * i
+            sim = cls({check, *args}, Monster, 200)
+            sim.turn_on_sim()
+            return [sim.damage / sim.encounter_duration, i]
+
+        dmg = [0, 0]
+        for i in range(unit_obj.artifact.initial_subs):
+            if check_recharge(unit_obj, i)[0] > dmg[0]:
+                dmg = check_recharge(unit_obj, i)
+        return dmg
 
 
 Monster = enemy.Enemy("Hilichurls", 90)
 
 
 def main():
-    from characters.Diluc import DilucTest
+    from characters.Diluc import DilucF2P, DilucArtifact
+    from characters.Xingqiu import XingqiuF2P, XingqiuArtifact
+    from characters.Venti import VentiF2P
+    from characters.Mona import MonaF2P
+    from characters.Klee import KleeF2P
+    from characters.Ningguang import NingguangF2P
+    from characters.Albedo import AlbedoF2P
+    from characters.Fischl import FischlF2P
+    from characters.Bennett import BennettF2P
 
-    Test = Sim({DilucTest}, Monster, 60)
+    Test = Sim({XingqiuF2P, AlbedoF2P, DilucF2P, BennettF2P}, Monster, 20)
     Test.turn_on_sim()
 
-    for key, value in Test.a_dict.items():
-        print(key.character, "Skills used:" + str(value[0]), "Bursts used:" + str(value[1]), "Combos used:" + str(value[2]))
+    # cProfile.runctx("Test.turn_on_sim()", None, locals())
 
-    # for unit in Test.units:
-    #     print(unit.character, unit.damage)
-
-    # for key, value in ComboList.create(DilucTest, Test).items():
-    #     print(key, value)
+    # for key, value in Test.a_dict.items():
+    #     print(key.character, "Skills used:" + str(value[0]), "Bursts used:" + str(value[1]), "Combos used:" + str(value[2]))
 
 
 if __name__ == '__main__':

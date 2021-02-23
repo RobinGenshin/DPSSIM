@@ -1,3 +1,5 @@
+import copy
+
 class Artifact:
     def __init__(self, artifact_set, sands, goblet, circlet, subs):
         self.set = artifact_set
@@ -54,6 +56,7 @@ class Artifact:
         else:
             self.pct_atk += 5 * 0.066
             self.subs -= 5
+        self.initial_subs = copy.copy(self.subs)
 
 
 DilucArtifact = Artifact("Crimson Witch", "pct_atk", "pyro_dmg", "crit_rate", 30)

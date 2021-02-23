@@ -113,12 +113,18 @@ class Diluc(Char):
 
 
 DilucArtifact = Artifact("Crimson Witch", "pct_atk", "pyro_dmg", "crit_rate", 30)
-DilucTest = Diluc(90, 6, "Harbinger of Dawn", 5, DilucArtifact, [6, 6, 6])
+
+DilucF2P = Diluc(90, 0, "Prototype Archaic", 5, DilucArtifact, [6, 6, 6])
+DilucDolphin = Diluc(90, 0, "Wolf's Gravestone", 1, DilucArtifact, [6, 6, 6])
+DilucSpender = Diluc(90, 2, "Wolf's Gravestone", 1, DilucArtifact, [6, 6, 6])
+DilucWhale = Diluc(90, 4, "Wolf's Gravestone", 3, DilucArtifact, [6, 6, 6])
+DilucLeviathan = Diluc(90, 6, "Wolf's Gravestone", 5, DilucArtifact, [6, 6, 6])
 
 
 def main():
-    Test = Sim({DilucTest}, Monster, 60)
-    Test.turn_on_sim()
+    Test = Sim({DilucF2P}, Monster, 60)
+    # print(Test.brute_force_weapon(DilucArtifact, Diluc))
+    print(Test.brute_force_recharge(DilucArtifact, Diluc, "Wolf's Gravestone"))
 
 
 if __name__ == '__main__':
