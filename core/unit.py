@@ -76,6 +76,7 @@ class Char:
         self.add_substats()
 
         self.greedy = False
+        self.shielded = False
 
     def add_effects(self):
         for key, buff in buff_dict.items():
@@ -133,7 +134,6 @@ class Char:
         # call method to reactivate buff
         for _, buff in copy.copy(self.active_buffs).items():
             getattr(buff.source, buff.method)(self, sim)
-
 
     def skill_level_plus_3(self):
         self.skill_level += 3

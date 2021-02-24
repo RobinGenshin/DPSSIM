@@ -377,7 +377,6 @@ class Sim:
         self.enemy.update_units()
         instance_damage = damage_action.calculate_tick_damage(tick, self) * multiplier
         self.damage += instance_damage
-        print(round(instance_damage), damage_action.name, tick)
 
         for unit in self.units:
             if damage_action.unit == unit:
@@ -490,16 +489,23 @@ class Sim:
         print("Time:" + str(round(self.encounter_duration, 2)),
                   "DPS:" + str(round(self.damage / self.encounter_duration, 2)))
 
-    @classmethod
-    def brute_force_weapon(cls, unit_obj, unit_artifact):
-        def check_weapon(unit_obj, weapon):
-            unit_obj = unit_obj.__class__(90, unit_obj.constellation, weapon, unit_obj.weapon_rank, copy.copy(unit_artifact), [6, 6, 6])
-            sim = Sim({unit_obj}, Monster, 60)
-            sim.turn_on_sim()
-            return [sim.damage / sim.encounter_duration, weapon, unit_obj.pct_atk]
+    def brute_force_weapon(self, unit_obj, unit_artifact):
+        self.units.remove(unit_obj)
+        weapon_ranks = dict()
 
-        a = max(check_weapon(copy.deepcopy(unit_obj), weapon) for weapon in weapon_dict)
-        return str(unit_obj.__class__.__name__) + "'s best weapon was " + a[1] + " at " + str(round(a[0])) + str(a[2])
+        def check_weapon(unit, artifact, weapon):
+            units = copy.deepcopy(self.units)
+            check = unit.__class__(90, 6, weapon, 5, artifact, [6, 6, 6])
+            units.add(check)
+            sim = Sim(units, Monster, 60)
+            sim.turn_on_sim()
+            units.remove(check)
+            weapon_ranks[weapon] = sim.damage / sim.encounter_duration
+            return [sim.damage / sim.encounter_duration, weapon]
+
+        a = max(check_weapon(unit_obj, unit_artifact, weapon) for weapon, obj in weapon_dict.items() if obj.type == unit_obj.weapon_type)
+        # return str(unit_obj.__class__.__name__) + "'s best weapon was " + a[1] + " at " + str(round(a[0]))
+        return {k: v for k, v in sorted(weapon_ranks.items(), key=lambda item: item[1])}
 
     @classmethod
     def brute_force_recharge(cls, unit_obj, unit_artifact, *args):
@@ -529,12 +535,20 @@ def main():
     from characters.Mona import MonaF2P
     from characters.Klee import KleeF2P
     from characters.Ningguang import NingguangF2P
-    from characters.Albedo import AlbedoF2P
+    from characters.Albedo import AlbedoF2P, AlbedoArtifact
     from characters.Fischl import FischlF2P
     from characters.Bennett import BennettF2P
+    from characters.Chongyun import ChongyunF2P
+    from characters.Kaeya import KaeyaF2P
+    from characters.Keqing import KeqingF2P
 
-    Test = Sim({XingqiuF2P, AlbedoF2P, DilucF2P, BennettF2P}, Monster, 20)
-    Test.turn_on_sim()
+
+    Test = Sim({AlbedoF2P, KeqingF2P, XingqiuF2P, MonaF2P}, Monster, 60)
+    # Test.turn_on_sim()
+    for key, dps in Test.brute_force_weapon(KeqingF2P, AlbedoArtifact).items():
+        print("Weapon: " + key, "DPS:", round(dps))
+
+    # print([(key, str(round(combo[0]*100,2)) + "%") for key, combo in ComboList.create(KaeyaF2P, Test).items()])
 
     # cProfile.runctx("Test.turn_on_sim()", None, locals())
 

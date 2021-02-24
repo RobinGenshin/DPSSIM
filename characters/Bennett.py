@@ -22,9 +22,8 @@ class Bennett(Char):
             unit.active_buffs["Bennett_Q_Buff"] = copy.deepcopy(buff_dict["Bennett_Q_Buff"])
             unit.active_buffs["Bennett_Q_Buff"].source = self
 
-    def bennett_q_buff(self, _, sim):
-        for unit in sim.units:
-            unit.live_flat_atk += self.snapshot_buff
+    def bennett_q_buff(self, unit, sim):
+        unit.live_flat_atk += self.snapshot_buff
 
         self.live_skill_cdr *= 0.5
 

@@ -1,4 +1,6 @@
-#Turn dot reactions into damage/reactions
+from core.read_data import buff_dict
+from effects.misc import ActiveBuff
+import copy
 
 class React:
     def __init__(self):
@@ -86,6 +88,9 @@ class React:
     def crystallise(self,action,tick,enemy,unit,sim):
         enemy.units -= unit*0.5
         print(action.unit.character + " proced crystallise")
+        for unit in sim.units:
+            unit.active_buffs["Shield"] = copy.copy(buff_dict["Shield"])
+            unit.active_buffs["Shield"].source = ActiveBuff()
         return [1, ["crystallise",enemy.element]]
 
     def superconduct(self,action,tick,enemy,unit,sim):

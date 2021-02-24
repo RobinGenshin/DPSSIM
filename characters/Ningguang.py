@@ -13,16 +13,14 @@ class Ningguang(Char):
         self.jade_wall = False
 
     def ningguang_normal(self, _, __, ___):
-        if self.jade_stacks >= 3:
-            pass
-        else:
+        if self.jade_stacks < 3:
             self.jade_stacks += 1
 
     def ningguang_charged(self, _, sim, action):
-        if action[0].tick_types[action[1]] == "charged":
-            if self.jade_stacks > 0:
-                jade_proc = JadeStar(self, self.jade_stacks)
-                jade_proc.add_to_damage_queue(sim)
+        if self.jade_stacks > 0:
+            jade_proc = JadeStar(self, self.jade_stacks)
+            jade_proc.add_to_damage_queue(sim)
+            self.jade_stacks = 0
 
     def ningguang_a2(self, _, __):
         if self.jade_stacks > 0:
@@ -46,7 +44,7 @@ class Ningguang(Char):
         unit_obj.live_geo_dmg += 0.1
 
     def ningguang_q(self, _, sim, __):
-        if self.jade_wall == True:
+        if self.jade_wall:
 
             self.jade_wall = False
 

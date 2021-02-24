@@ -48,13 +48,13 @@ class StaticBuff:
 
     # Polearm
     @staticmethod
-    def prim_cutter(unit):
-        unit.pct_hp += 0.2 + (unit.weapon_rank - 1) * 0.05
-        unit.flat_atk += (0.012 + (unit.weapon_rank - 1) * 0.003) * (unit.base_hp * unit.hp_pct + unit.flat_hp)
-
-    @staticmethod
     def skyward_spine(unit):
         unit.crit_rate += 0.8 + (unit.weapon_rank - 1) * 0.02
+
+    @staticmethod
+    def staff_of_homa(unit):
+        unit.pct_hp += 0.2 + (unit.weapon_rank - 1) * 0.05
+        unit.flat_atk += (0.008 + (unit.weapon_rank - 1) * 0.002) * (unit.base_hp * unit.pct_hp + unit.flat_hp)
 
     @staticmethod
     def deathmatch(unit):
@@ -72,6 +72,11 @@ class StaticBuff:
     @staticmethod
     def skyward_blade(unit):
         unit.crit_rate += 0.04 + (unit.weapon_rank - 1) * 0.01
+
+    @staticmethod
+    def prim_cutter(unit):
+        unit.pct_hp += 0.2 + (unit.weapon_rank - 1) * 0.05
+        unit.flat_atk += (0.012 + (unit.weapon_rank - 1) * 0.003) * (unit.base_hp * unit.pct_hp + unit.flat_hp)
 
     @staticmethod
     def black_sword(unit):
@@ -334,7 +339,12 @@ class ActiveBuff:
 
     @staticmethod
     def geo_weapons(unit_obj, _):
-        unit_obj.live_pct_atk += (0.08 + (unit_obj.weapon_rank - 1) * 0.02) * unit_obj.active_buffs["Geo Weapon"].stacks
+        if "Shield" in unit_obj.active_buffs:
+            mult = 2
+        else:
+            mult = 1
+        print("SUMMIT SHAPER")
+        unit_obj.live_pct_atk += (0.08 + (unit_obj.weapon_rank - 1) * 0.02) * unit_obj.active_buffs["Geo Weapon"].stacks * mult
 
     @staticmethod
     def dragonspine(unit_obj, sim, _):

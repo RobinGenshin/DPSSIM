@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.action import Ability, Particle
 from core.read_data import buff_dict
+from core.artifact import Artifact
 import copy
 
 
@@ -98,8 +99,9 @@ class KeqingC1(Ability):
         self.loop = False
 
 
-KeqingTest = Keqing(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+KeqingArtifact = Artifact("Archaic Petra", "pct_atk", "geo_dmg", "crit_rate", 30)
 
+KeqingF2P = Keqing(90, 0, "Mappa Marre", 1, KeqingArtifact, [6, 6, 6])
 
 def main():
     print(KeqingTest.live_base_atk)

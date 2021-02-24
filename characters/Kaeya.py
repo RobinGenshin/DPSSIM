@@ -1,5 +1,7 @@
 from core.unit import Char
 from core.action import Ability
+from core.artifact import Artifact
+
 
 class Kaeya(Char):
     def __init__(self, level, constellation, weapon, weapon_rank, artifact, talent_levels):
@@ -33,7 +35,9 @@ class Kaeya(Char):
         self.current_energy += 15
 
 
-KaeyaTest = Kaeya(90, 6, "Harbinger of Dawn", 5, "Noblesse", [10, 10, 10])
+KaeyaArtifact = Artifact("Noblesse", "recharge", "pyro_dmg", "crit_rate", 30)
+
+KaeyaF2P = Kaeya(90, 0, "Staff of Homa", 5, KaeyaArtifact, [6, 6, 6])
 
 
 def main():

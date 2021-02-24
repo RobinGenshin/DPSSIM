@@ -153,9 +153,10 @@ class Action:
             tot_atk = self.snapshot_tot_atk
             attack_multiplier = self.tick_damage[tick]
             defence = (100 + self.unit.level) / ((100 + self.unit.level) + sim.enemy.live_defence)
-            tot_crit_rate = self.snapshot_crit_rate + self.unit.live_cond_crit_rate + getattr(self.unit,
+            tot_crit_rate = min(1, self.snapshot_crit_rate + self.unit.live_cond_crit_rate + getattr(self.unit,
                                                                                               "live_" + self.tick_types[
-                                                                                                tick] + "_cond_crit_rate")
+                                                                                                tick] + "_cond_crit_rate"))
+
             tot_crit_mult = 1 + (tot_crit_rate * self.snapshot_crit_dmg)
             tot_dmg = self.snapshot_dmg + self.unit.live_cond_dmg
             scaling = self.tick_scaling[tick]

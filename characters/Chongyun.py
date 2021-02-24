@@ -1,5 +1,6 @@
 from core.unit import Char
 from core.action import Ability
+from core.artifact import Artifact
 
 
 class Chongyun(Char):
@@ -44,7 +45,9 @@ class Chongyun(Char):
         self.burst_dmg += 0.075
 
 
-ChongyunTest = Chongyun(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+ChongyunArtifact = Artifact("Noblesse", "recharge", "pyro_dmg", "crit_rate", 30)
+
+ChongyunF2P = Chongyun(90, 0, "Festering Desire", 5, ChongyunArtifact, [6, 6, 6])
 
 
 def main():

@@ -124,9 +124,9 @@ class AlbedoC2(Ability):
         return damage
 
 
-AlbedoArtifact = Artifact("Archaic Petra", "pct_def", "geo_dmg", "crit_rate", 30)
+AlbedoArtifact = Artifact("Archaic Petra", "pct_def", "geo_dmg", "crit_rate", 5)
 
-AlbedoF2P = Albedo(90, 0, "Harbinger of Dawn", 1, AlbedoArtifact, [6, 6, 6])
+AlbedoF2P = Albedo(90, 0, "Primordial Jade Cutter", 1, AlbedoArtifact, [6, 6, 6])
 
 
 def main():

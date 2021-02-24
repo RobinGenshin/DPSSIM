@@ -62,6 +62,7 @@ def read_character_data():
             newname.name = row['name']
             newname.element = row['element']
             newname.weapon_type = row['weapon_type']
+            newname.region = row['region']
 
             newname.base_atk = str_to_int(row['base_atk'])
             newname.pct_atk_ = pctstr_to_float(row['pct_atk'])
@@ -159,6 +160,7 @@ def read_weapon_data():
             newweapon = Weapon(weapon)
             weapdict[weapon] = newweapon
 
+            newweapon.type = row['type']
             newweapon.rarity = row['weapon_rarity']
             newweapon.weapon_class = row['weapon_class']
             newweapon.weapon_rank = 0
