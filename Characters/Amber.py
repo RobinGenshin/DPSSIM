@@ -1,14 +1,70 @@
-from unit import *
+from core.unit import Char
+from core.action import Ability
+import copy
 
-def module():
-    return Amber
+class Amber(Char):
+    def __init__(self, level, constellation, weapon, weapon_rank, artifact, talent_levels):
+        super().__init__("Amber", level, constellation, weapon, weapon_rank, artifact, talent_levels)
 
-class Amber(Unit):
-    def __init__(self,constellation,weapon,artifact,talentlevels)
+    # StaticEffect
+    def amber_a2(self):
+        self.burst_crit_rate += 0.1
 
-    self.base_atk = 223 + weapon.base_atk
-    self.pct_atk = 0.24 + weapon.pct_atk + 
-    self.crit_rate = 0.05
-    self.crit_dmg = 0.5
-    self.base_hp = 9461
-    self.base_def = 
+    # ActiveEffect
+    def amber_a4(self):
+        self.live_pct_atk += 0.15
+
+    # StaticEffect
+    def amber_c1(self):
+        self.charged_ticks += 1
+        self.charged_tick_times.append(self.charged_tick_times[0] + 0.1)
+        self.charged_tick_damage.append(1.24 * 0.2)
+        self.charged_tick_units.append(1)
+        self.charged_tick_hitlag.append(0)
+
+    # ActiveEffect
+    def amber_c2(self, _, sim, __):
+        for action in sim.floating_actions:
+            if action.name == "Amber skill" and action.action_type == "damage" and action.loop == True:
+                flat_dmg = AmberC2(self)
+                flat_dmg.add_to_damage_queue(sim)
+                print("BOOM!")
+                action.tick_times = [sim.time_into_turn]
+                action.update_time()
+                for energy in copy.copy(sim.floating_actions):
+                    if energy.name == "Amber skill" and energy.action_type == "energy":
+                        energy.energy_times = [sim.time_into_turn + 2]
+                        energy.update_time()
+
+    # StaticEffect
+    def amber_c4(self):
+        self.skill_charges += 1
+        self.skill_cdr *= 0.8
+
+    # ActiveEffect
+    @staticmethod
+    def amber_c6(unit, _):
+        unit.live_pct_atk += 0.15
+
+
+class AmberC2(Ability):
+    def __init__(self, unit_obj):
+        super().__init__(unit_obj, "skill")
+        self.name = "Amber C2"
+        self.tick_damage = [2]
+        self.tick_scaling = [1]
+        self.tick_units = [0]
+        self.tick_times = [0]
+        self.loop = False
+
+
+AmberTest = Amber(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+
+
+def main():
+    print(AmberTest.live_base_atk)
+    print(AmberTest.static_buffs)
+
+
+if __name__ == '__main__':
+    main()
