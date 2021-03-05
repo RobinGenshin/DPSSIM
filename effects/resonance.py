@@ -16,7 +16,7 @@ class Resonance:
 
     @staticmethod
     def cryo_resonance(unit_obj, sim, _):
-        if "Cryo" in sim.enemy.elements or "Frozen in sim.enemy.elements":
+        if "Cryo" in sim.enemy.elements or "Frozen" in sim.enemy.elements:
             unit_obj.live_cond_crit_rate += 0.15
 
     @staticmethod
