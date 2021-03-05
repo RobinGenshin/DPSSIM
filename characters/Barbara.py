@@ -1,5 +1,6 @@
 from core.unit import Char
 from core.read_data import buff_dict
+from core.artifact import Artifact
 import copy
 
 
@@ -44,7 +45,9 @@ class Barbara(Char):
         self.skill_cdr *= 0.85
 
 
-BarbaraTest = Barbara(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+BarbaraArtifact = Artifact("Noblesse", "recharge", "hydro_dmg", "crit_rate", 30)
+
+BarbaraF2P = Barbara(90, 0, "Sacrificial Fragments", 1, BarbaraArtifact, [6, 6, 6])
 
 
 def main():

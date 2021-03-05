@@ -8,12 +8,12 @@ class Chongyun(Char):
         super().__init__("Chongyun", level, constellation, weapon, weapon_rank, artifact, talent_levels)
 
     @staticmethod
-    def chongyun_e(unit_obj):
+    def chongyun_e(unit_obj, _):
         unit_obj.live_normal_type = "Cryo"
         unit_obj.live_charged_type = "Cryo"
 
     @staticmethod
-    def chongyun_a2(unit_obj):
+    def chongyun_a2(unit_obj, _):
         unit_obj.live_normal_speed += 0.08
 
     def chongyun_c1(self, _, sim, action):
@@ -33,8 +33,8 @@ class Chongyun(Char):
         unit_obj.live_burst_cdr *= 0.85
 
     def chongyun_c4(self, _, sim, ___):
-        if sim.enemy.element == "Cryo":
-            self.live_burst_energy_cost += 1
+        if "Cryo" in sim.enemy.elements or "Frozen" in sim.enemy.elements:
+            self.current_energy += 1
             self.triggerable_buffs["Chongyun_C4"].live_cd = 2
 
     def chongyun_c6(self):
@@ -45,9 +45,9 @@ class Chongyun(Char):
         self.burst_dmg += 0.075
 
 
-ChongyunArtifact = Artifact("Noblesse", "recharge", "pyro_dmg", "crit_rate", 30)
+ChongyunArtifact = Artifact("Noblesse", "recharge", "cryo_dmg", "crit_rate", 30)
 
-ChongyunF2P = Chongyun(90, 0, "Festering Desire", 5, ChongyunArtifact, [6, 6, 6])
+ChongyunF2P = Chongyun(90, 0, "Lithic Blade", 5, ChongyunArtifact, [6, 6, 6])
 
 
 def main():

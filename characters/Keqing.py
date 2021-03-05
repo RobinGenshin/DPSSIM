@@ -58,8 +58,8 @@ class Keqing(Char):
             print("Proced Keqing C1")
 
     def keqing_c2(self, _, sim, __):
-        if sim.enemy.element == "Electro":
-            energy = Particle(self, "Electro", 1)
+        if "Electro" in sim.enemy.elements:
+            energy = Particle(self, "Electro", 1, sim)
             energy.add_to_energy_queue(sim)
             self.triggerable_buffs["Keqing_C2"].live_cd = 5
 
@@ -99,9 +99,9 @@ class KeqingC1(Ability):
         self.loop = False
 
 
-KeqingArtifact = Artifact("Archaic Petra", "pct_atk", "geo_dmg", "crit_rate", 30)
+KeqingArtifact = Artifact("Thundering Fury", "pct_atk", "electro_dmg", "crit_rate", 30)
 
-KeqingF2P = Keqing(90, 0, "Mappa Marre", 1, KeqingArtifact, [6, 6, 6])
+KeqingF2P = Keqing(90, 0, "The Black Sword", 1, KeqingArtifact, [6, 6, 6])
 
 def main():
     print(KeqingTest.live_base_atk)

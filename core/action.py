@@ -195,10 +195,9 @@ class Action:
     def add_to_energy_queue(self, sim):
         energy = deepcopy(self)
         energy.action_type = "energy"
-        energy.energy_times = [x + sim.time_into_turn for x in self.tick_times]
+        energy.energy_times = [x + sim.time_into_turn + 2 for x in self.tick_times]
         energy.update_time()
         sim.floating_actions.append(energy)
-
 
 class Ability(Action):
     def __init__(self, unit_obj, talent):
@@ -372,11 +371,14 @@ class Combo(Action):
 
 
 class Particle(Action):
-    def __init__(self, unit_obj, element, amount):
+    def __init__(self, unit_obj, element, amount, sim):
         super().__init__(unit_obj)
         self.ticks = 1
+        self.tick_times = [sim.time_into_turn]
         self.element = element
         self.particles = amount
+        self.tick_used = ["no"]
+        self.tick_types = ["particle"]
 
 
 class WeaponAction(Action):
@@ -404,3 +406,32 @@ class WeaponAction(Action):
         self.snapshot_crit_rate = copy(self.unit.live_crit_rate)
         self.snapshot_crit_dmg = copy(self.unit.live_crit_dmg)
         self.snapshot_dmg = copy(1 + self.unit.live_all_dmg + getattr(self.unit, "live_physical_dmg"))
+
+
+class ElectroCharged(Action):
+    def __init__(self, unit_obj, sim):
+        super().__init__(unit_obj)
+        self.ticks = 1
+        self.action_type = "damage"
+        self.name = str(unit_obj.character) + "Electrocharged"
+        self.tick_times = [sim.time_into_turn]
+        self.tick_used = ["no"]
+        self.tick_types = ["electrocharged"]
+        self.tick_units = [0]
+
+    def calculate_tick_damage(self, tick, sim):
+        if "Hydro" in sim.enemy.elements and "Electro" in sim.enemy.elements:
+            if sim.enemy.elements["Hydro"] > 0 and sim.enemy.elements["Electro"] > 0:
+                sim.enemy.elements["Hydro"] -= 0.4
+                sim.enemy.elements["Electro"] -= 0.4
+                if sim.enemy.elements["Hydro"] > 0 and sim.enemy.elements["Electro"] > 0:
+                    ec = ElectroCharged(self.unit, sim)
+                    ec.tick_times = [1]
+                    ec.add_to_damage_queue(sim)
+                dmg = 1443 * (1 + ((4.44 * self.unit.live_ele_m) / (1400 + self.unit.live_ele_m))) * (1 - sim.enemy.live_electro_res)
+                print(self.unit.character + " proced electro_charged")
+                return dmg
+            else:
+                return 0
+        else:
+            return 0

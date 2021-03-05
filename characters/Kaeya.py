@@ -24,7 +24,7 @@ class Kaeya(Char):
             energy.add_to_energy_queue(sim)
 
     def kaeya_c1(self, _, sim, __):
-        if sim.enemy.element == "Cryo":
+        if "Cryo" in sim.enemy.elements or "Frozen" in sim.enemy.elements:
             self.live_normal_cond_crit_rate += 0.15
             self.live_charged_cond_crit_rate += 0.15
 
@@ -35,9 +35,9 @@ class Kaeya(Char):
         self.current_energy += 15
 
 
-KaeyaArtifact = Artifact("Noblesse", "recharge", "pyro_dmg", "crit_rate", 30)
+KaeyaArtifact = Artifact("Noblesse", "recharge", "cryo_dmg", "crit_rate", 30)
 
-KaeyaF2P = Kaeya(90, 0, "Staff of Homa", 5, KaeyaArtifact, [6, 6, 6])
+KaeyaF2P = Kaeya(90, 0, "Favonius Sword", 5, KaeyaArtifact, [6, 6, 6])
 
 
 def main():

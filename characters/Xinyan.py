@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.read_data import buff_dict
 from core.action import Ability
+from core.artifact import Artifact
 
 
 class Xinyan(Char):
@@ -57,7 +58,9 @@ class XinyanC2(Ability):
         self.tick_scaling = [self.tick_scaling[0]] * 6
 
 
-XinyanTest = Xinyan(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+XinyanArtifact = Artifact("Noblesse", "pct_atk", "pyro_dmg", "crit_rate", 30)
+
+XinyanF2P = Xinyan(90, 0, "Favonius Greatsword", 1, XinyanArtifact, [6, 6, 6])
 
 
 def main():

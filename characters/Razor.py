@@ -2,12 +2,14 @@ from core.unit import Char
 from core.read_data import buff_dict, razor_qas_ratio_dict
 from core.action import Combo
 from core.scaling import ratio_type
+from core.artifact import Artifact
 import copy
 
 
 class Razor(Char):
     def __init__(self, level, constellation, weapon, weapon_rank, artifact, talent_levels):
         super().__init__("Razor", level, constellation, weapon, weapon_rank, artifact, talent_levels)
+        self.greedy = True
         self.electro_sigil = 0
         self.snapshot_buff = 0
 
@@ -93,7 +95,10 @@ class RazorC6(Combo):
         self.loop = False
 
 
-RazorTest = Razor(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+RazorArtifact = Artifact("Gladiator's Finale", "pct_atk", "electro_dmg", "crit_rate", 30)
+
+RazorF2P = Razor(90, 0, "Prototype Archaic", 1, RazorArtifact, [6, 6, 6])
+
 
 
 def main():

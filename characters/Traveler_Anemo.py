@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.action import Combo
 from core.read_data import debuff_dict
+from core.artifact import Artifact
 import copy
 
 
@@ -58,7 +59,9 @@ class TravelerAnemoA2(Combo):
         self.loop = False
 
 
-TravelerAnemoTest = TravelerAnemo(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+TravelerAnemoArtifact = Artifact("Viridiscent Venerer", "pct_atk", "anemo_dmg", "crit_rate", 30)
+
+TravelerAnemoF2P = TravelerAnemo(90, 6, "Favonius Sword", 1, TravelerAnemoArtifact, [6, 6, 6])
 
 
 def main():

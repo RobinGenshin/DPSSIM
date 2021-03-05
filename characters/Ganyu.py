@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.action import Ability, Combo, Action
 from core.read_data import buff_dict
+from core.artifact import Artifact
 import copy
 
 class Ganyu(Char):
@@ -21,7 +22,7 @@ class Ganyu(Char):
         unit_obj.live_cryo_dmg += 0.2
 
     def ganyu_c1_1(self, _, __, ___):
-        self.live_burst_energy_cost += 2
+        self.current_energy += 2
 
     @staticmethod
     def ganyu_c4(unit_obj, _):
@@ -54,7 +55,9 @@ class Ganyu(Char):
             del self.triggerable_buffs["Ganyu_C6_3"]
 
 
-GanyuTest = Ganyu(90, 6, "Harbinger of Dawn", 5, "Noblesse", [10, 10, 10])
+GanyuArtifact = Artifact("Blizzard Strayer", "pct_atk", "cryo_dmg", "crit_rate", 30)
+
+GanyuF2P = Ganyu(90, 0, "Skyward Harp", 1, GanyuArtifact, [6, 6, 6])
 
 
 def main():

@@ -1,6 +1,5 @@
 # pylint: disable=no-member
-# from characters.TestChars import *
-from core import enemy
+from core.enemy import Enemy
 from core.reactions import React
 from core.action import ComboList, Ability, Combo
 from effects.resonance import Resonance
@@ -8,7 +7,7 @@ import copy
 from core.priority_list import PriorityList
 from core.read_data import buff_dict, weapon_dict
 import cProfile
-
+from characters.Test import *
 
 # Creating a list of actions
 class Sim:
@@ -31,6 +30,7 @@ class Sim:
         self.action_queue = []
         self.sorted_action_queue = []
         self.a_dict = dict()
+        self.encounter_data = dict()
 
         self.stamina = 250
         self.stamina_timer = 0
@@ -38,6 +38,13 @@ class Sim:
 
         for unit in self.units:
             unit.damage = 0
+
+    # Static Buffs (Team) #
+    def static_buff_team(self):
+        for unit in self.units:
+            for key, buff in unit.static_buffs.items():
+                if buff.type2 == "team":
+                    getattr(buff.source, buff.method)(unit, self)
 
     # Team Comp Buffs (Resonance) #
     def resonance(self):
@@ -56,7 +63,7 @@ class Sim:
         if sum(1 for unit in self.units if unit.element == "Electro") >= 2:
             for unit in self.units:
                 unit.triggerable_buffs["Electro_Resonance"] = copy.copy(buff_dict["Electro_Resonance"])
-
+                unit.triggerable_buffs["Electro_Resonance"].source = Resonance()
         if sum(1 for unit in self.units if unit.element == "Anemo") >= 2:
             for unit in self.units:
                 unit.static_buffs = copy.copy(buff_dict["Anemo_Resonance"])
@@ -65,7 +72,7 @@ class Sim:
         if sum(1 for unit in self.units if unit.element == "Cryo") >= 2:
             for unit in self.units:
                 unit.triggerable_buffs["Cryo_Resonance"] = copy.copy(buff_dict["Cryo_Resonance"])
-
+                unit.triggerable_buffs["Cryo_Resonance"].source = Resonance()
     # Starts the sim, adds 1 to the turn number and updates the previous unit
     def start_sim(self):
         self.action_order += 1
@@ -367,9 +374,7 @@ class Sim:
         damage_action_element_unit = damage_action.tick_units[tick]
         multiplier = 1
         if damage_action_element_unit > 0:
-            reaction = getattr(React(), React().check(damage_action, tick, self.enemy))(damage_action, tick, self.enemy,
-                                                                                        damage_action_element_unit,
-                                                                                        self)
+            reaction = React().check(damage_action, tick, self.enemy, damage_action_element_unit, self)
             reaction[1].append(damage_action)
             multiplier = reaction[0]
             self.check_buff("reaction", damage_action, tick, reaction[1])
@@ -377,6 +382,7 @@ class Sim:
         self.enemy.update_units()
         instance_damage = damage_action.calculate_tick_damage(tick, self) * multiplier
         self.damage += instance_damage
+        self.encounter_data[copy.copy(self.time_into_turn + self.encounter_duration)] = copy.copy(self.damage)
 
         for unit in self.units:
             if damage_action.unit == unit:
@@ -408,15 +414,21 @@ class Sim:
 
         for unit in self.units:
             if unit == self.chosen_unit:
-                if self.chosen_unit.element == energy_action.unit.element:
-                    self.chosen_unit.current_energy += particles * 3 * (1 + self.chosen_unit.recharge)
+                if energy_action.element == "Clear":
+                    self.chosen_unit.current_energy += particles * 2 * (1 + self.chosen_unit.recharge)
                 else:
-                    self.chosen_unit.current_energy += particles * 1 * (1 + self.chosen_unit.recharge)
+                    if self.chosen_unit.element == energy_action.unit.element:
+                        self.chosen_unit.current_energy += particles * 3 * (1 + self.chosen_unit.recharge)
+                    else:
+                        self.chosen_unit.current_energy += particles * 1 * (1 + self.chosen_unit.recharge)
             else:
-                if unit.element == energy_action.unit.element:
-                    unit.current_energy += particles * 1.8 * (1 + unit.recharge)
+                if energy_action.element == "Clear":
+                    self.chosen_unit.current_energy += particles * 1.2 * (1 + self.chosen_unit.recharge)
                 else:
-                    unit.current_energy += particles * 0.6 * (1 + unit.recharge)
+                    if unit.element == energy_action.unit.element:
+                        unit.current_energy += particles * 1.8 * (1 + unit.recharge)
+                    else:
+                        unit.current_energy += particles * 0.6 * (1 + unit.recharge)
 
         self.check_buff("particle", energy_action, tick, None)
         self.check_buff_end()
@@ -469,10 +481,11 @@ class Sim:
             action = self.chosen_action.talent
         print("#" + str(self.action_order) + " Time:" + str(
             round(self.encounter_duration, 2)) + " " + self.chosen_unit.character + stance + " used "
-              + action, "Stamina:", self.stamina)
+              + action, "Stamina:", round(self.stamina))
 
     # Turns on the sim
     def turn_on_sim(self):
+        self.static_buff_team()
         self.resonance()
         while self.encounter_duration < self.encounter_limit:
             self.start_sim()
@@ -489,69 +502,70 @@ class Sim:
         print("Time:" + str(round(self.encounter_duration, 2)),
                   "DPS:" + str(round(self.damage / self.encounter_duration, 2)))
 
-    def brute_force_weapon(self, unit_obj, unit_artifact):
+    def brute_force_weapon(self, unit_obj, mode):
         self.units.remove(unit_obj)
         weapon_ranks = dict()
 
-        def check_weapon(unit, artifact, weapon):
+        def check_weapon(unit, weapon):
             units = copy.deepcopy(self.units)
-            check = unit.__class__(90, 6, weapon, 5, artifact, [6, 6, 6])
+            if mode == "r1 5*":
+                rarity = weapon_dict[weapon].rarity
+                if rarity == "5*":
+                    rank = 1
+                elif rarity == "4*" or rarity == "3*":
+                    rank = 5
+                else:
+                    print(weapon)
+                    print("Error")
+            else:
+                rank = unit.weapon_rank
+            check = unit.__class__(90, unit.constellation, weapon, rank, copy.deepcopy(unit.artifact_copy), [6, 6, 6])
             units.add(check)
-            sim = Sim(units, Monster, 60)
+            sim = Sim(units, Enemy("Hilichurls", 90), 60)
             sim.turn_on_sim()
             units.remove(check)
             weapon_ranks[weapon] = sim.damage / sim.encounter_duration
             return [sim.damage / sim.encounter_duration, weapon]
 
-        a = max(check_weapon(unit_obj, unit_artifact, weapon) for weapon, obj in weapon_dict.items() if obj.type == unit_obj.weapon_type)
+        a = max(check_weapon(unit_obj, weapon) for weapon, obj in weapon_dict.items() if obj.type == unit_obj.weapon_type)
         # return str(unit_obj.__class__.__name__) + "'s best weapon was " + a[1] + " at " + str(round(a[0]))
         return {k: v for k, v in sorted(weapon_ranks.items(), key=lambda item: item[1])}
 
-    @classmethod
-    def brute_force_recharge(cls, unit_obj, unit_artifact, *args):
-        def check_recharge(unit, i):
-            check = unit.__class__(90, 6, unit.weapon, 5, unit_artifact, [6, 6, 6])
-            check.crit_rate -= 0.0165 * i
-            check.crit_dmg -= 0.033 * i
-            check.recharge += 0.0583 * i
-            sim = cls({check, *args}, Monster, 200)
-            sim.turn_on_sim()
-            return [sim.damage / sim.encounter_duration, i]
-
-        dmg = [0, 0]
-        for i in range(unit_obj.artifact.initial_subs):
-            if check_recharge(unit_obj, i)[0] > dmg[0]:
-                dmg = check_recharge(unit_obj, i)
-        return dmg
-
-
-Monster = enemy.Enemy("Hilichurls", 90)
+    # @classmethod
+    # def brute_force_recharge(cls, unit_obj, unit_artifact, *args):
+    #     def check_recharge(unit, i):
+    #         check = unit.__class__(90, 6, unit.weapon, 5, unit_artifact, [6, 6, 6])
+    #         check.crit_rate -= 0.0165 * i
+    #         check.crit_dmg -= 0.033 * i
+    #         check.recharge += 0.0583 * i
+    #         sim = cls({check, *args}, Monster, 200)
+    #         sim.turn_on_sim()
+    #         return [sim.damage / sim.encounter_duration, i]
+    #
+    #     dmg = [0, 0]
+    #     for i in range(unit_obj.artifact.initial_subs):
+    #         if check_recharge(unit_obj, i)[0] > dmg[0]:
+    #             dmg = check_recharge(unit_obj, i)
+    #     return dmg
 
 
 def main():
-    from characters.Diluc import DilucF2P, DilucArtifact
-    from characters.Xingqiu import XingqiuF2P, XingqiuArtifact
-    from characters.Venti import VentiF2P
-    from characters.Mona import MonaF2P
-    from characters.Klee import KleeF2P
-    from characters.Ningguang import NingguangF2P
-    from characters.Albedo import AlbedoF2P, AlbedoArtifact
-    from characters.Fischl import FischlF2P
-    from characters.Bennett import BennettF2P
-    from characters.Chongyun import ChongyunF2P
-    from characters.Kaeya import KaeyaF2P
-    from characters.Keqing import KeqingF2P
+    Test = Sim({BennettF2P, AlbedoF2P}, Enemy("Hilichurls", 90), 60)
+    Test.turn_on_sim()
+    print(Test.encounter_data)
 
+    ## Weapon Ranks
+    # for key, dps in Test.brute_force_weapon(KaeyaF2P, "r1 5*").items():
+    #     print("Weapon: " + key, "DPS:", round(dps))
 
-    Test = Sim({AlbedoF2P, KeqingF2P, XingqiuF2P, MonaF2P}, Monster, 60)
-    # Test.turn_on_sim()
-    for key, dps in Test.brute_force_weapon(KeqingF2P, AlbedoArtifact).items():
-        print("Weapon: " + key, "DPS:", round(dps))
+    ## Creates MV/s list
+    # for key, combo in ComboList.create(XianglingF2P, Test).items():
+    #     print((key, str(round(combo[0] * 100, 2)) + "%"))
 
-    # print([(key, str(round(combo[0]*100,2)) + "%") for key, combo in ComboList.create(KaeyaF2P, Test).items()])
-
+    ## Run to test for slow run times
     # cProfile.runctx("Test.turn_on_sim()", None, locals())
 
+    ## Lists ability usages
     # for key, value in Test.a_dict.items():
     #     print(key.character, "Skills used:" + str(value[0]), "Bursts used:" + str(value[1]), "Combos used:" + str(value[2]))
 

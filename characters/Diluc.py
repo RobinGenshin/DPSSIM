@@ -1,7 +1,6 @@
 from core.unit import Char
 from core.read_data import buff_dict
 from core.artifact import Artifact
-from core.sim import Sim, Monster
 import copy
 
 
@@ -43,6 +42,7 @@ class Diluc(Char):
             self.current_skill_cd = 0
         else:
             if self.e_stacks != 1:
+                self.e_stacks = 0
                 self.current_skill_cd = self.live_skill_cd - (sim.encounter_duration - self.start_time)
                 self.active_buffs.pop("Diluc_E")
 
@@ -114,7 +114,7 @@ class Diluc(Char):
 
 DilucArtifact = Artifact("Crimson Witch", "pct_atk", "pyro_dmg", "crit_rate", 30)
 
-DilucF2P = Diluc(90, 0, "Prototype Archaic", 5, DilucArtifact, [6, 6, 6])
+DilucF2P = Diluc(90, 0, "Skyward Pride", 1, DilucArtifact, [6, 6, 6])
 DilucDolphin = Diluc(90, 0, "Wolf's Gravestone", 1, DilucArtifact, [6, 6, 6])
 DilucSpender = Diluc(90, 2, "Wolf's Gravestone", 1, DilucArtifact, [6, 6, 6])
 DilucWhale = Diluc(90, 4, "Wolf's Gravestone", 3, DilucArtifact, [6, 6, 6])
@@ -123,8 +123,10 @@ DilucLeviathan = Diluc(90, 6, "Wolf's Gravestone", 5, DilucArtifact, [6, 6, 6])
 
 def main():
     Test = Sim({DilucF2P}, Monster, 60)
+    Test.turn_on_sim()
+    print(DilucF2P.static_buffs)
     # print(Test.brute_force_weapon(DilucArtifact, Diluc))
-    print(Test.brute_force_recharge(DilucArtifact, Diluc, "Wolf's Gravestone"))
+    # print(Test.brute_force_recharge(DilucArtifact, Diluc, "Wolf's Gravestone"))
 
 
 if __name__ == '__main__':

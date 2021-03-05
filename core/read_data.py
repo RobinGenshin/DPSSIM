@@ -63,6 +63,7 @@ def read_character_data():
             newname.element = row['element']
             newname.weapon_type = row['weapon_type']
             newname.region = row['region']
+            newname.img_source = row['img_source']
 
             newname.base_atk = str_to_int(row['base_atk'])
             newname.pct_atk_ = pctstr_to_float(row['pct_atk'])
@@ -160,6 +161,8 @@ def read_weapon_data():
             newweapon = Weapon(weapon)
             weapdict[weapon] = newweapon
 
+            newweapon.img_source = row['img_source']
+            newweapon.weapon = row['weapon']
             newweapon.type = row['type']
             newweapon.rarity = row['weapon_rarity']
             newweapon.weapon_class = row['weapon_class']
@@ -218,6 +221,8 @@ def read_artifact_set_data():
             newarti = Artifact(artifact)
             artifactdict[artifact] = newarti
 
+            newarti.artifact = row['artifact']
+            newarti.img_source = row['img_source']
             newarti.artifact_rarity = row['artifact_rarity']
             newarti.pct_atk = pctstr_to_float(row['pct_atk'])
             newarti.crit_rate = pctstr_to_float(row['crit_rate'])
@@ -317,6 +322,7 @@ def read_buff_data():
             newbuff.max_stacks = str_to_int(row['Max Stacks'])
             newbuff.stacks = 0
             newbuff.temporary = (row['Temporary'])
+            newbuff.greedy = row['Greedy']
 
         return buffdict
 
@@ -356,7 +362,7 @@ debuff_dict = read_debuff_data()
 
 
 def main():
-    pass
+    print("Lithic Blade" in buff_dict["Lithic"].weapon)
 
 
 if __name__ == '__main__':

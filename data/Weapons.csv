@@ -1,59 +1,62 @@
-weapon,type,weapon_rarity,weapon_class,base_atk,pct_atk,crit_rate,crit_dmg,physical_dmg,ele_m,recharge,pct_hp,pct_def
-Primordial Jade Winged-Spear,Polearm,5*,48,674,,22.1%,,,,,,
-Skyward Spine,Polearm,5*,48,674,,,,,,36.8%,,
-Vortex Vanquisher,Polearm,5*,46,608,49.6%,,,,,,,
-Staff of Homa,Polearm,5*,46,608,,,66.2%,,,,,
-Crescent Pike,Polearm,4*,44,565,,,,34.5%,,,,
-Dragonspine Spear,Polearm,4*,41,454,,,,69.0%,,,,
-Favonius Lance,Polearm,4*,44,565,,,,,,30.6%,,
-Blackcliff Pole,Polearm,4*,42,510,,,55.1%,,,,,
-Prototype Starglitter,Polearm,4*,42,510,,,,,,45.9%,,
-Deathmatch,Polearm,4*,41,454,16.0%,36.8%,,,,,,
-Dragon's Bane,Polearm,4*,41,454,,,,,221,,,
-Skyward Harp,Bow,5*,48,674,,22.1%,,,,,,
-Amo's Bow,Bow,5*,46,608,49.6%,,,,,,,
-Blackcliff Warbow,Bow,4*,44,565,,,36.8%,,,,,
-Sacrificial Bow,Bow,4*,44,565,,,,,,30.6%,,
-Rust,Bow,4*,42,510,41.3%,,,,,,,
-The Stringless,Bow,4*,42,510,,,,,165,,,
-The Viridescent Hunt,Bow,4*,42,510,,27.6%,,,,,,
-Favonius Warbow,Bow,4*,41,454,,,,,,61.3%,,
-Prototype Crescent,Bow,4*,42,510,41.3%,,,,,,,
-Aquila Favonia,Sword,5*,48,674,,,,41.3%,,,,
-Skyward Blade,Sword,5*,46,608,,,,,,55.1%,,
-Summit Shaper,Sword,5*,46,608,49.6%,,,,,,,
-Primordial Jade Cutter,Sword,5*,44,542,,44.1%,,,,,,
-Blackcliff Longsword,Sword,4*,44,565,,,36.8%,,,,,
-Iron Sting,Sword,4*,42,510,,,,,165,,,
-Lion's Roar,Sword,4*,42,510,41.3%,,,,,,,
-Prototype Rancour,Sword,4*,44,565,,,,34.5%,,,,
-The Flute,Sword,4*,42,510,41.3%,,,,,,,
-The Black Sword,Sword,4*,42,510,,27.6%,,,,,,
-Sacrificial Sword,Sword,4*,41,454,,,,,,61.3%,,
-Festering Desire,Sword,4*,42,510,,,,,,45.9%,,
-Favonius Sword,Sword,4*,41,454,,,,,,61.3%,,
-Harbinger of Dawn,Sword,,39,401,,,46.9%,,,,,
-Skyward Atlas,Catalyst,5*,48,674,33.1%,,,,,,,
-Lost Prayers,Catalyst,5*,46,608,,33.1%,,,,,,
-Memory of Dust,Catalyst,5*,46,608,49.6%,,,,,,,
-Mappa Marre,Catalyst,4*,44,565,,,,,110,,,
-Widsith,Catalyst,4*,42,510,,,55.1%,,,,,
-Solar Pearl,Catalyst,4*,42,510,,27.6%,,,,,,
-Blackcliff Agate,Catalyst,4*,42,510,,,55.1%,,,,,
-Favonius Codex,Catalyst,4*,42,510,,,,,,45.9%,,
-Frostbearer,Catalyst,4*,42,510,41.3%,,,,,,,
-Prototype Amber,Catalyst,4*,42,510,,,,,,,,41.3%
-Eye of Perception,Catalyst,4*,41,454,,,,,,55.1%,,
-Sacrificial Fragments,Catalyst,4*,41,454,,,,,221,,,
-Thrilling Tales,Catalyst,3*,39,401,,,,,,,,35.2%
-Skyward Pride,Claymore,5*,48,674,,,,,,36.8%,,
-Wolf's Gravestone,Claymore,5*,46,608,49.6%,,,,,,,
-The Unforged,Claymore,5*,46,608,49.6%,,,,,,,
-Prototype Archaic,Claymore,4*,44,565,27.6%,,,,,30.6%,,
-Sacrificial Greatsword,Claymore,4*,44,565,,,,,,,,
-Snow-Tombed Starsilver,Claymore,4*,44,565,,,,34.5%,,,,
-Blackcliff Slasher,Claymore,4*,42,510,,,55.1%,,,,,
-Whiteblind,Claymore,4*,42,510,,,,,,,,
-Rainslasher,Claymore,4*,42,510,,,,,165,,,
-Serpent Spine,Claymore,4*,42,510,,27.6%,,,,,,
-Favonius Greatsword,Claymore,4*,41,454,,,,,,61.30%,,
+weapon,type,weapon_rarity,weapon_class,base_atk,pct_atk,crit_rate,crit_dmg,physical_dmg,ele_m,recharge,pct_hp,pct_def,img_source
+Primordial Jade Winged-Spear,Polearm,5*,48,674,,22.1%,,,,,,,../images/weapons/Primordial_Jade_Winged-Spear.png
+Skyward Spine,Polearm,5*,48,674,,,,,,36.8%,,,../images/weapons/Skyward_Spine.png
+Vortex Vanquisher,Polearm,5*,46,608,49.6%,,,,,,,,../images/weapons/Vortex_Vanquisher.png
+Staff of Homa,Polearm,5*,46,608,,,66.2%,,,,,,../images/weapons/Staff_of_Homa.png
+Staff of Homa (A),Polearm,5*,46,608,,,66.2%,,,,,,../images/weapons/Staff_of_Homa_(A).png
+Crescent Pike,Polearm,4*,44,565,,,,34.5%,,,,,../images/weapons/Crescent_Pike.png
+Dragonspine Spear,Polearm,4*,41,454,27.6%,,,69.0%,,,,,../images/weapons/Dragonspine_Spear.png
+Favonius Lance,Polearm,4*,44,565,,,,,,30.6%,,,../images/weapons/Favonius_Lance.png
+Lithic Spear,Polearm,4*,44,565,,,,,,,,,../images/weapons/Lithic_Spear.png
+Blackcliff Pole,Polearm,4*,42,510,,,55.1%,,,,,,../images/weapons/Blackcliff_Pole.png
+Prototype Starglitter,Polearm,4*,42,510,,,,,,45.9%,,,../images/weapons/Prototype_Starglitter.png
+Deathmatch,Polearm,4*,41,454,16.0%,36.8%,,,,,,,../images/weapons/Deathmatch.png
+Dragon's Bane,Polearm,4*,41,454,,,,,221,,,,../images/weapons/Dragon's_Bane.png
+Skyward Harp,Bow,5*,48,674,,22.1%,,,,,,,../images/weapons/Skyward_Harp.png
+Amo's Bow,Bow,5*,46,608,49.6%,,,,,,,,../images/weapons/Amo's_Bow.png
+Blackcliff Warbow,Bow,4*,44,565,,,36.8%,,,,,,../images/weapons/Blackcliff_Warbow.png
+Sacrificial Bow,Bow,4*,44,565,,,,,,30.6%,,,../images/weapons/Sacrificial_Bow.png
+Rust,Bow,4*,42,510,41.3%,,,,,,,,../images/weapons/Rust.png
+The Stringless,Bow,4*,42,510,,,,,165,,,,../images/weapons/The_Stringless.png
+The Viridescent Hunt,Bow,4*,42,510,,27.6%,,,,,,,../images/weapons/The_Viridescent_Hunt.png
+Favonius Warbow,Bow,4*,41,454,,,,,,61.3%,,,../images/weapons/Favonius_Warbow.png
+Prototype Crescent,Bow,4*,42,510,41.3%,,,,,,,,../images/weapons/Prototype_Crescent.png
+Aquila Favonia,Sword,5*,48,674,,,,41.3%,,,,,../images/weapons/Aquila_Favonia.png
+Skyward Blade,Sword,5*,46,608,,,,,,55.1%,,,../images/weapons/Skyward_Blade.png
+Summit Shaper,Sword,5*,46,608,49.6%,,,,,,,,../images/weapons/Summit_Shaper.png
+Primordial Jade Cutter,Sword,5*,44,542,,44.1%,,,,,,,../images/weapons/Primordial_Jade_Cutter.png
+Blackcliff Longsword,Sword,4*,44,565,,,36.8%,,,,,,../images/weapons/Blackcliff_Longsword.png
+Iron Sting,Sword,4*,42,510,,,,,165,,,,../images/weapons/Iron_Sting.png
+Lion's Roar,Sword,4*,42,510,41.3%,,,,,,,,../images/weapons/Lion's_Roar.png
+Prototype Rancour,Sword,4*,44,565,,,,34.5%,,,,,../images/weapons/Prototype_Rancour.png
+The Flute,Sword,4*,42,510,41.3%,,,,,,,,../images/weapons/The_Flute.png
+The Black Sword,Sword,4*,42,510,,27.6%,,,,,,,../images/weapons/The_Black_Sword.png
+Sacrificial Sword,Sword,4*,41,454,,,,,,61.3%,,,../images/weapons/Sacrificial_Sword.png
+Festering Desire,Sword,4*,42,510,,,,,,45.9%,,,../images/weapons/Festering_Desire.png
+Favonius Sword,Sword,4*,41,454,,,,,,61.3%,,,../images/weapons/Favonius_Sword.png
+Harbinger of Dawn,Sword,3*,39,401,,,46.9%,,,,,,../images/weapons/Harbinger_of_Dawn.png
+Skyward Atlas,Catalyst,5*,48,674,33.1%,,,,,,,,../images/weapons/Skyward_Atlas.png
+Lost Prayers,Catalyst,5*,46,608,,33.1%,,,,,,,../images/weapons/Lost_Prayers.png
+Memory of Dust,Catalyst,5*,46,608,49.6%,,,,,,,,../images/weapons/Memory_of_Dust.png
+Mappa Marre,Catalyst,4*,44,565,,,,,110,,,,../images/weapons/Mappa_Marre.png
+Widsith,Catalyst,4*,42,510,,,55.1%,,,,,,../images/weapons/Widsith.png
+Solar Pearl,Catalyst,4*,42,510,,27.6%,,,,,,,../images/weapons/Solar_Pearl.png
+Blackcliff Agate,Catalyst,4*,42,510,,,55.1%,,,,,,../images/weapons/Blackcliff_Agate.png
+Favonius Codex,Catalyst,4*,42,510,,,,,,45.9%,,,../images/weapons/Favonius_Codex.png
+Frostbearer,Catalyst,4*,42,510,41.3%,,,,,,,,../images/weapons/Frostbearer.png
+Prototype Amber,Catalyst,4*,42,510,,,,,,,,41.3%,../images/weapons/Prototype_Amber.png
+Eye of Perception,Catalyst,4*,41,454,,,,,,55.1%,,,../images/weapons/Eye_of_Perception.png
+Sacrificial Fragments,Catalyst,4*,41,454,,,,,221,,,,../images/weapons/Sacrificial_Fragments.png
+Thrilling Tales,Catalyst,3*,39,401,,,,,,,,35.2%,../images/weapons/Thrilling_Tales.png
+Skyward Pride,Claymore,5*,48,674,,,,,,36.8%,,,../images/weapons/Skyward_Pride.png
+Wolf's Gravestone,Claymore,5*,46,608,49.6%,,,,,,,,../images/weapons/Wolf's_Gravestone.png
+The Unforged,Claymore,5*,46,608,49.6%,,,,,,,,../images/weapons/The_Unforged.png
+Prototype Archaic,Claymore,4*,44,565,27.6%,,,,,30.6%,,,../images/weapons/Prototype_Archaic.png
+Sacrificial Greatsword,Claymore,4*,44,565,,,,,,,,,../images/weapons/Sacrificial_Greatsword.png
+Snow-Tombed Starsilver,Claymore,4*,44,565,,,,34.5%,,,,,../images/weapons/Snow-Tombed_Starsilver.png
+Lithic Blade,Claymore,4*,42,510,41.3%,,,,,,,,../images/weapons/Lithic_Blade.png
+Blackcliff Slasher,Claymore,4*,42,510,,,55.1%,,,,,,../images/weapons/Blackcliff_Slasher.png
+Whiteblind,Claymore,4*,42,510,,,,,,,,,../images/weapons/Whiteblind.png
+Rainslasher,Claymore,4*,42,510,,,,,165,,,,../images/weapons/Rainslasher.png
+Serpent Spine,Claymore,4*,42,510,,27.6%,,,,,,,../images/weapons/Serpent_Spine.png
+Favonius Greatsword,Claymore,4*,41,454,,,,,,61.30%,,,../images/weapons/Favonius_Greatsword.png

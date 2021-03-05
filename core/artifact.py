@@ -2,7 +2,7 @@ import copy
 
 class Artifact:
     def __init__(self, artifact_set, sands, goblet, circlet, subs):
-        self.set = artifact_set
+        self.artifact_set = artifact_set
         self.subs = subs  # Number of substats
         self.sands = sands
         self.goblet = goblet
@@ -27,7 +27,7 @@ class Artifact:
         a_dict = {'pct_atk': 0.466, 'pct_def': 0.583, 'pct_hp': 0.466, 'crit_rate': 0.311, 'crit_dmg': 0.622,
                   'anemo_dmg': 0.466, 'physical_dmg': 0.583,
                   'cryo_dmg': 0.466, 'electro_dmg': 0.466, 'geo_dmg': 0.466, 'hydro_dmg': 0.466, 'pyro_dmg': 0.466,
-                  'ele_m': 187, 'recharge': 0.583}
+                  'ele_m': 187, 'recharge': 0.583, 'heal_bonus': 0.583}
         setattr(self, sands, getattr(self, sands) + a_dict[sands])
         setattr(self, goblet, getattr(self, goblet) + a_dict[goblet])
         setattr(self, circlet, getattr(self, circlet) + a_dict[circlet])

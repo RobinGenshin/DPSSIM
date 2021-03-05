@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.read_data import buff_dict, debuff_dict, ele_ratio_dict, phys_ratio_dict
 from core.action import Action, Ability
+from core.artifact import Artifact
 import copy
 
 
@@ -209,7 +210,9 @@ class BurstRiptide(Ability):
         self.loop = False
 
 
-TartagliaTest = Tartaglia(90, 6, "Harbinger of Dawn", 5, "Noblesse", [10, 10, 10])
+TartagliaArtifact = Artifact("Heart of Depth", "pct_atk", "hydro_dmg", "crit_rate", 30)
+
+TartagliaF2P = Tartaglia(90, 0, "Prototype Crescent", 1, TartagliaArtifact, [6, 6, 6])
 
 
 def main():

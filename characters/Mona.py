@@ -59,8 +59,8 @@ class Mona(Char):
         pass
 
 
-MonaArtifact = Artifact("Noblesse", "recharge", "hydro_dmg", "crit_rate", 30)
-MonaF2P = Mona(90, 0, "Sacrificial Fragments", 1, MonaArtifact, [6, 6, 6])
+MonaArtifact = Artifact("Noblesse", "pct_atk", "hydro_dmg", "crit_rate", 30)
+MonaF2P = Mona(90, 0, "Favonius Codex", 1, MonaArtifact, [6, 6, 6])
 
 
 def main():

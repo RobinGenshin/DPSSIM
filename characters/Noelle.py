@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.read_data import ele_ratio_dict, buff_dict
 from core.action import Ability
+from core.artifact import Artifact
 import copy
 
 
@@ -76,7 +77,9 @@ class NoelleC4(Ability):
         self.tick_scaling = [1]
 
 
-NoelleTest = Noelle(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+NoelleArtifact = Artifact("Archaic Petra", "pct_def", "geo_dmg", "crit_rate", 30)
+
+NoelleF2P = Noelle(90, 0, "Favonius Sword", 1, NoelleArtifact, [6, 6, 6])
 
 
 def main():

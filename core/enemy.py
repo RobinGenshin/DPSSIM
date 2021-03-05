@@ -7,8 +7,7 @@ class Enemy:
     def __init__(self, enemy, level):
         self.name = enemy_dict[enemy].name
         self.level = int(level)
-        self.element = "None"
-        self.units = 0
+        self.elements = dict()
         self.defence = self.level + 100
         self.defence_debuff = float(0)
         self.live_defence = self.defence
@@ -69,6 +68,6 @@ class Enemy:
                         (getattr(self, element + "_res") - getattr(self, element + "_res_debuff")))
 
     def update_units(self):
-        if self.units <= 0:
-            self.units = 0
-            self.element = "None"
+        for element, unit in copy.copy(self.elements).items():
+            if unit < 0:
+                del self.elements[element]

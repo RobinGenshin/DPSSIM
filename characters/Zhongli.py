@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.read_data import buff_dict
 from core.action import Action
+from core.artifact import Artifact
 
 
 class Zhongli(Char):
@@ -50,7 +51,9 @@ class ZhongliA4(Action):
         self.snapshot_tot_atk = unit_obj.base_hp * (1 + unit_obj.pct_hp) + unit_obj.flat_hp
 
 
-ZhongliTest = Zhongli(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+ZhongliArtifact = Artifact("Archaic Petra", "pct_atk", "geo_dmg", "crit_rate", 30)
+
+ZhongliF2P = Zhongli(90, 0, "Favonius Lance", 1, ZhongliArtifact, [6, 6, 6])
 
 
 def main():

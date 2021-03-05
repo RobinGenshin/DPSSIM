@@ -1,29 +1,28 @@
-artifact,artifact_rarity,pct_atk,crit_rate,physical_dmg,anemo_dmg,cryo_dmg,electro_dmg,geo_dmg,hydro_dmg,pyro_dmg,ele_m,recharge,normal_dmg,charged_dmg,burst_dmg
-None,,,,,,,,,,,,,,,
-Gladiator's Finale,5*,18%,,,,,,,,,,,35%,,
-Wanderer's Troupe,5*,,,,,,,,,,80,,,35%,
-Bloodstained Chivalry,5*,,,25%,,,,,,,,,,40%,
-Noblesse,5*,,,,,,,,,,,,,,20%
-Berserker,4*,,36%,,,,,,,,,,,,
-Viridescent Venerer,5*,,,,15%,,,,,,,,,,
-Lavawalker,5*,,,,,,,,,,,,,,
-Crimson Witch,5*,,,,,,,,,37.50%,,,,,
-Thundering Fury,5*,,,,,,15%,,,,,,,,
-Thundersoother,5*,,,,,,,,,,,,,,
-Archaic Petra,5*,,,,,,,15%,,,,,,,
-2NO+2Anemo,,,,,15%,,,,,,,,,,20%
-2NO+2Cryo,,,,,,15%,,,,,,,,,20%
-2NO+2Electro,,,,,,,15%,,,,,,,,20%
-2NO+2Geo,,,,,,,,15%,,,,,,,20%
-2NO+2Hydro,,,,,,,,,15%,,,,,,20%
-2NO+2Pyro,,,,,,,,,,15%,,,,,20%
-2Glad+2Noblesse,5*,18%,,,,,,,,,,,,,20%
-2Glad+2Anemo,5*,18%,,,15%,,,,,,,,,,
-2Glad+2Cryo,5*,18%,,,,15%,,,,,,,,,
-2Glad+2Electro,5*,18%,,,,,15%,,,,,,,,
-2Glad+2Geo,5*,18%,,,,,,15%,,,,,,,
-2Glad+2Hydro,5*,18%,,,,,,,15%,,,,,,
-2Glad+2Pyro,5*,18%,,,,,,,,15%,,,,,
-2Glad+2Bloodstained,5*,18%,,25%,,,,,,,,,,,
-Heart of Depth,5*,,,,,,,,,,,,30%,30%,
-Blizzard Strayer,5*,,,,,15%,,,15%,,,,,,
+artifact,artifact_rarity,pct_atk,crit_rate,physical_dmg,anemo_dmg,cryo_dmg,electro_dmg,geo_dmg,hydro_dmg,pyro_dmg,ele_m,recharge,normal_dmg,charged_dmg,burst_dmg,img_source
+Gladiator's Finale,5*,18%,,,,,,,,,,,35%,,,../images/artifacts/Gladiator's_Finale.png
+Wanderer's Troupe,5*,,,,,,,,,,80,,,35%,,../images/artifacts/Wanderer's_Troupe.png
+Bloodstained Chivalry,5*,,,25%,,,,,,,,,,40%,,../images/artifacts/Bloodstained_Chivalry.png
+Noblesse Oblige,5*,,,,,,,,,,,,,,20%,../images/artifacts/Noblesse_Oblige.png
+Berserker,4*,,36%,,,,,,,,,,,,,../images/artifacts/Berserker.png
+Viridescent Venerer,5*,,,,15%,,,,,,,,,,,../images/artifacts/Viridescent_Venerer.png
+Lavawalker,5*,,,,,,,,,,,,,,,../images/artifacts/Lavawalker.png
+Crimson Witch,5*,,,,,,,,,37.50%,,,,,,../images/artifacts/Crimson_Witch.png
+Thundering Fury,5*,,,,,,15%,,,,,,,,,../images/artifacts/Thundering_Fury.png
+Thundersoother,5*,,,,,,,,,,,,,,,../images/artifacts/Thundersoother.png
+Archaic Petra,5*,,,,,,,15%,,,,,,,,../images/artifacts/Archaic_Petra.png
+Heart of Depth,5*,,,,,,,,,,,,30%,30%,,../images/artifacts/Heart_of_Depth.png
+Blizzard Strayer,5*,,,,,15%,,,15%,,,,,,,../images/artifacts/Blizzard_Strayer.png
+2NO+2Anemo,,,,,15%,,,,,,,,,,20%,../images/artifacts/2NO+2Anemo.png
+2NO+2Cryo,,,,,,15%,,,,,,,,,20%,../images/artifacts/2NO+2Cryo.png
+2NO+2Electro,,,,,,,15%,,,,,,,,20%,../images/artifacts/2NO+2Electro.png
+2NO+2Geo,,,,,,,,15%,,,,,,,20%,../images/artifacts/2NO+2Geo.png
+2NO+2Hydro,,,,,,,,,15%,,,,,,20%,../images/artifacts/2NO+2Hydro.png
+2NO+2Pyro,,,,,,,,,,15%,,,,,20%,../images/artifacts/2NO+2Pyro.png
+2Glad+2Noblesse,5*,18%,,,,,,,,,,,,,20%,../images/artifacts/2Glad+2Noblesse.png
+2Glad+2Anemo,5*,18%,,,15%,,,,,,,,,,,../images/artifacts/2Glad+2Anemo.png
+2Glad+2Cryo,5*,18%,,,,15%,,,,,,,,,,../images/artifacts/2Glad+2Cryo.png
+2Glad+2Electro,5*,18%,,,,,15%,,,,,,,,,../images/artifacts/2Glad+2Electro.png
+2Glad+2Geo,5*,18%,,,,,,15%,,,,,,,,../images/artifacts/2Glad+2Geo.png
+2Glad+2Hydro,5*,18%,,,,,,,15%,,,,,,,../images/artifacts/2Glad+2Hydro.png
+2Glad+2Pyro,5*,18%,,,,,,,,15%,,,,,,../images/artifacts/2Glad+2Pyro.png
+2Glad+2Bloodstained,5*,18%,,25%,,,,,,,,,,,,../images/artifacts/2Glad+2Bloodstained.png

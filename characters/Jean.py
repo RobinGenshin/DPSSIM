@@ -1,4 +1,5 @@
 from core.unit import Char
+from core.artifact import Artifact
 
 
 class Jean(Char):
@@ -16,7 +17,10 @@ class Jean(Char):
         unit_obj.live_normal_speed += 0.15
 
 
-JeanTest = Jean(90, 6, "Harbinger of Dawn", 5, "Noblesse", [10, 10, 10])
+JeanArtifact = Artifact("Viridescent Venerer", "pct_atk", "anemo_dmg", "crit_rate", 30)
+
+JeanF2P = Jean(90, 0, "Favonius Sword", 1, JeanArtifact, [6, 6, 6])
+
 
 
 def main():

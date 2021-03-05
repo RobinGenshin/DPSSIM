@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.action import Combo
 from core.read_data import buff_dict
+from core.artifact import Artifact
 import copy
 
 
@@ -52,7 +53,9 @@ class TravelerGeoA4(Combo):
         self.loop = False
 
 
-TravelerGeoTest = TravelerGeo(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+TravelerGeoArtifact = Artifact("Archaic Petra", "pct_atk", "geo_dmg", "crit_rate", 30)
+
+TravelerGeoF2P = TravelerGeo(90, 6, "Festering Desire", 5, TravelerGeoArtifact, [6, 6, 6])
 
 
 def main():

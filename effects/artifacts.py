@@ -18,26 +18,27 @@ class ActiveBuff:
 
     @staticmethod
     def lavawalker(unit_obj, sim, _):
-        if sim.enemy.element == "Pyro":
+        if "Pyro" in sim.enemy.elements:
             unit_obj.live_cond_dmg += 0.35
 
     @staticmethod
     def thundersoother(unit_obj, sim, _):
-        if sim.enemy.element == "Electro":
+        if "Electro" in sim.enemy.elements:
             unit_obj.live_cond_dmg += 0.35
 
     @staticmethod
     def blizzard_strayer(unit_obj, sim, _):
-        if sim.enemy.element == "Cryo":
-            unit_obj.live_crit_rate += 0.2
-        if sim.enemy.frozen == "Frozen":
-            unit_obj.live_crit_rate += 0.2
+        if "Cryo" in sim.enemy.elements or "Frozen" in sim.enemy.elements:
+            unit_obj.live_cond_crit_rate += 0.2
+        if "Frozen" in sim.enemy.elements:
+            unit_obj.live_cond_crit_rate += 0.2
 
-    @staticmethod
-    def archaic_petra(_, sim, reaction):
+    def archaic_petra(self, _, sim, reaction):
         if reaction[0] == "crystallise":
             for unit in sim.units:
-                unit.active_buffs["Archaic Petra"] = copy.copy(buff_dict.get(reaction[1] + "_petra"))
+                for key, _ in reaction[1].items():
+                    unit.active_buffs["Archaic Petra"] = copy.copy(buff_dict.get(key + "_petra"))
+                    unit.active_buffs["Archaic Petra"].source = self
 
     @staticmethod
     def cryo_petra(unit_obj, _):
@@ -68,12 +69,15 @@ class ActiveBuff:
     @staticmethod
     def viridescent_venerer(_, sim, reaction):
         if reaction[0] == "swirl":
-            if reaction[1] == "Pyro":
-                sim.enemy.active_debuffs["VV_Pyro"] = copy.deepcopy(debuff_dict["VV_Pyro"])
-            if reaction[1] == "Hydro":
-                sim.enemy.active_debuffs["VV_Hydro"] = copy.deepcopy(debuff_dict["VV_Hydro"])
-            if reaction[1] == "Electro":
-                sim.enemy.active_debuffs["VV_Electro"] = copy.deepcopy(debuff_dict["VV_Electro"])
-            if reaction[1] == "Cryo":
-                sim.enemy.active_debuffs["VV_Cryo"] = copy.deepcopy(debuff_dict["VV_Cryo"])
-            print(reaction[2].unit.name + " reduced enemy " + sim.enemy.element + " RES with VV")
+            for key in reaction[1]:
+                if key == "Pyro":
+                    sim.enemy.active_debuffs["VV_Pyro"] = copy.deepcopy(debuff_dict["VV_Pyro"])
+                if key == "Hydro":
+                    sim.enemy.active_debuffs["VV_Hydro"] = copy.deepcopy(debuff_dict["VV_Hydro"])
+                if key == "Electro":
+                    sim.enemy.active_debuffs["VV_Electro"] = copy.deepcopy(debuff_dict["VV_Electro"])
+                if key == "Cryo" or key == "Frozen":
+                    sim.enemy.active_debuffs["VV_Cryo"] = copy.deepcopy(debuff_dict["VV_Cryo"])
+                if key == "Frozen":
+                    key = "Cryo"
+                print(reaction[2].unit.character + " reduced enemy " + key + " RES with VV")

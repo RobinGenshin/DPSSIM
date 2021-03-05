@@ -1,4 +1,5 @@
 from core.unit import Char
+from core.artifact import Artifact
 
 
 class Qiqi(Char):
@@ -9,12 +10,14 @@ class Qiqi(Char):
         pass
 
     def qiqi_c2(self, _, sim, __):
-        if sim.enemy.element == "Cryo":
+        if "Cryo" in sim.enemy.elements or "Frozen" in sim.enemy.elements:
             self.live_normal_cond_dmg += 0.15
             self.live_charged_cond_dmg += 0.15
 
 
-QiqiTest = Qiqi(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+QiqiArtifact = Artifact("Noblesse", "recharge", "cryo_dmg", "crit_rate", 30)
+
+QiqiF2P = Qiqi(90, 0, "Sacrificial Sword", 5, QiqiArtifact, [6, 6, 6])
 
 
 def main():

@@ -1,4 +1,5 @@
 from core.unit import Char
+from core.artifact import Artifact
 
 
 class Diona(Char):
@@ -25,7 +26,9 @@ class Diona(Char):
         unit_obj.live_ele_m += 200
 
 
-DionaTest = Diona(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+DionaArtifact = Artifact("Noblesse", "pct_atk", "cryo_dmg", "crit_rate", 30)
+
+DionaF2P = Diona(90, 0, "Favonius Warbow", 1, DionaArtifact, [6, 6, 6])
 
 
 def main():

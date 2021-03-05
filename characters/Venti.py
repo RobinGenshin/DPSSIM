@@ -40,6 +40,7 @@ class Venti(Char):
 
 
 VentiArtifact = Artifact("Viridescent Venerer", "pct_atk", "anemo_dmg", "crit_rate", 30)
+
 VentiF2P = Venti(90, 0, "The Stringless", 1, VentiArtifact, [6, 6, 6])
 
 

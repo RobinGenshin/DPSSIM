@@ -2,6 +2,7 @@ from core.unit import Char
 from core.read_data import buff_dict
 from core.action import Combo
 from core.scaling import ratio_type
+from core.artifact import Artifact
 import copy
 
 
@@ -54,7 +55,10 @@ class Sucrose(Char):
         self.live_skill_cd = max(0, self.live_skilL_cd - (4 / 7))
 
 
-SucroseTest = Sucrose(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+SucroseArtifact = Artifact("Viridiscent Venerer", "recharge", "anemo_dmg", "crit_rate", 30)
+
+SucroseF2P = Sucrose(90, 0, "Sacrificial Fragments", 1, SucroseArtifact, [6, 6, 6])
+
 
 
 def main():

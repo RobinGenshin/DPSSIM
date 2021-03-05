@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.read_data import buff_dict
 from core.action import Combo
+from core.artifact import Artifact
 import copy
 
 
@@ -59,7 +60,9 @@ class XianglingC2(Combo):
         self.loop = False
 
 
-XianglingTest = Xiangling(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+XianglingArtifact = Artifact("Noblesse", "pct_atk", "pyro_dmg", "crit_rate", 30)
+
+XianglingF2P = Xiangling(90, 0, "Favonius Lance", 1, XianglingArtifact, [6, 6, 6])
 
 
 def main():

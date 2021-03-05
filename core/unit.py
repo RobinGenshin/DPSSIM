@@ -11,12 +11,16 @@ class Char:
 
         self.level = level
         self.element = character_dict[char].element
+        self.region = character_dict[char].region
         self.weapon_type = character_dict[char].weapon_type
+        self.weapon_rarity = weapon_dict[weapon].rarity
         self.character = char
         self.constellation = constellation
         self.weapon = weapon
         self.weapon_rank = weapon_rank
+        self.artifact_set = artifact.artifact_set
         self.artifact = artifact
+        self.artifact_copy = copy.deepcopy(artifact)
         self.normal_level = talent_levels[0]
         self.skill_level = talent_levels[1]
         self.burst_level = talent_levels[2]
@@ -58,6 +62,9 @@ class Char:
         self.active_buffs = {}
         self.triggerable_debuffs = {}
 
+        self.add_effects()
+        self.add_substats()
+
         base_stats = copy.copy(self.__dict__)
 
         for x in base_stats:
@@ -72,9 +79,6 @@ class Char:
         self.current_energy = self.live_burst_energy_cost
         self.current_skill_charges = self.live_skill_charges
 
-        self.add_effects()
-        self.add_substats()
-
         self.greedy = False
         self.shielded = False
 
@@ -85,7 +89,9 @@ class Char:
                 if buff.constellation <= self.constellation:
                     if buff.type == "Static":
                         self.static_buffs[key] = copy.deepcopy(buff)
-                        getattr(self, buff.method)()
+                        self.static_buffs[key].source = self
+                        if buff.type2 != "team":
+                            getattr(self, buff.method)()
                     if buff.type == "Active":
                         self.triggerable_buffs[key] = copy.deepcopy(buff)
                         self.triggerable_buffs[key].source = self
@@ -93,15 +99,19 @@ class Char:
             if self.weapon in buff.weapon:
                 if buff.type == "Static":
                     self.static_buffs[key] = copy.deepcopy(buff)
-                    getattr(weapons.StaticBuff, buff.method)(self)
+                    self.static_buffs[key].source = weapons.StaticBuff()
+                    if buff.type2 != "team":
+                        getattr(weapons.StaticBuff, buff.method)(self)
                 if buff.type == "Active":
                     self.triggerable_buffs[key] = copy.deepcopy(buff)
                     self.triggerable_buffs[key].source = weapons.ActiveBuff()
 
-            if buff.artifact == self.artifact:
+            if buff.artifact == self.artifact_set:
                 if buff.type == "Static":
                     self.static_buffs[key] = copy.deepcopy(buff)
-                    getattr(artifacts.StaticBuff(), buff.method)(self)
+                    self.static_buffs[key].source = artifacts.StaticBuff()
+                    if buff.type2 != "team":
+                        getattr(artifacts.StaticBuff(), buff.method)(self)
                 if buff.type == "Active":
                     self.triggerable_buffs[key] = copy.deepcopy(buff)
                     self.triggerable_buffs[key].source = artifacts.ActiveBuff()
@@ -140,3 +150,5 @@ class Char:
 
     def burst_level_plus_3(self):
         self.burst_level += 3
+
+print(buff_dict["Blizzard Strayer"].artifact)

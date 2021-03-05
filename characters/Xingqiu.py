@@ -2,7 +2,6 @@ from core.unit import Char
 from core.read_data import buff_dict
 from core.action import Ability
 from core.artifact import Artifact
-from core.sim import Sim, Monster
 from math import fmod
 from characters.Diluc import DilucF2P
 import copy
@@ -12,6 +11,7 @@ class Xingqiu(Char):
     def __init__(self, level, constellation, weapon, weapon_rank, artifact, talent_levels):
         super().__init__("Xingqiu", level, constellation, weapon, weapon_rank, artifact, talent_levels)
         self.q_tick = 0
+        self.q_procs = 0
 
     # Static
     def xingqiu_a4(self):
@@ -59,6 +59,7 @@ class Xingqiu(Char):
         self.q_tick += 1
         for unit in sim.units:
             unit.triggerable_buffs["Xingqiu_Q_Trigger"].live_cd = 1
+        self.q_procs += 1
 
 
 class XingqiuQTick(Ability):
@@ -76,8 +77,9 @@ class XingqiuQTick(Ability):
         self.tick_used = ["no"] * ticks
 
 
-XingqiuArtifact = Artifact("Noblesse", "recharge", "hydro_dmg", "crit_rate", 30)
-XingqiuF2P = Xingqiu(90, 0, "Sacrificial Sword", 5, XingqiuArtifact, [6, 6, 6])
+XingqiuArtifact = Artifact("Noblesse", "pct_atk", "hydro_dmg", "crit_rate", 30)
+
+XingqiuF2P = Xingqiu(90, 0, "Sacrificial Sword", 1, XingqiuArtifact, [6, 6, 6])
 
 
 def main():

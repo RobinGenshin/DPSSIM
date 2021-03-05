@@ -1,5 +1,6 @@
 from core.unit import Char
 from core.action import Ability
+from core.artifact import Artifact
 import copy
 
 class Amber(Char):
@@ -58,7 +59,9 @@ class AmberC2(Ability):
         self.loop = False
 
 
-AmberTest = Amber(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+AmberArtifact = Artifact("Noblesse", "pct_atk", "pyro_dmg", "crit_rate", 30)
+
+AmberF2P = Amber(90, 0, "The Stringless", 1, AmberArtifact, [6, 6, 6])
 
 
 def main():

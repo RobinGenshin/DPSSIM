@@ -11,18 +11,18 @@ class Resonance:
 
     @staticmethod
     def anemo_resonance(unit_obj, _):
-        unit_obj.skilL_cdr *= 0.95
+        unit_obj.skill_cdr *= 0.95
         unit_obj.burst_cdr *= 0.95
 
     @staticmethod
     def cryo_resonance(unit_obj, sim, _):
-        if sim.enemy.element == "Cryo":
+        if "Cryo" in sim.enemy.elements or "Frozen in sim.enemy.elements":
             unit_obj.live_cond_crit_rate += 0.15
 
     @staticmethod
     def electro_resonance(unit_obj, sim, reaction):
         if reaction[0] in {"electro_charged", "overload", "superconduct"}:
-            particle = Particle(unit_obj, "Electro", 1)
+            particle = Particle(unit_obj, "Electro", 1, sim)
             particle.add_to_energy_queue(sim)
             for unit in sim.units:
                 unit.triggerable_buffs["Electro_Resonance"].live_cd = 5

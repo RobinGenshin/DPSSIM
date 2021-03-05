@@ -2,9 +2,9 @@ from math import sqrt
 
 
 def calculate_crit_atk_ratio(unit):
-    g = unit.live_pct_atk / 0.0495 + (unit.live_crit_rate - 0.05) / 0.033 + (unit.live_crit_dmg - 0.5) / 0.066 + unit.artifact.subs
-    f = unit.live_flat_atk
-    b = unit.live_base_atk
+    g = unit.pct_atk / 0.0495 + (unit.crit_rate - 0.05) / 0.033 + (unit.crit_dmg - 0.5) / 0.066 + unit.artifact.subs
+    f = unit.flat_atk
+    b = unit.base_atk
 
     y = (9801*b*b*g*g) + (396000*b*f + 574200*b*b)*g + (4000000*f*f) + (11600000*b*f) - (45590000*b*b)
 

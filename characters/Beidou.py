@@ -1,6 +1,7 @@
 from core.unit import Char
 from core.read_data import buff_dict
 from core.action import Ability, Combo
+from core.artifact import Artifact
 import copy
 
 
@@ -63,7 +64,9 @@ class BeidouC4(Combo):
         self.loop = False
 
 
-BeidouTest = Beidou(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+BeidouArtifact = Artifact("Noblesse", "pct_atk", "electro_dmg", "crit_rate", 30)
+
+BeidouF2P = Beidou(90, 0, "Favonius Greatsword", 1, BeidouArtifact, [6, 6, 6])
 
 
 def main():

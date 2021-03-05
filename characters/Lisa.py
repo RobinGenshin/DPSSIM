@@ -1,4 +1,5 @@
 from core.unit import Char
+from core.artifact import Artifact
 
 
 class Lisa(Char):
@@ -19,7 +20,9 @@ class Lisa(Char):
         pass
 
 
-LisaTest = Lisa(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+LisaArtifact = Artifact("Noblesse", "pct_atk", "electro_dmg", "crit_rate", 30)
+
+LisaF2P = Lisa(90, 0, "Favonius Codex", 1, LisaArtifact, [6, 6, 6])
 
 
 def main():

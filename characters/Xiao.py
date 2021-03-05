@@ -1,5 +1,5 @@
 from core.unit import Char
-
+from core.artifact import Artifact
 
 class Xiao(Char):
     def __init__(self, level, constellation, weapon, weapon_rank, artifact, talent_levels):
@@ -50,7 +50,9 @@ class Xiao(Char):
         pass
 
 
-XiaoTest = Xiao(90, 6, "Harbinger of Dawn", 5, "Noblesse", [6, 6, 6])
+XiaoArtifact = Artifact("Viridiscent Venerer", "pct_atk", "anemo_dmg", "crit_rate", 30)
+
+XiaoF2P = Xiao(90, 0, "Deathmatch", 1, XiaoArtifact, [6, 6, 6])
 
 
 def main():

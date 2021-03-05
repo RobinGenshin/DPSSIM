@@ -21,16 +21,16 @@ class StaticBuff:
 
     @staticmethod
     def stringless(unit):
-        unit.skill_dmg += 0.24 + (unit.weapon_rank - 1) * 0.6
-        unit.burst_dmg += 0.24 + (unit.weapon_rank - 1) * 0.6
+        unit.skill_dmg += 0.24 + (unit.weapon_rank - 1) * 0.06
+        unit.burst_dmg += 0.24 + (unit.weapon_rank - 1) * 0.06
 
     @staticmethod
     def sharpshooter(unit):
-        unit.charged_dmg += 0.24 + (unit.weapon_rank - 1) * 0.6
+        unit.charged_dmg += 0.24 + (unit.weapon_rank - 1) * 0.06
 
     @staticmethod
     def slingshot(unit):
-        unit.charged_dmg += 0.36 + (unit.weapon_rank - 1) * 0.6
+        unit.charged_dmg += 0.36 + (unit.weapon_rank - 1) * 0.06
 
     # Catalyst
     @staticmethod
@@ -44,17 +44,22 @@ class StaticBuff:
 
     @staticmethod
     def skyward_pride(unit):
-        unit.all_dmg += 0.8 + (unit.weapon_rank - 1) * 0.02
+        unit.all_dmg += 0.08 + (unit.weapon_rank - 1) * 0.02
 
     # Polearm
     @staticmethod
     def skyward_spine(unit):
-        unit.crit_rate += 0.8 + (unit.weapon_rank - 1) * 0.02
+        unit.crit_rate += 0.08 + (unit.weapon_rank - 1) * 0.02
 
     @staticmethod
     def staff_of_homa(unit):
         unit.pct_hp += 0.2 + (unit.weapon_rank - 1) * 0.05
-        unit.flat_atk += (0.008 + (unit.weapon_rank - 1) * 0.002) * (unit.base_hp * unit.pct_hp + unit.flat_hp)
+        unit.flat_atk += (0.008 + (unit.weapon_rank - 1) * 0.002) * (unit.base_hp * (1 + unit.pct_hp) + unit.flat_hp)
+
+    @staticmethod
+    def staff_of_homa_a(unit):
+        unit.pct_hp += 0.2 + (unit.weapon_rank - 1) * 0.05
+        unit.flat_atk += (0.018 + (unit.weapon_rank - 1) * 0.004) * (unit.base_hp * (1 + unit.pct_hp) + unit.flat_hp)
 
     @staticmethod
     def deathmatch(unit):
@@ -97,6 +102,11 @@ class StaticBuff:
     def blackcliff(unit):
         unit.pct_atk += 0.12 + (unit.weapon_rank - 1) * 0.03
 
+    @staticmethod
+    def lithic(unit, sim):
+        liyue_units = sum(1 for unit in sim.units if unit.region == "Liyue")
+        unit.pct_atk += (0.07 + (unit.weapon_rank - 1) * 0.01) * liyue_units
+        unit.crit_rate += (0.03 + (unit.weapon_rank - 1) * 0.01) * liyue_units
 
 class ActiveBuff:
 
@@ -155,7 +165,7 @@ class ActiveBuff:
 
     @staticmethod
     def rainslasher_2(unit_obj, sim, _):
-        if sim.enemy.element == "Hydro" or sim.enemy.element == "Electro":
+        if "Hydro" in sim.enemy.elements or "Electro" in sim.enemy.elements:
             unit_obj.live_cond_dmg += 0.2 + (unit_obj.weapon_rank - 1) * 0.05
 
     @staticmethod
@@ -253,10 +263,6 @@ class ActiveBuff:
         unit_obj.triggerable_buffs["Skyward Spine 2"].live_cd = 2
 
     @staticmethod
-    def lithic_spear_2(self, unit_obj, sim, extra):
-        pass
-
-    @staticmethod
     def primordial_spear_2(unit, _):
         unit.live_pct_atk += (0.032 + (unit.weapon_rank - 1) * 0.007) * unit.active_buffs["Prim Spear 2"].stacks
         if unit.active_buffs["Prim Spear 2"].stacks == 7:
@@ -276,7 +282,7 @@ class ActiveBuff:
     # Swords
     @staticmethod
     def lions_roar_2(unit_obj, sim, _):
-        if sim.enemy.element == "Pyro" or sim.enemy.element == "Electro":
+        if "Pyro" in sim.enemy.elements or "Electro" in sim.enemy.elements:
             unit_obj.live_cond_dmg += 0.2 + (unit_obj.weapon_rank - 1) * 0.05
 
     @staticmethod
@@ -330,7 +336,10 @@ class ActiveBuff:
     # Misc
     @staticmethod
     def favonius(unit_obj, sim, extra):
-        pass
+        from core.action import Particle
+        particles = Particle(unit_obj, "Clear", 3, sim)
+        particles.add_to_energy_queue(sim)
+        unit_obj.triggerable_buffs["Favonius"].live_cd = 12 - (unit_obj.weapon_rank - 1) * 1.5
 
     @staticmethod
     def sacrificial(unit_obj, _, __):
@@ -343,14 +352,13 @@ class ActiveBuff:
             mult = 2
         else:
             mult = 1
-        print("SUMMIT SHAPER")
         unit_obj.live_pct_atk += (0.08 + (unit_obj.weapon_rank - 1) * 0.02) * unit_obj.active_buffs["Geo Weapon"].stacks * mult
 
     @staticmethod
     def dragonspine(unit_obj, sim, _):
         dragonspine = WeaponAction(unit_obj, 1)
         d = (unit_obj.weapon_rank - 1) * 0.15 + 0.8
-        if sim.enemy.element == "Cryo":
+        if "Cryo" in sim.enemy.elements or "Frozen" in sim.enemy.elements:
             d *= 2.5
         dragonspine.tick_damage = [d]
         dragonspine.add_to_damage_queue(sim)
