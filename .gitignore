@@ -1,2 +1,4 @@
 .idea/
 ui/
+*.pyc
+*/__pycache__/*
