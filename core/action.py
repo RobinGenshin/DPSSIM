@@ -435,3 +435,23 @@ class ElectroCharged(Action):
                 return 0
         else:
             return 0
+
+class ManualAction:
+    def __init__(self, unit_obj, talent="", combo=""):
+        self.unit = unit_obj
+        self.talent = talent
+        self.combo = combo
+        if talent != "" and combo != "":
+            raise RuntimeError(f'ManualAction cannot be a talent and a combo') 
+
+    def find_action(self, action_list):
+        for action in action_list:
+            if action.unit == self.unit: 
+                if type(action) == Ability and (self.talent == action.talent):
+                    return action
+                if type(action) == Combo:
+                    combo_name = action.name.split(" ")[1] # action names in the form of "Bennett N4C"
+                    if combo_name == self.combo:
+                        return action
+
+        raise RuntimeError(f'Could not find action: ({self.unit.character}, {self.talent + self.combo})') 

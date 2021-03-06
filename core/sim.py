@@ -1,7 +1,7 @@
 # pylint: disable=no-member
 from core.enemy import Enemy
 from core.reactions import React
-from core.action import ComboList, Ability, Combo
+from core.action import ComboList, Ability, Combo, ManualAction
 from effects.resonance import Resonance
 import copy
 from core.priority_list import PriorityList
@@ -11,7 +11,7 @@ from characters.Test import *
 
 # Creating a list of actions
 class Sim:
-    def __init__(self, units, enemy, time):
+    def __init__(self, units, enemy, time, manual_actions=None):
         self.units = units
         self.enemy = enemy
         self.encounter_limit = time
@@ -31,6 +31,7 @@ class Sim:
         self.sorted_action_queue = []
         self.a_dict = dict()
         self.encounter_data = dict()
+        self.manual_actions = manual_actions
 
         self.stamina = 250
         self.stamina_timer = 0
@@ -174,7 +175,11 @@ class Sim:
 
     # Chooses the best action from the action list. Currently does so based on the highest dps
     def choose_action(self):
-        self.chosen_action = PriorityList().prioritise(self, self.action_list)
+        if self.manual_actions:
+            self.chosen_action = self.manual_actions.pop(0).find_action(self.action_list)
+        else:
+            self.chosen_action = PriorityList().prioritise(self, self.action_list)
+        
         self.chosen_unit = self.chosen_action.unit
         if self.action_order == 1:
             self.last_unit = self.chosen_unit
@@ -488,6 +493,8 @@ class Sim:
         self.static_buff_team()
         self.resonance()
         while self.encounter_duration < self.encounter_limit:
+            if self.manual_actions is not None and len(self.manual_actions) == 0:
+                break
             self.start_sim()
             self.update_action_list()
             self.choose_action()
@@ -550,7 +557,17 @@ class Sim:
 
 
 def main():
-    Test = Sim({BennettF2P, AlbedoF2P}, Enemy("Hilichurls", 90), 60)
+
+    #Test = Sim({BennettF2P, AlbedoF2P}, Enemy("Hilichurls", 90), 60)
+    #Test.turn_on_sim()
+    #print(Test.encounter_data)
+
+    manual_actions = []
+    manual_actions.append(ManualAction(BennettF2P, talent="skill"))
+    manual_actions.append(ManualAction(AlbedoF2P, talent="skill"))
+    manual_actions.append(ManualAction(AlbedoF2P, combo="N3C"))
+    
+    Test = Sim({BennettF2P, AlbedoF2P}, Enemy("Hilichurls", 90), 60, manual_actions=manual_actions)
     Test.turn_on_sim()
     print(Test.encounter_data)
 
