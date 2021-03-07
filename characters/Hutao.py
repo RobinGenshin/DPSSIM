@@ -22,7 +22,6 @@ class Hutao(Char):
         self.active_buffs["Hutao_E_Buff"].source = self
 
     def hutao_e_buff(self, _, __):
-
         self.live_flat_atk += self.snapshot_buff
 
         self.live_normal_type = "Pyro"

@@ -89,8 +89,8 @@ class Sim:
         self.action_list.update(
             Combo(unit, combo) for unit in self.units for combo in ComboList().create(unit, self).values() if
             Combo(unit, combo).available(self) == True)
-        for action in self.action_list:
-            print(action.name)
+        #for action in self.action_list:
+        #    print(action.name)
     # Checks for buffs/triggers and updates stats
     def check_buff(self, type2, action, tick, extra):
         for key, buff in copy.copy(action.unit.triggerable_buffs).items():
@@ -376,7 +376,6 @@ class Sim:
 
         self.check_buff("pre_hit", damage_action, tick, None)
         self.check_buff("mid_hit", damage_action, tick, [damage_action, tick])
-
         damage_action_element_unit = damage_action.tick_units[tick]
         multiplier = 1
         if damage_action_element_unit > 0:
@@ -565,8 +564,9 @@ def main():
 
     manual_actions = []
     manual_actions.append(ManualAction(HutaoF2P, combo="N3"))
-    manual_actions.append(ManualAction(HutaoF2P, talent="skill"))
+    manual_actions.append(ManualAction(HutaoF2P, talent="skill")) # TODO counts BB damage after end of rotation
     manual_actions.append(ManualAction(HutaoF2P, combo="N3"))
+    manual_actions.append(ManualAction(HutaoF2P, combo="N3")) # TODO HUTAO N3C not working, also charged is allowed without normal attacks?
     #manual_actions.append(ManualAction(BennettF2P, talent="skill"))
     #manual_actions.append(ManualAction(AlbedoF2P, talent="skill"))
     #manual_actions.append(ManualAction(AlbedoF2P, combo="N3C"))
