@@ -8,6 +8,7 @@ from characters.Diluc import DilucF2P
 from characters.Diona import DionaF2P
 from characters.Fischl import FischlF2P
 from characters.Ganyu import GanyuF2P
+from characters.Hutao import HutaoF2P
 from characters.Jean import JeanF2P
 from characters.Kaeya import KaeyaF2P
 from characters.Keqing import KeqingF2P

@@ -89,7 +89,8 @@ class Sim:
         self.action_list.update(
             Combo(unit, combo) for unit in self.units for combo in ComboList().create(unit, self).values() if
             Combo(unit, combo).available(self) == True)
-
+        for action in self.action_list:
+            print(action.name)
     # Checks for buffs/triggers and updates stats
     def check_buff(self, type2, action, tick, extra):
         for key, buff in copy.copy(action.unit.triggerable_buffs).items():
@@ -563,11 +564,14 @@ def main():
     #print(Test.encounter_data)
 
     manual_actions = []
-    manual_actions.append(ManualAction(BennettF2P, talent="skill"))
-    manual_actions.append(ManualAction(AlbedoF2P, talent="skill"))
-    manual_actions.append(ManualAction(AlbedoF2P, combo="N3C"))
+    manual_actions.append(ManualAction(HutaoF2P, combo="N3"))
+    manual_actions.append(ManualAction(HutaoF2P, talent="skill"))
+    manual_actions.append(ManualAction(HutaoF2P, combo="N3"))
+    #manual_actions.append(ManualAction(BennettF2P, talent="skill"))
+    #manual_actions.append(ManualAction(AlbedoF2P, talent="skill"))
+    #manual_actions.append(ManualAction(AlbedoF2P, combo="N3C"))
     
-    Test = Sim({BennettF2P, AlbedoF2P}, Enemy("Hilichurls", 90), 60, manual_actions=manual_actions)
+    Test = Sim({HutaoF2P, BennettF2P, AlbedoF2P}, Enemy("Hilichurls", 90), 60, manual_actions=manual_actions)
     Test.turn_on_sim()
     print(Test.encounter_data)
 
