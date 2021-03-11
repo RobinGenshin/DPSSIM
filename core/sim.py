@@ -159,6 +159,9 @@ class Sim:
             unit.update_stats(self)
             unit.active_buffs = {k: unit.active_buffs[k] for k in unit.active_buffs if
                                  unit.active_buffs[k].time_remaining > 0}
+            unit_on_field = (unit == self.chosen_action.unit)
+            unit.active_buffs = {k: unit.active_buffs[k] for k in unit.active_buffs if
+                                 unit.active_buffs[k].greedy != "Yes" or unit_on_field}
             unit.update_stats(self)
 
             for buff in copy.copy(unit.triggerable_buffs):
